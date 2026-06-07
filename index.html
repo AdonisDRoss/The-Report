@@ -103,6 +103,11 @@
     path: 'assets/maps/rh_central_ground.png'
   };
 
+  const TITLE_ASSET = {
+    key: 'title_raven_hook_clean_960x540',
+    path: 'assets/ui/title/title_raven_hook_clean_960x540.png'
+  };
+
   function makeText(scene, x, y, value, size = 16, color = '#fff', fixed = false) {
     const t = scene.add.text(x, y, value, { fontFamily: 'Courier New', fontSize: `${size}px`, color, stroke: '#000', strokeThickness: 3, wordWrap: { width: 900 } });
     if (fixed) t.setScrollFactor(0).setDepth(2000);
@@ -114,24 +119,34 @@
 
   class TitleScene extends Phaser.Scene {
     constructor() { super('TitleScene'); }
+
+    preload() {
+      this.load.image(TITLE_ASSET.key, A(TITLE_ASSET.path));
+    }
+
     create() {
-      const g = this.add.graphics();
-      g.fillStyle(0x05070b, 1).fillRect(0, 0, VIEW_W, VIEW_H);
-      for (let i = 0; i < 24; i++) {
-        const x = Phaser.Math.Between(-40, VIEW_W), h = Phaser.Math.Between(60, 250), w = Phaser.Math.Between(30, 80);
-        g.fillStyle(0x0e1720, 1).fillRect(x, VIEW_H - 150 - h, w, h);
-        if (i % 3 === 0) g.fillStyle(COLORS.neonPink, 0.55).fillRect(x + 6, VIEW_H - 150 - h + 22, w - 12, 3);
-        if (i % 4 === 0) g.fillStyle(COLORS.cyan, 0.45).fillRect(x + 6, VIEW_H - 150 - h + 48, w - 12, 3);
+      this.cameras.main.setBackgroundColor('#05070b');
+
+      if (this.textures.exists(TITLE_ASSET.key)) {
+        this.add.image(0, 0, TITLE_ASSET.key)
+          .setOrigin(0, 0)
+          .setDisplaySize(VIEW_W, VIEW_H)
+          .setDepth(0);
+      } else {
+        const g = this.add.graphics();
+        g.fillStyle(0x05070b, 1).fillRect(0, 0, VIEW_W, VIEW_H);
+        makeText(this, VIEW_W / 2, 88, 'THE REPORT', 58, '#f4d28a').setOrigin(0.5);
+        makeText(this, VIEW_W / 2, 150, 'RAVEN HOOK CENTRAL v0.3', 24, '#86e7ff').setOrigin(0.5);
       }
-      g.fillStyle(0x111827, 1).fillRect(0, VIEW_H - 145, VIEW_W, 145);
-      g.lineStyle(4, COLORS.amber, 0.65).lineBetween(0, VIEW_H - 78, VIEW_W, VIEW_H - 78);
-      makeText(this, VIEW_W / 2, 88, 'THE REPORT', 58, '#f4d28a').setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 150, 'RAVEN HOOK CENTRAL v0.3', 24, '#86e7ff').setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 245, 'Precinct → Market → Crime → Evidence → Trunk → Report', 18, '#ffffff').setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 325, 'ENTER / TAP TO START', 24, '#f4d28a').setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 388, 'Mobile-safe build: raised SNES controls + staggered asset loading', 15, '#eeeeee').setOrigin(0.5);
-      this.input.keyboard.once('keydown-ENTER', () => this.scene.start('GameScene'));
-      this.input.once('pointerdown', () => this.scene.start('GameScene'));
+
+      // Menu cursor/selection is drawn in Phaser, not baked into the title image.
+      this.titleCursor = makeText(this, 360, 314, '▶', 22, '#ff4fb8').setDepth(5);
+      this.startHint = makeText(this, VIEW_W / 2, VIEW_H - 34, 'TAP / ENTER — NEW CASE', 16, '#f4d28a').setOrigin(0.5).setDepth(5);
+      this.tweens.add({ targets: this.startHint, alpha: 0.35, yoyo: true, repeat: -1, duration: 650 });
+
+      const start = () => this.scene.start('GameScene');
+      this.input.keyboard.once('keydown-ENTER', start);
+      this.input.once('pointerdown', start);
     }
   }
 
