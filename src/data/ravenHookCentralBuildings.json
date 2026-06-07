@@ -1,0 +1,199 @@
+{
+  "id": "raven_hook_central_layer_02_buildings",
+  "source": "assets/reference/layer_02_building_exterior_sheet.png",
+  "sheetSize": [
+    1448,
+    1086
+  ],
+  "worldSize": [
+    2048,
+    1536
+  ],
+  "phaserKey": "building_exterior_sheet",
+  "frames": {
+    "precinct": {
+      "crop": [
+        20,
+        25,
+        470,
+        430
+      ],
+      "place": [
+        250,
+        105,
+        610,
+        485
+      ],
+      "displayName": "Raven Hook Precinct",
+      "sourceSize": [
+        470,
+        430
+      ],
+      "trimmedSize": [
+        450,
+        430
+      ]
+    },
+    "garage": {
+      "crop": [
+        505,
+        55,
+        150,
+        315
+      ],
+      "place": [
+        715,
+        130,
+        225,
+        350
+      ],
+      "displayName": "Police Garage",
+      "sourceSize": [
+        150,
+        315
+      ],
+      "trimmedSize": [
+        141,
+        315
+      ]
+    },
+    "bennys_market": {
+      "crop": [
+        720,
+        40,
+        640,
+        465
+      ],
+      "place": [
+        1155,
+        110,
+        700,
+        500
+      ],
+      "displayName": "Benny's Market",
+      "sourceSize": [
+        640,
+        465
+      ],
+      "trimmedSize": [
+        633,
+        465
+      ]
+    },
+    "report_room": {
+      "crop": [
+        40,
+        635,
+        220,
+        265
+      ],
+      "place": [
+        190,
+        900,
+        345,
+        320
+      ],
+      "displayName": "Report Room",
+      "sourceSize": [
+        220,
+        265
+      ],
+      "trimmedSize": [
+        208,
+        224
+      ]
+    },
+    "evidence_dropoff": {
+      "crop": [
+        335,
+        635,
+        250,
+        275
+      ],
+      "place": [
+        585,
+        900,
+        355,
+        320
+      ],
+      "displayName": "Evidence Drop-Off",
+      "sourceSize": [
+        250,
+        275
+      ],
+      "trimmedSize": [
+        193,
+        239
+      ]
+    },
+    "red_gull_diner": {
+      "crop": [
+        655,
+        640,
+        350,
+        280
+      ],
+      "place": [
+        1110,
+        835,
+        460,
+        325
+      ],
+      "displayName": "Red Gull Diner",
+      "sourceSize": [
+        350,
+        280
+      ],
+      "trimmedSize": [
+        350,
+        245
+      ]
+    },
+    "laundromat": {
+      "crop": [
+        1080,
+        640,
+        275,
+        300
+      ],
+      "place": [
+        1600,
+        835,
+        335,
+        330
+      ],
+      "displayName": "Laundromat",
+      "sourceSize": [
+        275,
+        300
+      ],
+      "trimmedSize": [
+        239,
+        260
+      ]
+    },
+    "payphone": {
+      "crop": [
+        1010,
+        770,
+        70,
+        145
+      ],
+      "place": [
+        1568,
+        1125,
+        80,
+        140
+      ],
+      "displayName": "Payphone",
+      "sourceSize": [
+        70,
+        145
+      ],
+      "trimmedSize": [
+        38,
+        145
+      ]
+    }
+  }
+}
