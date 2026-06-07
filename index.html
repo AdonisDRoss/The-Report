@@ -222,7 +222,7 @@
           return;
         }
 
-        this.message = 'Optional asset failed. Fallback still playable.';
+        this.message = `Asset failed: ${file?.key || 'unknown'} — fallback still playable.`;
         this.messageTimer = 2600;
       });
 
@@ -242,8 +242,19 @@
       this.input.keyboard.on('keydown-C', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
       this.input.keyboard.on('keydown-I', () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
       this.input.keyboard.on('keydown-P', () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
+      this.input.keyboard.on('keydown-B', () => this.toggleBuildingFallback());
       this.input.keyboard.on('keydown', (e) => this.vehicleDebug(e));
     }
+
+    toggleBuildingFallback() {
+      const showFallback = !(this.buildingGraphics && this.buildingGraphics.visible);
+      if (this.buildingGraphics) this.buildingGraphics.setVisible(showFallback);
+      if (this.buildingLabels) this.buildingLabels.forEach(t => t.setVisible(showFallback));
+      if (this.realBuildingSheet) this.realBuildingSheet.forEach(img => img.setVisible(!showFallback));
+      this.message = showFallback ? 'Building fallback boxes ON.' : 'Building asset sheet ON.';
+      this.messageTimer = 1800;
+    }
+
 
     vehicleDebug(e) {
       const vs = GAME.car.visualState; let handled = true;
