@@ -54,7 +54,19 @@
     day: 1,
     xp: 0,
     rank: "Detective Trainee",
-    car: { fuel: 76, damage: 0, trunk: [] },
+    car: {
+      fuel: 76,
+      damage: 0,
+      trunk: [],
+      visualState: {
+        trunkOpen: false,
+        driverDoorOpen: false,
+        hoodOpen: false,
+        lightsOn: true,
+        smokeFire: false,
+        destroyed: false
+      }
+    },
     case: {
       id: "bennys_shoplifting",
       active: false,
@@ -149,7 +161,13 @@
       sprites: {
         clean: "detective_sedan_clean_64",
         damage: "detective_sedan_damage_64",
-        shadow: "detective_sedan_shadow_64"
+        shadow: "detective_sedan_shadow_64",
+        trunkOpen: "detective_sedan_trunk_open_64",
+        driverDoorOpen: "detective_sedan_driver_door_open_64",
+        lights: "detective_sedan_lights_overlay_64",
+        hoodOpen: "detective_sedan_hood_open_64",
+        smokeFire: "detective_sedan_smoke_fire_64",
+        burnt: "detective_sedan_burnt_64"
       },
       frame: { width: 128, height: 128, count: 64, columns: 8, rows: 8, degreesPerFrame: 5.625 },
       mass: 1.25,
@@ -219,7 +237,7 @@
       makeText(this, VIEW_W / 2, 194, "LAYERED PRODUCTION MAP TEST", 18, "#ff78bd").setOrigin(0.5);
       makeText(this, VIEW_W / 2, 245, "Precinct → Market → Crime → Evidence → Trunk → Report", 18, "#ffffff").setOrigin(0.5);
       makeText(this, VIEW_W / 2, 325, "ENTER / TAP TO START", 24, "#f4d28a").setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 388, "Debug: C collision | I interactions | P spawns | M map overlay refs", 15, "#eeeeee").setOrigin(0.5);
+      makeText(this, VIEW_W / 2, 388, "Debug: C/I/P/M layers | Car states: 1 clean 2 door 3 trunk 4 hood 5 lights 6 damage 7 fire 8 wreck", 15, "#eeeeee").setOrigin(0.5);
       this.input.keyboard.once("keydown-ENTER", () => this.scene.start("GameScene"));
       this.input.once("pointerdown", () => this.scene.start("GameScene"));
     }
@@ -240,6 +258,12 @@
       this.load.spritesheet("detective_sedan_clean_64", "assets/vehicles/detective_sedan/detective_sedan_clean_64.png", { frameWidth: 128, frameHeight: 128 });
       this.load.spritesheet("detective_sedan_damage_64", "assets/vehicles/detective_sedan/detective_sedan_damage_64.png", { frameWidth: 128, frameHeight: 128 });
       this.load.spritesheet("detective_sedan_shadow_64", "assets/vehicles/detective_sedan/detective_sedan_shadow_64.png", { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_trunk_open_64", "assets/vehicles/detective_sedan/detective_sedan_trunk_open_64.png", { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_driver_door_open_64", "assets/vehicles/detective_sedan/detective_sedan_driver_door_open_64.png", { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_lights_overlay_64", "assets/vehicles/detective_sedan/detective_sedan_lights_overlay_64.png", { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_hood_open_64", "assets/vehicles/detective_sedan/detective_sedan_hood_open_64.png", { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_smoke_fire_64", "assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png", { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_burnt_64", "assets/vehicles/detective_sedan/detective_sedan_burnt_64.png", { frameWidth: 128, frameHeight: 128 });
     }
 
     create() {
@@ -287,6 +311,75 @@
       this.input.keyboard.on("keydown-I", () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
       this.input.keyboard.on("keydown-P", () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
       this.input.keyboard.on("keydown-M", () => { this.debug.mapRef = !this.debug.mapRef; this.toggleReferenceOverlay(); });
+      this.input.keyboard.on("keydown", (event) => this.handleVehicleStateDebug(event));
+    }
+
+    handleVehicleStateDebug(event) {
+      if (!this.carBaseSprite) return;
+      const vs = GAME.car.visualState;
+      let handled = true;
+      switch (event.key) {
+        case "1":
+          vs.trunkOpen = false;
+          vs.driverDoorOpen = false;
+          vs.hoodOpen = false;
+          vs.smokeFire = false;
+          vs.destroyed = false;
+          GAME.car.damage = 0;
+          this.message = "Vehicle state: clean.";
+          break;
+        case "2":
+          vs.driverDoorOpen = !vs.driverDoorOpen;
+          vs.trunkOpen = false;
+          vs.hoodOpen = false;
+          this.message = `Driver door ${vs.driverDoorOpen ? "open" : "closed"}.`;
+          break;
+        case "3":
+          vs.trunkOpen = !vs.trunkOpen;
+          vs.driverDoorOpen = false;
+          vs.hoodOpen = false;
+          this.message = `Trunk ${vs.trunkOpen ? "open" : "closed"}.`;
+          break;
+        case "4":
+          vs.hoodOpen = !vs.hoodOpen;
+          vs.trunkOpen = false;
+          vs.driverDoorOpen = false;
+          this.message = `Hood ${vs.hoodOpen ? "open" : "closed"}.`;
+          break;
+        case "5":
+          vs.lightsOn = !vs.lightsOn;
+          this.message = `Lights ${vs.lightsOn ? "on" : "off"}.`;
+          break;
+        case "6":
+          GAME.car.damage = clamp(GAME.car.damage + 25, 0, 100);
+          this.message = `Damage test: ${GAME.car.damage}%.`;
+          break;
+        case "7":
+          vs.smokeFire = !vs.smokeFire;
+          this.message = `Smoke/fire ${vs.smokeFire ? "on" : "off"}.`;
+          break;
+        case "8":
+          vs.destroyed = !vs.destroyed;
+          if (vs.destroyed) GAME.car.damage = 100;
+          this.message = `Destroyed state ${vs.destroyed ? "on" : "off"}.`;
+          break;
+        case "0":
+          vs.trunkOpen = false;
+          vs.driverDoorOpen = false;
+          vs.hoodOpen = false;
+          vs.smokeFire = false;
+          vs.destroyed = false;
+          vs.lightsOn = true;
+          GAME.car.damage = 0;
+          this.message = "Vehicle state reset.";
+          break;
+        default:
+          handled = false;
+      }
+      if (handled) {
+        this.messageTimer = 2500;
+        this.syncVehicleSprites();
+      }
     }
 
     drawProductionPlaceholders() {
@@ -334,8 +427,10 @@
       this.car = this.add.container(carSpawn.x, carSpawn.y).setDepth(25);
       this.carShadowSprite = this.add.sprite(5, 7, "detective_sedan_shadow_64", 0).setAlpha(0.48).setScale(0.54);
       this.carBaseSprite = this.add.sprite(0, 0, "detective_sedan_clean_64", 0).setScale(0.54);
+      this.carLightsSprite = this.add.sprite(0, 0, "detective_sedan_lights_overlay_64", 0).setAlpha(0.92).setVisible(true).setScale(0.54);
       this.carDamageSprite = this.add.sprite(0, 0, "detective_sedan_damage_64", 0).setAlpha(0).setVisible(false).setScale(0.54);
-      this.car.add([this.carShadowSprite, this.carBaseSprite, this.carDamageSprite]);
+      this.carSmokeSprite = this.add.sprite(0, 0, "detective_sedan_smoke_fire_64", 0).setAlpha(0).setVisible(false).setScale(0.54);
+      this.car.add([this.carShadowSprite, this.carBaseSprite, this.carLightsSprite, this.carDamageSprite, this.carSmokeSprite]);
       this.physics.add.existing(this.car);
       this.car.body.setSize(34, 62);
       this.car.body.setCollideWorldBounds(true);
@@ -473,6 +568,7 @@
     updateCar(dt) {
       const stats = VEHICLES.unmarked_sedan;
       const d = this.inputDir();
+      this.car.isBraking = d.down;
       const speed = Math.hypot(this.car.vx, this.car.vy);
       const speedRatio = clamp(speed / stats.topSpeed, 0.15, 1);
       if (d.left) this.car.heading -= stats.steeringRate * dt * speedRatio;
@@ -518,18 +614,41 @@
     syncVehicleSprites() {
       if (!this.carBaseSprite || !this.carShadowSprite || !this.carDamageSprite || !this.car) return;
       const frame = this.car.rotationFrame || 0;
-      this.carBaseSprite.setFrame(frame);
-      this.carShadowSprite.setFrame(frame);
-      this.carDamageSprite.setFrame(frame);
+      const stats = VEHICLES.unmarked_sedan;
+      const vs = GAME.car.visualState;
       const dmg = GAME.car.damage;
-      if (dmg <= 0) {
-        this.carDamageSprite.setVisible(false);
-        this.carDamageSprite.setAlpha(0);
-      } else {
-        this.carDamageSprite.setVisible(true);
-        this.carDamageSprite.setAlpha(clamp(dmg / 100, 0.22, 0.82));
+
+      let baseTexture = stats.sprites.clean;
+      if (vs.destroyed || dmg >= 100) {
+        baseTexture = stats.sprites.burnt;
+      } else if (vs.hoodOpen) {
+        baseTexture = stats.sprites.hoodOpen;
+      } else if (vs.trunkOpen) {
+        baseTexture = stats.sprites.trunkOpen;
+      } else if (vs.driverDoorOpen) {
+        baseTexture = stats.sprites.driverDoorOpen;
       }
-      if (dmg >= 70) {
+
+      this.carShadowSprite.setFrame(frame);
+      this.carBaseSprite.setTexture(baseTexture);
+      this.carBaseSprite.setFrame(frame);
+
+      const lightsVisible = !vs.destroyed && (vs.lightsOn || this.car.isBraking);
+      this.carLightsSprite.setVisible(lightsVisible);
+      this.carLightsSprite.setFrame(frame);
+      this.carLightsSprite.setAlpha(this.car.isBraking ? 1 : 0.78);
+
+      const damageVisible = !vs.destroyed && dmg > 0;
+      this.carDamageSprite.setVisible(damageVisible);
+      this.carDamageSprite.setFrame(frame);
+      this.carDamageSprite.setAlpha(damageVisible ? clamp(dmg / 100, 0.22, 0.82) : 0);
+
+      const smokeVisible = !vs.destroyed && (vs.smokeFire || dmg >= 70);
+      this.carSmokeSprite.setVisible(smokeVisible);
+      this.carSmokeSprite.setFrame(frame);
+      this.carSmokeSprite.setAlpha(smokeVisible ? clamp((dmg - 45) / 55, 0.45, 0.95) : 0);
+
+      if (dmg >= 70 && !vs.destroyed) {
         this.carBaseSprite.setTint(0xc8c0b8);
       } else {
         this.carBaseSprite.clearTint();
@@ -618,6 +737,9 @@
         this.car.body.setVelocity(0, 0);
         this.car.vx = this.car.vy = 0;
         this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+        GAME.car.visualState.driverDoorOpen = true;
+        this.syncVehicleSprites();
+        this.time.delayedCall(900, () => { GAME.car.visualState.driverDoorOpen = false; this.syncVehicleSprites(); });
         this.message = "Exited vehicle.";
         this.messageTimer = 2200;
         return;
@@ -627,6 +749,9 @@
         this.player.setVisible(false);
         this.player.body.enable = false;
         this.cameras.main.startFollow(this.car, true, 0.08, 0.08);
+        GAME.car.visualState.driverDoorOpen = true;
+        this.syncVehicleSprites();
+        this.time.delayedCall(700, () => { GAME.car.visualState.driverDoorOpen = false; this.syncVehicleSprites(); });
         this.message = "Entered unmarked sedan.";
         this.messageTimer = 2200;
         return;
@@ -687,6 +812,9 @@
         this.messageTimer = 2500;
         return;
       }
+      GAME.car.visualState.trunkOpen = true;
+      this.syncVehicleSprites();
+      this.time.delayedCall(2200, () => { GAME.car.visualState.trunkOpen = false; this.syncVehicleSprites(); });
       if (this.playerInventory.includes("stolen_cigarettes") && !GAME.case.evidenceInTrunk) {
         GAME.case.evidenceInTrunk = true;
         GAME.car.trunk.push("stolen_cigarettes");
@@ -721,7 +849,9 @@
         GAME.case.evidenceInTrunk ? "TRUNK" : "NO TRUNK"
       ].join(" | ");
       this.hudText.setText(`${RH_CENTRAL_V03.name} | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`);
-      this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | 64-frame car sprite index: ${this.car.rotationFrame ?? 0} | Facing: ${this.playerFacing}`);
+      const vs = GAME.car.visualState;
+      const carState = vs.destroyed ? "WRECK" : vs.hoodOpen ? "HOOD" : vs.trunkOpen ? "TRUNK" : vs.driverDoorOpen ? "DOOR" : (vs.smokeFire || GAME.car.damage >= 70) ? "SMOKE" : "NORMAL";
+      this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame ?? 0} | Car ${carState} | Lights ${vs.lightsOn ? "ON" : "off"}`);
       this.promptText.setText(this.closestZone ? `E: ${this.closestZone.label || this.closestZone.type}` : "E enter/exit | SPACE arrest | T trunk | R report");
       this.layerText.setText(`Debug C:${this.debug.collision ? "ON" : "off"} I:${this.debug.interaction ? "ON" : "off"} P:${this.debug.spawns ? "ON" : "off"} M:${this.debug.mapRef ? "ON" : "off"}`);
       this.messageText.setText(this.messageTimer > 0 ? this.message : "");
