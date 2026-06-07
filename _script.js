@@ -1,28 +1,4 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report: Raven Hook Central v0.3</title>
-  <style>
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #05070b;
-      font-family: "Courier New", monospace;
-    }
-    #game { width: 100vw; height: 100vh; }
-    canvas { image-rendering: pixelated; }
-  </style>
-</head>
-<body>
-  <div id="game"></div>
-  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
-  <script>
-  (() => {
+(() => {
     const WIDTH = 960;
     const HEIGHT = 540;
     const WORLD_W = 2000;
@@ -970,6 +946,3 @@
       new Phaser.Game(config);
     });
   })();
-  </script>
-</body>
-</html>
