@@ -3,18 +3,12 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central v0.3 Layered Build</title>
+  <title>The Report — Raven Hook Central Mobile Safe Build</title>
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: #05070b;
-      font-family: "Courier New", monospace;
-      touch-action: none;
-      user-select: none;
+      margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+      background: #05070b; font-family: "Courier New", monospace;
+      touch-action: none; user-select: none;
     }
     #game { width: 100vw; height: 100vh; }
     canvas { image-rendering: pixelated; }
@@ -25,969 +19,274 @@
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 <script>
 (() => {
-  const VIEW_W = 960;
-  const VIEW_H = 540;
-  const WORLD_W = 2048;
-  const WORLD_H = 1536;
-
-  // GitHub Pages-safe asset base.
-  // When deployed at https://adonisdross.github.io/The-Report/, absolute /The-Report/ paths avoid
-  // mobile browser relative-path failures after scene changes.
-  const ASSET_BASE = window.location.hostname.endsWith("github.io") ? "/The-Report/" : "./";
-  function assetPath(path) {
-    return ASSET_BASE + String(path).replace(/^\/?/, "");
-  }
-
-  function showFatalError(message) {
-    const box = document.createElement("div");
-    box.style.cssText = "position:fixed;inset:0;z-index:99999;background:#05070b;color:#ffdf59;font:14px Courier New,monospace;padding:18px;white-space:pre-wrap;overflow:auto;";
-    box.textContent = "THE REPORT LOAD ERROR\n\n" + message;
-    document.body.appendChild(box);
-  }
-
-  window.addEventListener("error", (event) => {
-    showFatalError(event.message + "\n" + (event.filename || "") + ":" + (event.lineno || ""));
-  });
+  const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
+  const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
+  const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
 
   const COLORS = {
-    white: 0xffffff,
-    black: 0x000000,
-    blue: 0x3d7dff,
-    cyan: 0x45e6ff,
-    pink: 0xff4fab,
-    red: 0xff3f45,
-    green: 0x55ff7a,
-    yellow: 0xffdf59,
-    orange: 0xff9a3d,
-    purple: 0xb86cff,
-    road: 0x161b22,
-    building: 0x1d242d,
-    buildingStroke: 0x6b7380,
-    glass: 0x16344c,
-    neonBlue: 0x4bbcff,
-    neonPink: 0xff4fb8,
-    amber: 0xffbd55
+    blue: 0x3d7dff, cyan: 0x45e6ff, red: 0xff3f45, green: 0x55ff7a,
+    yellow: 0xffdf59, orange: 0xff9a3d, purple: 0xb86cff,
+    neonBlue: 0x4bbcff, neonPink: 0xff4fb8, amber: 0xffbd55
   };
 
   const GAME = {
-    day: 1,
-    xp: 0,
-    rank: "Detective Trainee",
+    day: 1, xp: 0, rank: 'Detective Trainee',
     car: {
-      fuel: 76,
-      damage: 0,
-      trunk: [],
-      visualState: {
-        trunkOpen: false,
-        driverDoorOpen: false,
-        hoodOpen: false,
-        lightsOn: true,
-        smokeFire: false,
-        destroyed: false
-      }
+      fuel: 76, damage: 0, trunk: [],
+      visualState: { trunkOpen: false, driverDoorOpen: false, hoodOpen: false, lightsOn: true, smokeFire: false, destroyed: false }
     },
-    case: {
-      id: "bennys_shoplifting",
-      active: false,
-      complete: false,
-      suspectArrested: false,
-      evidenceCollected: false,
-      evidenceInTrunk: false,
-      witnessStatement: false,
-      reportFiled: false
-    }
+    case: { active: false, complete: false, suspectArrested: false, evidenceCollected: false, evidenceInTrunk: false, witnessStatement: false, reportFiled: false }
   };
 
-  const RH_CENTRAL_V03 = {
-    id: "rh_central_v03",
-    name: "Raven Hook Central v0.3",
-    width: WORLD_W,
-    height: WORLD_H,
-    layers: {
-      ground: "assets/maps/rh_central_ground.png",
-      buildingsRef: "assets/reference/layer_02_building_exterior_sheet.png",
-      interiorsRef: "assets/reference/layer_03_interior_blocks_sheet.png",
-      rooftopsRef: "assets/reference/layer_04_rooftop_blocks_sheet.png",
-      propsRef: "assets/reference/layer_05_props_sheet.png",
-      collisionMaskRef: "assets/reference/layer_06_collision_navigation_mask.png",
-      interactionMaskRef: "assets/reference/layer_07_interaction_zones_mask.png",
-      spawnMaskRef: "assets/reference/layer_08_spawn_placement_mask.png"
-    },
-    campuses: {
-      "RH-CEN-01": { name: "Precinct Block", type: "station", x: 0, y: 0, w: 1024, h: 1536 },
-      "RH-CEN-02": { name: "Market Block", type: "patrol", x: 1024, y: 0, w: 1024, h: 1536 }
-    }
-  };
-
-  // Production collision rectangles. These are the real gameplay blockers.
   const COLLISION_RECTS = [
-    { id: "precinct", x: 285, y: 155, w: 565, h: 430, type: "building" },
-    { id: "garage", x: 725, y: 145, w: 210, h: 315, type: "building" },
-    { id: "report_room", x: 205, y: 905, w: 320, h: 300, type: "building" },
-    { id: "evidence_dropoff", x: 610, y: 910, w: 315, h: 295, type: "building" },
-    { id: "bennys_market", x: 1180, y: 150, w: 640, h: 430, type: "building" },
-    { id: "bennys_loading_dock", x: 1810, y: 215, w: 145, h: 390, type: "large_prop" },
-    { id: "red_gull_diner", x: 1140, y: 835, w: 420, h: 300, type: "building" },
-    { id: "laundromat", x: 1630, y: 835, w: 285, h: 310, type: "building" },
-    { id: "payphone_blocker", x: 1580, y: 1185, w: 70, h: 78, type: "large_prop" },
-    { id: "north_left_curb", x: 0, y: 0, w: 2048, h: 40, type: "curb" },
-    { id: "south_left_curb", x: 0, y: 1496, w: 2048, h: 40, type: "curb" }
+    { id: 'precinct', x: 285, y: 155, w: 565, h: 430, type: 'building' },
+    { id: 'garage', x: 725, y: 145, w: 210, h: 315, type: 'building' },
+    { id: 'report_room', x: 205, y: 905, w: 320, h: 300, type: 'building' },
+    { id: 'evidence_dropoff', x: 610, y: 910, w: 315, h: 295, type: 'building' },
+    { id: 'bennys_market', x: 1180, y: 150, w: 640, h: 430, type: 'building' },
+    { id: 'bennys_loading_dock', x: 1810, y: 215, w: 145, h: 390, type: 'large_prop' },
+    { id: 'red_gull_diner', x: 1140, y: 835, w: 420, h: 300, type: 'building' },
+    { id: 'laundromat', x: 1630, y: 835, w: 285, h: 310, type: 'building' },
+    { id: 'payphone_blocker', x: 1580, y: 1185, w: 70, h: 78, type: 'large_prop' }
   ];
 
   const INTERACTION_ZONES = [
-    { id: "precinct_front", x: 500, y: 585, w: 100, h: 70, type: "door", target: "precinct_interior", label: "Precinct Entrance" },
-    { id: "garage_door", x: 772, y: 462, w: 110, h: 60, type: "door", target: "garage_interior", label: "Garage" },
-    { id: "precinct_roof_access", x: 820, y: 245, w: 70, h: 130, type: "roof", target: "precinct_roof", label: "Precinct Roof" },
-    { id: "detective_trunk", x: 485, y: 770, w: 130, h: 115, type: "trunk", label: "Trunk" },
-    { id: "report_room_door", x: 340, y: 1210, w: 110, h: 60, type: "door", target: "report_room", label: "Report Room" },
-    { id: "report_desk", x: 280, y: 1020, w: 190, h: 105, type: "report", label: "Report Desk" },
-    { id: "evidence_door", x: 720, y: 1210, w: 110, h: 60, type: "door", target: "evidence_dropoff", label: "Evidence Door" },
-    { id: "evidence_counter", x: 685, y: 1020, w: 190, h: 105, type: "evidence_dropoff", label: "Evidence Counter" },
-    { id: "bennys_front", x: 1415, y: 575, w: 130, h: 70, type: "door", target: "bennys_interior", label: "Benny's Front" },
-    { id: "bennys_back", x: 1805, y: 365, w: 70, h: 120, type: "door", target: "bennys_backdoor", label: "Benny's Back Door" },
-    { id: "bennys_roof_ladder", x: 1758, y: 195, w: 85, h: 120, type: "roof", target: "bennys_roof", label: "Benny's Roof" },
-    { id: "bennys_shoplifting_trigger", x: 1300, y: 255, w: 320, h: 210, type: "crime_trigger", crime: "bennys_shoplifting", label: "Shoplifting Trigger" },
-    { id: "bennys_evidence", x: 1510, y: 380, w: 80, h: 80, type: "evidence", evidenceId: "stolen_cigarettes", label: "Stolen Cigarettes" },
-    { id: "bennys_witness", x: 1370, y: 505, w: 115, h: 80, type: "witness", npcId: "marlene_pike", label: "Clerk Witness" },
-    { id: "red_gull_front", x: 1305, y: 1145, w: 120, h: 65, type: "door", target: "red_gull_interior", label: "Red Gull" },
-    { id: "red_gull_witness", x: 1280, y: 1020, w: 135, h: 95, type: "witness", npcId: "diner_witness", label: "Diner Witness" },
-    { id: "laundromat_front", x: 1740, y: 1148, w: 110, h: 65, type: "door", target: "laundromat_interior", label: "Laundromat" },
-    { id: "payphone", x: 1575, y: 1185, w: 95, h: 95, type: "payphone", label: "Payphone" },
-    { id: "loading_dock", x: 1815, y: 360, w: 120, h: 220, type: "loading_dock", label: "Loading Dock" }
+    { id: 'precinct_front', x: 500, y: 585, w: 100, h: 70, type: 'door', label: 'Precinct Entrance' },
+    { id: 'garage_door', x: 772, y: 462, w: 110, h: 60, type: 'door', label: 'Garage' },
+    { id: 'detective_trunk', x: 485, y: 770, w: 130, h: 115, type: 'trunk', label: 'Trunk' },
+    { id: 'report_room_door', x: 340, y: 1210, w: 110, h: 60, type: 'door', label: 'Report Room' },
+    { id: 'report_desk', x: 280, y: 1020, w: 190, h: 105, type: 'report', label: 'Report Desk' },
+    { id: 'evidence_counter', x: 685, y: 1020, w: 190, h: 105, type: 'evidence_dropoff', label: 'Evidence Counter' },
+    { id: 'bennys_front', x: 1415, y: 575, w: 130, h: 70, type: 'door', label: "Benny's Front" },
+    { id: 'bennys_shoplifting_trigger', x: 1300, y: 255, w: 320, h: 210, type: 'crime_trigger', label: 'Shoplifting Trigger' },
+    { id: 'bennys_evidence', x: 1510, y: 380, w: 80, h: 80, type: 'evidence', label: 'Stolen Cigarettes' },
+    { id: 'bennys_witness', x: 1370, y: 505, w: 115, h: 80, type: 'witness', npcId: 'marlene_pike', label: 'Clerk Witness' },
+    { id: 'red_gull_witness', x: 1280, y: 1020, w: 135, h: 95, type: 'witness', npcId: 'diner_witness', label: 'Diner Witness' },
+    { id: 'payphone', x: 1575, y: 1185, w: 95, h: 95, type: 'payphone', label: 'Payphone' }
   ];
 
   const SPAWN_POINTS = [
-    { id: "player_start", x: 550, y: 675, type: "player" },
-    { id: "detective_sedan", x: 535, y: 815, type: "vehicle", vehicle: "unmarked_sedan" },
-    { id: "backup_sedan", x: 815, y: 525, type: "vehicle", vehicle: "backup_sedan" },
-    { id: "precinct_worker", x: 465, y: 670, type: "pedestrian" },
-    { id: "bennys_suspect", x: 1390, y: 345, type: "suspect", npc: "eddie_cross" },
-    { id: "bennys_suspect_flee", x: 1810, y: 530, type: "suspect_flee" },
-    { id: "bennys_clerk", x: 1395, y: 520, type: "witness", npc: "marlene_pike" },
-    { id: "stolen_cigarettes", x: 1535, y: 410, type: "evidence", evidence: "stolen_cigarettes" },
-    { id: "diner_witness", x: 1330, y: 1035, type: "witness", npc: "diner_witness" },
-    { id: "laundromat_civilian", x: 1770, y: 1180, type: "pedestrian" },
-    { id: "traffic_west_entry", x: -40, y: 760, type: "traffic_spawn" },
-    { id: "traffic_east_exit", x: 2090, y: 760, type: "traffic_despawn" },
-    { id: "traffic_east_entry", x: 2090, y: 1320, type: "traffic_spawn" },
-    { id: "traffic_west_exit", x: -40, y: 1320, type: "traffic_despawn" }
+    { id: 'player_start', x: 550, y: 675, type: 'player' },
+    { id: 'detective_sedan', x: 535, y: 815, type: 'vehicle' },
+    { id: 'precinct_worker', x: 465, y: 670, type: 'pedestrian' },
+    { id: 'bennys_suspect', x: 1390, y: 345, type: 'suspect' },
+    { id: 'bennys_suspect_flee', x: 1810, y: 530, type: 'suspect_flee' },
+    { id: 'bennys_clerk', x: 1395, y: 520, type: 'witness' },
+    { id: 'stolen_cigarettes', x: 1535, y: 410, type: 'evidence' },
+    { id: 'diner_witness', x: 1330, y: 1035, type: 'witness' },
+    { id: 'laundromat_civilian', x: 1770, y: 1180, type: 'pedestrian' }
   ];
 
-  const VEHICLES = {
-    unmarked_sedan: {
-      id: "detective_sedan_84",
-      name: "1984 Unmarked Detective Sedan",
-      sprites: {
-        clean: "detective_sedan_clean_64",
-        damage: "detective_sedan_damage_64",
-        shadow: "detective_sedan_shadow_64",
-        trunkOpen: "detective_sedan_trunk_open_64",
-        driverDoorOpen: "detective_sedan_driver_door_open_64",
-        lights: "detective_sedan_lights_overlay_64",
-        hoodOpen: "detective_sedan_hood_open_64",
-        smokeFire: "detective_sedan_smoke_fire_64",
-        burnt: "detective_sedan_burnt_64"
-      },
-      frame: { width: 128, height: 128, count: 64, columns: 8, rows: 8, degreesPerFrame: 5.625 },
-      mass: 1.25,
-      topSpeed: 430,
-      acceleration: 520,
-      brakeForce: 680,
-      friction: 0.985,
-      traction: 0.074,
-      steeringRate: 2.95,
-      wheelBase: 78,
-      frontWheelOffset: 34,
-      rearWheelOffset: -34,
-      collisionWidth: 34,
-      collisionLength: 62,
-      damageResistance: 1.0,
-      fuelCapacity: 100,
-      fuelBurnRate: 0.018,
-      trunkSlots: 6,
-      radioType: "police_dispatch"
+  const VEHICLE = {
+    topSpeed: 430, acceleration: 520, brakeForce: 680, friction: 0.985,
+    traction: 0.074, steeringRate: 2.95,
+    frame: { count: 64, degreesPerFrame: 5.625 },
+    sprites: {
+      clean: 'detective_sedan_clean_64', damage: 'detective_sedan_damage_64', shadow: 'detective_sedan_shadow_64',
+      trunkOpen: 'detective_sedan_trunk_open_64', driverDoorOpen: 'detective_sedan_driver_door_open_64',
+      lights: 'detective_sedan_lights_overlay_64', smokeFire: 'detective_sedan_smoke_fire_64'
     }
   };
 
-  function makeText(scene, x, y, value, size = 16, color = "#fff", fixed = false) {
-    const t = scene.add.text(x, y, value, {
-      fontFamily: "Courier New",
-      fontSize: `${size}px`,
-      color,
-      stroke: "#000",
-      strokeThickness: 3,
-      wordWrap: { width: 900 }
-    });
+  function makeText(scene, x, y, value, size = 16, color = '#fff', fixed = false) {
+    const t = scene.add.text(x, y, value, { fontFamily: 'Courier New', fontSize: `${size}px`, color, stroke: '#000', strokeThickness: 3, wordWrap: { width: 900 } });
     if (fixed) t.setScrollFactor(0).setDepth(2000);
     return t;
   }
-
-  function rectOverlapsSprite(rect, sprite) {
-    return Phaser.Geom.Rectangle.Overlaps(
-      new Phaser.Geom.Rectangle(rect.x, rect.y, rect.w, rect.h),
-      sprite.getBounds()
-    );
-  }
-
-  function distance(a, b) { return Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y); }
+  function dist(a, b) { return Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y); }
   function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+  function overlap(rect, sprite) { return Phaser.Geom.Rectangle.Overlaps(new Phaser.Geom.Rectangle(rect.x, rect.y, rect.w, rect.h), sprite.getBounds()); }
 
   class TitleScene extends Phaser.Scene {
-    constructor() { super("TitleScene"); }
-    preload() {
-      // Title scene draws its own art; no heavy assets needed here.
-    }
+    constructor() { super('TitleScene'); }
     create() {
-      this.cameras.main.setBackgroundColor("#05070b");
       const g = this.add.graphics();
       g.fillStyle(0x05070b, 1).fillRect(0, 0, VIEW_W, VIEW_H);
       for (let i = 0; i < 24; i++) {
-        const x = Phaser.Math.Between(-40, VIEW_W);
-        const h = Phaser.Math.Between(60, 250);
-        const w = Phaser.Math.Between(30, 80);
+        const x = Phaser.Math.Between(-40, VIEW_W), h = Phaser.Math.Between(60, 250), w = Phaser.Math.Between(30, 80);
         g.fillStyle(0x0e1720, 1).fillRect(x, VIEW_H - 150 - h, w, h);
         if (i % 3 === 0) g.fillStyle(COLORS.neonPink, 0.55).fillRect(x + 6, VIEW_H - 150 - h + 22, w - 12, 3);
         if (i % 4 === 0) g.fillStyle(COLORS.cyan, 0.45).fillRect(x + 6, VIEW_H - 150 - h + 48, w - 12, 3);
       }
       g.fillStyle(0x111827, 1).fillRect(0, VIEW_H - 145, VIEW_W, 145);
       g.lineStyle(4, COLORS.amber, 0.65).lineBetween(0, VIEW_H - 78, VIEW_W, VIEW_H - 78);
-      makeText(this, VIEW_W / 2, 88, "THE REPORT", 58, "#f4d28a").setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 150, "RAVEN HOOK CENTRAL v0.3", 24, "#86e7ff").setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 194, "LAYERED PRODUCTION MAP TEST", 18, "#ff78bd").setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 245, "Precinct → Market → Crime → Evidence → Trunk → Report", 18, "#ffffff").setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 325, "ENTER / TAP TO START", 24, "#f4d28a").setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 388, "Debug: C/I/P/M layers | Car states: 1 clean 2 door 3 trunk 4 hood 5 lights 6 damage 7 fire 8 wreck", 15, "#eeeeee").setOrigin(0.5);
-      this.input.keyboard.once("keydown-ENTER", () => this.scene.start("GameScene"));
-      this.input.once("pointerdown", () => this.scene.start("GameScene"));
+      makeText(this, VIEW_W / 2, 88, 'THE REPORT', 58, '#f4d28a').setOrigin(0.5);
+      makeText(this, VIEW_W / 2, 150, 'RAVEN HOOK CENTRAL v0.3', 24, '#86e7ff').setOrigin(0.5);
+      makeText(this, VIEW_W / 2, 245, 'Precinct → Market → Crime → Evidence → Trunk → Report', 18, '#ffffff').setOrigin(0.5);
+      makeText(this, VIEW_W / 2, 325, 'ENTER / TAP TO START', 24, '#f4d28a').setOrigin(0.5);
+      makeText(this, VIEW_W / 2, 388, 'Mobile-safe build: no blocking asset preload', 15, '#eeeeee').setOrigin(0.5);
+      this.input.keyboard.once('keydown-ENTER', () => this.scene.start('GameScene'));
+      this.input.once('pointerdown', () => this.scene.start('GameScene'));
     }
   }
 
   class GameScene extends Phaser.Scene {
-    constructor() { super("GameScene"); }
-
-    preload() {
-      this.loadingText = this.add.text(20, 20, "LOADING RAVEN HOOK CENTRAL...", {
-        fontFamily: "Courier New",
-        fontSize: "18px",
-        color: "#ffdf59",
-        stroke: "#000",
-        strokeThickness: 3
-      }).setScrollFactor(0).setDepth(9999);
-
-      this.load.on("progress", (value) => {
-        this.loadingText.setText(`LOADING RAVEN HOOK CENTRAL... ${Math.round(value * 100)}%`);
-      });
-
-      this.load.on("loaderror", (file) => {
-        const src = file?.src || file?.url || file?.key || "unknown";
-        this.loadingText.setText(`ASSET LOAD ERROR:\n${src}`);
-        console.error("The Report asset load error:", file);
-      });
-
-      this.load.image("ground", assetPath(RH_CENTRAL_V03.layers.ground));
-      // Reference art masks are not preloaded on mobile.
-      // The live map uses JS collision / interaction / spawn data instead.
-      // This prevents black-screening from loading too many large debug-only images at once.
-      this.load.spritesheet("detective_sedan_clean_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_clean_64.png"), { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_damage_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_damage_64.png"), { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_shadow_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_shadow_64.png"), { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_trunk_open_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_trunk_open_64.png"), { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_driver_door_open_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_driver_door_open_64.png"), { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_lights_overlay_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_lights_overlay_64.png"), { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_hood_open_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_hood_open_64.png"), { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_smoke_fire_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png"), { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_burnt_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_burnt_64.png"), { frameWidth: 128, frameHeight: 128 });
-    }
-
+    constructor() { super('GameScene'); }
+    preload() { /* intentionally empty: prevents iOS Safari 90/100% preload lock */ }
     create() {
-      if (this.loadingText) {
-        this.loadingText.destroy();
-        this.loadingText = null;
-      }
       this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
       this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
-      this.cameras.main.setBackgroundColor("#070b10");
+      this.cameras.main.setBackgroundColor('#070b10');
 
-      this.keys = this.input.keyboard.addKeys({
-        up: "W", down: "S", left: "A", right: "D",
-        arrowUp: "UP", arrowDown: "DOWN", arrowLeft: "LEFT", arrowRight: "RIGHT",
-        interact: "E", arrest: "SPACE", trunk: "T", report: "R",
-        debugCollision: "C", debugInteract: "I", debugSpawns: "P", debugMap: "M"
-      });
-
-      this.mobile = { up: false, down: false, left: false, right: false, a: false, b: false, x: false, y: false };
-      this.inCar = false;
-      this.message = "Start at Raven Hook Precinct. Enter the unmarked sedan or drive to Benny's Market.";
+      this.keys = this.input.keyboard.addKeys({ up:'W', down:'S', left:'A', right:'D', arrowUp:'UP', arrowDown:'DOWN', arrowLeft:'LEFT', arrowRight:'RIGHT', interact:'E', arrest:'SPACE', trunk:'T', report:'R' });
+      this.mobile = { up:false, down:false, left:false, right:false, a:false, b:false, x:false, y:false, analogX:0, analogY:0, useStick:true };
+      this.inCar = false; this.shiftMinutes = 8 * 60; this.playerInventory = [];
+      this.message = 'Loaded mobile-safe. Optional car art will stream in after gameplay starts.';
       this.objective = "Reach Benny's Market and trigger the shoplifting case.";
-      this.dispatch = "Raven Hook Dispatch: Central patrol is active.";
-      this.messageTimer = 4500;
-      this.shiftMinutes = 8 * 60;
-      this.playerInventory = [];
-      this.closestZone = null;
-      this.debug = { collision: false, interaction: false, spawns: false, mapRef: false };
+      this.dispatch = 'Raven Hook Dispatch: Central patrol is active.';
+      this.messageTimer = 4500; this.closestZone = null;
+      this.debug = { collision:false, interaction:false, spawns:false };
       this.debugGraphics = this.add.graphics().setDepth(1100);
 
-      this.add.image(0, 0, "ground").setOrigin(0, 0).setDisplaySize(WORLD_W, WORLD_H).setDepth(0);
-      this.drawProductionPlaceholders();
-      this.createCollision();
-      this.createEntities();
-      this.createHUD();
-      this.createMobileControls();
-      this.bindKeys();
+      this.drawGround(); this.drawBuildings(); this.createCollision(); this.createEntities(); this.createHUD(); this.createMobileControls(); this.bindKeys();
+      this.cameras.main.startFollow(this.player, true, 0.08, 0.08); this.cameras.main.setZoom(0.82);
+      this.lazyLoadCarSprites();
+    }
 
-      this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
-      this.cameras.main.setZoom(0.82);
+    lazyLoadCarSprites() {
+      const files = [
+        ['spritesheet','detective_sedan_clean_64','assets/vehicles/detective_sedan/detective_sedan_clean_64.png'],
+        ['spritesheet','detective_sedan_damage_64','assets/vehicles/detective_sedan/detective_sedan_damage_64.png'],
+        ['spritesheet','detective_sedan_shadow_64','assets/vehicles/detective_sedan/detective_sedan_shadow_64.png'],
+        ['spritesheet','detective_sedan_trunk_open_64','assets/vehicles/detective_sedan/detective_sedan_trunk_open_64.png'],
+        ['spritesheet','detective_sedan_driver_door_open_64','assets/vehicles/detective_sedan/detective_sedan_driver_door_open_64.png'],
+        ['spritesheet','detective_sedan_lights_overlay_64','assets/vehicles/detective_sedan/detective_sedan_lights_overlay_64.png'],
+        ['spritesheet','detective_sedan_smoke_fire_64','assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png']
+      ];
+      this.load.on('loaderror', (file) => console.warn('Optional asset failed:', file.key, file.src || file.url));
+      this.load.once('complete', () => { this.carArtReady = this.textures.exists('detective_sedan_clean_64'); this.syncVehicleSprites(); this.message = this.carArtReady ? 'Detective sedan sprites loaded.' : 'Using fallback car art.'; this.messageTimer = 2500; });
+      for (const [, key, path] of files) if (!this.textures.exists(key)) this.load.spritesheet(key, A(path), { frameWidth: 128, frameHeight: 128 });
+      this.load.start();
     }
 
     bindKeys() {
-      this.input.keyboard.on("keydown-E", () => this.handleInteract());
-      this.input.keyboard.on("keydown-SPACE", () => this.tryArrest());
-      this.input.keyboard.on("keydown-T", () => this.handleTrunk());
-      this.input.keyboard.on("keydown-R", () => this.tryReport());
-      this.input.keyboard.on("keydown-C", () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
-      this.input.keyboard.on("keydown-I", () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
-      this.input.keyboard.on("keydown-P", () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
-      this.input.keyboard.on("keydown-M", () => { this.debug.mapRef = !this.debug.mapRef; this.toggleReferenceOverlay(); });
-      this.input.keyboard.on("keydown", (event) => this.handleVehicleStateDebug(event));
+      this.input.keyboard.on('keydown-E', () => this.handleInteract());
+      this.input.keyboard.on('keydown-SPACE', () => this.tryArrest());
+      this.input.keyboard.on('keydown-T', () => this.handleTrunk());
+      this.input.keyboard.on('keydown-R', () => this.tryReport());
+      this.input.keyboard.on('keydown-C', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
+      this.input.keyboard.on('keydown-I', () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
+      this.input.keyboard.on('keydown-P', () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
+      this.input.keyboard.on('keydown', (e) => this.vehicleDebug(e));
     }
 
-    handleVehicleStateDebug(event) {
-      if (!this.carBaseSprite) return;
-      const vs = GAME.car.visualState;
-      let handled = true;
-      switch (event.key) {
-        case "1":
-          vs.trunkOpen = false;
-          vs.driverDoorOpen = false;
-          vs.hoodOpen = false;
-          vs.smokeFire = false;
-          vs.destroyed = false;
-          GAME.car.damage = 0;
-          this.message = "Vehicle state: clean.";
-          break;
-        case "2":
-          vs.driverDoorOpen = !vs.driverDoorOpen;
-          vs.trunkOpen = false;
-          vs.hoodOpen = false;
-          this.message = `Driver door ${vs.driverDoorOpen ? "open" : "closed"}.`;
-          break;
-        case "3":
-          vs.trunkOpen = !vs.trunkOpen;
-          vs.driverDoorOpen = false;
-          vs.hoodOpen = false;
-          this.message = `Trunk ${vs.trunkOpen ? "open" : "closed"}.`;
-          break;
-        case "4":
-          vs.hoodOpen = !vs.hoodOpen;
-          vs.trunkOpen = false;
-          vs.driverDoorOpen = false;
-          this.message = `Hood ${vs.hoodOpen ? "open" : "closed"}.`;
-          break;
-        case "5":
-          vs.lightsOn = !vs.lightsOn;
-          this.message = `Lights ${vs.lightsOn ? "on" : "off"}.`;
-          break;
-        case "6":
-          GAME.car.damage = clamp(GAME.car.damage + 25, 0, 100);
-          this.message = `Damage test: ${GAME.car.damage}%.`;
-          break;
-        case "7":
-          vs.smokeFire = !vs.smokeFire;
-          this.message = `Smoke/fire ${vs.smokeFire ? "on" : "off"}.`;
-          break;
-        case "8":
-          vs.destroyed = !vs.destroyed;
-          if (vs.destroyed) GAME.car.damage = 100;
-          this.message = `Destroyed state ${vs.destroyed ? "on" : "off"}.`;
-          break;
-        case "0":
-          vs.trunkOpen = false;
-          vs.driverDoorOpen = false;
-          vs.hoodOpen = false;
-          vs.smokeFire = false;
-          vs.destroyed = false;
-          vs.lightsOn = true;
-          GAME.car.damage = 0;
-          this.message = "Vehicle state reset.";
-          break;
-        default:
-          handled = false;
-      }
-      if (handled) {
-        this.messageTimer = 2500;
-        this.syncVehicleSprites();
-      }
+    vehicleDebug(e) {
+      const vs = GAME.car.visualState; let handled = true;
+      if (e.key === '1') { vs.trunkOpen = vs.driverDoorOpen = vs.hoodOpen = vs.smokeFire = vs.destroyed = false; GAME.car.damage = 0; this.message = 'Vehicle state: clean.'; }
+      else if (e.key === '2') { vs.driverDoorOpen = !vs.driverDoorOpen; vs.trunkOpen = vs.hoodOpen = false; this.message = `Driver door ${vs.driverDoorOpen ? 'open' : 'closed'}.`; }
+      else if (e.key === '3') { vs.trunkOpen = !vs.trunkOpen; vs.driverDoorOpen = vs.hoodOpen = false; this.message = `Trunk ${vs.trunkOpen ? 'open' : 'closed'}.`; }
+      else if (e.key === '5') { vs.lightsOn = !vs.lightsOn; this.message = `Lights ${vs.lightsOn ? 'on' : 'off'}.`; }
+      else if (e.key === '6') { GAME.car.damage = clamp(GAME.car.damage + 25, 0, 100); this.message = `Damage test: ${GAME.car.damage}%.`; }
+      else if (e.key === '7') { vs.smokeFire = !vs.smokeFire; this.message = `Smoke/fire ${vs.smokeFire ? 'on' : 'off'}.`; }
+      else if (e.key === '0') { vs.trunkOpen = vs.driverDoorOpen = vs.hoodOpen = vs.smokeFire = vs.destroyed = false; vs.lightsOn = true; GAME.car.damage = 0; this.message = 'Vehicle state reset.'; }
+      else handled = false;
+      if (handled) { this.messageTimer = 2500; this.syncVehicleSprites(); }
     }
 
-    drawProductionPlaceholders() {
+    drawGround() {
+      const g = this.add.graphics().setDepth(0);
+      g.fillStyle(0x111820, 1).fillRect(0, 0, WORLD_W, WORLD_H);
+      g.fillStyle(0x171d25, 1).fillRect(0, 680, WORLD_W, 180);
+      g.fillStyle(0x171d25, 1).fillRect(0, 1240, WORLD_W, 170);
+      g.fillStyle(0x20262e, 1).fillRect(0, 610, WORLD_W, 38);
+      g.fillStyle(0x20262e, 1).fillRect(0, 860, WORLD_W, 38);
+      g.fillStyle(0x20262e, 1).fillRect(0, 1170, WORLD_W, 38);
+      g.fillStyle(0x20262e, 1).fillRect(0, 1410, WORLD_W, 38);
+      g.lineStyle(3, 0x4b5563, 0.5);
+      for (let x = 0; x < WORLD_W; x += 160) { g.lineBetween(x, 760, x + 70, 760); g.lineBetween(x, 1320, x + 70, 1320); }
+      g.lineStyle(2, COLORS.neonBlue, 0.18).lineBetween(0, 650, WORLD_W, 650);
+      g.lineStyle(2, COLORS.neonPink, 0.18).lineBetween(0, 1450, WORLD_W, 1450);
+    }
+
+    drawBuildings() {
       const g = this.add.graphics().setDepth(2);
-      const drawB = (r, label, color, neon) => {
-        g.fillStyle(color, 0.88).fillRoundedRect(r.x, r.y, r.w, r.h, 10);
-        g.lineStyle(3, neon, 0.95).strokeRoundedRect(r.x, r.y, r.w, r.h, 10);
-        g.fillStyle(0x000000, 0.32).fillRect(r.x + 8, r.y + r.h - 42, r.w - 16, 34);
-        makeText(this, r.x + r.w / 2, r.y + r.h - 33, label, 16, "#ffffff").setOrigin(0.5).setDepth(3);
-      };
-      drawB({ x: 285, y: 155, w: 565, h: 430 }, "RAVEN HOOK PRECINCT", 0x1c2a37, COLORS.neonBlue);
-      drawB({ x: 725, y: 145, w: 210, h: 315 }, "GARAGE", 0x222931, COLORS.neonBlue);
-      drawB({ x: 205, y: 905, w: 320, h: 300 }, "REPORT ROOM", 0x2a2420, COLORS.amber);
-      drawB({ x: 610, y: 910, w: 315, h: 295 }, "EVIDENCE DROP-OFF", 0x202a2f, COLORS.cyan);
-      drawB({ x: 1180, y: 150, w: 640, h: 430 }, "BENNY'S MARKET", 0x2a222d, COLORS.neonPink);
-      drawB({ x: 1810, y: 215, w: 145, h: 390 }, "LOADING", 0x1e2024, COLORS.amber);
-      drawB({ x: 1140, y: 835, w: 420, h: 300 }, "RED GULL DINER", 0x321e22, COLORS.red);
-      drawB({ x: 1630, y: 835, w: 285, h: 310 }, "LAUNDROMAT", 0x1d3139, COLORS.cyan);
+      const drawB = (r, label, color, neon) => { g.fillStyle(color, 0.9).fillRoundedRect(r.x, r.y, r.w, r.h, 10); g.lineStyle(3, neon, 0.95).strokeRoundedRect(r.x, r.y, r.w, r.h, 10); g.fillStyle(0, 0.32).fillRect(r.x + 8, r.y + r.h - 42, r.w - 16, 34); makeText(this, r.x + r.w / 2, r.y + r.h - 33, label, 16, '#fff').setOrigin(0.5).setDepth(3); };
+      drawB({x:285,y:155,w:565,h:430}, 'RAVEN HOOK PRECINCT', 0x1c2a37, COLORS.neonBlue);
+      drawB({x:725,y:145,w:210,h:315}, 'GARAGE', 0x222931, COLORS.neonBlue);
+      drawB({x:205,y:905,w:320,h:300}, 'REPORT ROOM', 0x2a2420, COLORS.amber);
+      drawB({x:610,y:910,w:315,h:295}, 'EVIDENCE DROP-OFF', 0x202a2f, COLORS.cyan);
+      drawB({x:1180,y:150,w:640,h:430}, "BENNY'S MARKET", 0x2a222d, COLORS.neonPink);
+      drawB({x:1810,y:215,w:145,h:390}, 'LOADING', 0x1e2024, COLORS.amber);
+      drawB({x:1140,y:835,w:420,h:300}, 'RED GULL DINER', 0x321e22, COLORS.red);
+      drawB({x:1630,y:835,w:285,h:310}, 'LAUNDROMAT', 0x1d3139, COLORS.cyan);
       g.fillStyle(0x101419, 0.8).fillRoundedRect(1580, 1185, 70, 78, 6);
       g.lineStyle(2, COLORS.neonPink, 1).strokeRoundedRect(1580, 1185, 70, 78, 6);
-      makeText(this, 1615, 1270, "PAYPHONE", 12, "#ffb6df").setOrigin(0.5).setDepth(3);
     }
 
     createCollision() {
       this.walls = this.physics.add.staticGroup();
-      COLLISION_RECTS.forEach(r => {
-        if (r.type === "curb") return;
-        const rect = this.add.rectangle(r.x + r.w / 2, r.y + r.h / 2, r.w, r.h, 0xff0000, 0);
-        rect.setData("id", r.id);
-        this.physics.add.existing(rect, true);
-        this.walls.add(rect);
-      });
+      for (const r of COLLISION_RECTS) { const rect = this.add.rectangle(r.x + r.w/2, r.y + r.h/2, r.w, r.h, 0xff0000, 0); this.physics.add.existing(rect, true); this.walls.add(rect); }
     }
 
     createEntities() {
-      const playerSpawn = SPAWN_POINTS.find(s => s.id === "player_start");
-      this.player = this.add.rectangle(playerSpawn.x, playerSpawn.y, 22, 28, COLORS.blue).setDepth(30);
-      this.player.name = "detective";
-      this.physics.add.existing(this.player);
-      this.player.body.setCollideWorldBounds(true);
-      this.player.body.setSize(22, 28);
-      this.playerFacing = "S";
-
-      const carSpawn = SPAWN_POINTS.find(s => s.id === "detective_sedan");
-      this.car = this.add.container(carSpawn.x, carSpawn.y).setDepth(25);
-      this.carShadowSprite = this.add.sprite(5, 7, "detective_sedan_shadow_64", 0).setAlpha(0.48).setScale(0.54);
-      this.carBaseSprite = this.add.sprite(0, 0, "detective_sedan_clean_64", 0).setScale(0.54);
-      this.carLightsSprite = this.add.sprite(0, 0, "detective_sedan_lights_overlay_64", 0).setAlpha(0.92).setVisible(true).setScale(0.54);
-      this.carDamageSprite = this.add.sprite(0, 0, "detective_sedan_damage_64", 0).setAlpha(0).setVisible(false).setScale(0.54);
-      this.carSmokeSprite = this.add.sprite(0, 0, "detective_sedan_smoke_fire_64", 0).setAlpha(0).setVisible(false).setScale(0.54);
-      this.car.add([this.carShadowSprite, this.carBaseSprite, this.carLightsSprite, this.carDamageSprite, this.carSmokeSprite]);
-      this.physics.add.existing(this.car);
-      this.car.body.setSize(34, 62);
-      this.car.body.setCollideWorldBounds(true);
-      this.car.heading = -Math.PI / 2;
-      this.car.vx = 0;
-      this.car.vy = 0;
-      this.car.rotationFrame = 0;
-      this.car.vehicleId = "unmarked_sedan";
-      this.syncVehicleSprites();
-
-      this.physics.add.collider(this.player, this.walls);
-      this.physics.add.collider(this.car, this.walls, () => this.carHitWall());
-
-      this.suspect = this.add.rectangle(-100, -100, 22, 28, COLORS.red).setDepth(28);
-      this.suspect.activeCase = false;
-      this.physics.add.existing(this.suspect);
-      this.suspect.body.setCollideWorldBounds(true);
-      this.physics.add.collider(this.suspect, this.walls);
-
-      const ev = SPAWN_POINTS.find(s => s.id === "stolen_cigarettes");
-      this.evidence = this.add.circle(ev.x, ev.y, 11, COLORS.yellow).setDepth(27);
-      this.evidence.visible = false;
-      this.evidence.collected = false;
-
-      const wit = SPAWN_POINTS.find(s => s.id === "bennys_clerk");
-      this.witness = this.add.rectangle(wit.x, wit.y, 22, 28, COLORS.purple).setDepth(27);
-      this.witness.visible = false;
-      this.physics.add.existing(this.witness);
-      this.witness.body.setImmovable(true);
-
-      this.civilians = [];
-      const civSpawns = SPAWN_POINTS.filter(s => s.type === "pedestrian");
-      for (let i = 0; i < 7; i++) {
-        const s = civSpawns[i % civSpawns.length] || { x: 100 + i * 70, y: 760 };
-        const c = this.add.circle(s.x + Phaser.Math.Between(-50, 50), s.y + Phaser.Math.Between(-50, 50), 8, 0xbfc7d1, 1).setDepth(20);
-        this.physics.add.existing(c);
-        c.body.setCollideWorldBounds(true);
-        c.nodeTarget = new Phaser.Math.Vector2(c.x + Phaser.Math.Between(-120, 120), c.y + Phaser.Math.Between(-120, 120));
-        this.civilians.push(c);
-        this.physics.add.collider(c, this.walls);
-      }
-
-      this.trafficCars = [];
-      for (let i = 0; i < 4; i++) this.spawnTraffic(i);
+      const ps = SPAWN_POINTS.find(s => s.id === 'player_start');
+      this.player = this.add.rectangle(ps.x, ps.y, 22, 28, COLORS.blue).setDepth(30); this.physics.add.existing(this.player); this.player.body.setCollideWorldBounds(true); this.playerFacing = 'S';
+      const cs = SPAWN_POINTS.find(s => s.id === 'detective_sedan');
+      this.car = this.add.container(cs.x, cs.y).setDepth(25); this.carFallback = this.add.rectangle(0,0,32,58,0x202329,1).setStrokeStyle(2,0x9db5c7,1); this.car.add([this.carFallback]);
+      this.physics.add.existing(this.car); this.car.body.setSize(34,62); this.car.body.setCollideWorldBounds(true); this.car.heading = -Math.PI/2; this.car.vx = 0; this.car.vy = 0; this.car.rotationFrame = 0;
+      this.physics.add.collider(this.player, this.walls); this.physics.add.collider(this.car, this.walls, () => this.carHitWall());
+      this.suspect = this.add.rectangle(-100, -100, 22, 28, COLORS.red).setDepth(28); this.physics.add.existing(this.suspect); this.physics.add.collider(this.suspect, this.walls); this.suspect.visible = false;
+      const ev = SPAWN_POINTS.find(s => s.id === 'stolen_cigarettes'); this.evidence = this.add.circle(ev.x, ev.y, 11, COLORS.yellow).setDepth(27); this.evidence.visible = false;
+      const wt = SPAWN_POINTS.find(s => s.id === 'bennys_clerk'); this.witness = this.add.rectangle(wt.x, wt.y, 22, 28, COLORS.purple).setDepth(27); this.witness.visible = false;
+      this.civilians = []; for (let i=0;i<7;i++) { const s = SPAWN_POINTS[i%SPAWN_POINTS.length]; const c = this.add.circle((s.x||500)+Phaser.Math.Between(-60,60),(s.y||700)+Phaser.Math.Between(-60,60),8,0xbfc7d1).setDepth(20); this.physics.add.existing(c); c.nodeTarget = new Phaser.Math.Vector2(c.x+Phaser.Math.Between(-120,120), c.y+Phaser.Math.Between(-120,120)); this.civilians.push(c); this.physics.add.collider(c, this.walls); }
     }
 
-    spawnTraffic(i) {
-      const y = i % 2 === 0 ? 760 : 1320;
-      const x = i % 2 === 0 ? -80 - i * 260 : WORLD_W + 80 + i * 260;
-      const car = this.add.rectangle(x, y, 30, 55, [0x334455, 0x553333, 0x334433, 0x555133][i % 4]).setDepth(22);
-      car.setAngle(i % 2 === 0 ? 90 : -90);
-      this.physics.add.existing(car);
-      car.body.setSize(30, 55);
-      car.body.setVelocity(i % 2 === 0 ? 90 : -90, 0);
-      this.trafficCars.push(car);
-      this.physics.add.collider(car, this.walls);
+    ensureSpriteLayers() {
+      if (this.spriteLayersMade || !this.textures.exists('detective_sedan_clean_64')) return;
+      this.car.removeAll(true);
+      this.carShadowSprite = this.add.sprite(5,7,'detective_sedan_shadow_64',0).setAlpha(0.48).setScale(0.54);
+      this.carBaseSprite = this.add.sprite(0,0,'detective_sedan_clean_64',0).setScale(0.54);
+      this.carLightsSprite = this.add.sprite(0,0,'detective_sedan_lights_overlay_64',0).setAlpha(0.78).setScale(0.54);
+      this.carDamageSprite = this.add.sprite(0,0,'detective_sedan_damage_64',0).setAlpha(0).setVisible(false).setScale(0.54);
+      this.carSmokeSprite = this.add.sprite(0,0,'detective_sedan_smoke_fire_64',0).setAlpha(0).setVisible(false).setScale(0.54);
+      this.car.add([this.carShadowSprite,this.carBaseSprite,this.carLightsSprite,this.carDamageSprite,this.carSmokeSprite]);
+      this.spriteLayersMade = true;
     }
 
     createHUD() {
-      this.hudBg = this.add.rectangle(10, 10, 940, 92, 0x02060a, 0.72).setOrigin(0, 0).setScrollFactor(0).setDepth(2000);
-      this.hudText = makeText(this, 20, 18, "", 14, "#ffffff", true);
-      this.carText = makeText(this, 20, 64, "", 14, "#86e7ff", true);
-      this.promptText = makeText(this, VIEW_W / 2, VIEW_H - 40, "", 15, "#f4d28a", true).setOrigin(0.5);
-      this.layerText = makeText(this, VIEW_W - 20, 18, "", 12, "#ffb6df", true).setOrigin(1, 0);
-      this.messageText = makeText(this, VIEW_W / 2, 118, "", 16, "#ffffff", true).setOrigin(0.5);
+      this.add.rectangle(10, 10, 940, 92, 0x02060a, 0.72).setOrigin(0,0).setScrollFactor(0).setDepth(2000);
+      this.hudText = makeText(this, 20, 18, '', 14, '#ffffff', true); this.carText = makeText(this, 20, 64, '', 14, '#86e7ff', true);
+      this.promptText = makeText(this, VIEW_W/2, VIEW_H-40, '', 15, '#f4d28a', true).setOrigin(0.5);
+      this.layerText = makeText(this, VIEW_W-20, 18, '', 12, '#ffb6df', true).setOrigin(1,0);
+      this.messageText = makeText(this, VIEW_W/2, 118, '', 16, '#fff', true).setOrigin(0.5);
     }
 
     createMobileControls() {
-      const addBtn = (x, y, label, prop, color = 0x111827) => {
-        const c = this.add.container(x, y).setScrollFactor(0).setDepth(2500);
-        const bg = this.add.circle(0, 0, 28, color, 0.78).setStrokeStyle(2, 0xffffff, 0.5);
-        const tx = this.add.text(0, -9, label, { fontFamily: "Courier New", fontSize: "18px", color: "#ffffff" }).setOrigin(0.5);
-        c.add([bg, tx]);
-        c.setSize(64, 64).setInteractive();
-        c.on("pointerdown", () => { this.mobile[prop] = true; if (["a","b","x","y"].includes(prop)) this.handleMobileAction(prop); });
-        c.on("pointerup", () => { this.mobile[prop] = false; });
-        c.on("pointerout", () => { this.mobile[prop] = false; });
-        return c;
-      };
-      addBtn(84, VIEW_H - 118, "▲", "up");
-      addBtn(84, VIEW_H - 52, "▼", "down");
-      addBtn(36, VIEW_H - 84, "◀", "left");
-      addBtn(132, VIEW_H - 84, "▶", "right");
-      addBtn(VIEW_W - 84, VIEW_H - 120, "A", "a", 0x1f4d2f);
-      addBtn(VIEW_W - 142, VIEW_H - 84, "B", "b", 0x4d1f1f);
-      addBtn(VIEW_W - 84, VIEW_H - 48, "X", "x", 0x1f314d);
-      addBtn(VIEW_W - 28, VIEW_H - 84, "Y", "y", 0x4d3b1f);
+      const addBtn = (x,y,label,prop,color=0x111827) => { const c=this.add.container(x,y).setScrollFactor(0).setDepth(2500); const bg=this.add.circle(0,0,28,color,0.78).setStrokeStyle(2,0xffffff,0.5); const tx=this.add.text(0,-9,label,{fontFamily:'Courier New',fontSize:'18px',color:'#fff'}).setOrigin(0.5); c.add([bg,tx]); c.setSize(64,64).setInteractive(); c.on('pointerdown',()=>{this.mobile[prop]=true; if(['a','b','x','y'].includes(prop)) this.handleMobileAction(prop);}); c.on('pointerup',()=>this.mobile[prop]=false); c.on('pointerout',()=>this.mobile[prop]=false); return c; };
+      const baseX=86, baseY=VIEW_H-86; const pad=this.add.container(baseX,baseY).setScrollFactor(0).setDepth(2500); const outer=this.add.circle(0,0,58,0x111827,0.65).setStrokeStyle(2,0xffffff,0.35); const knob=this.add.circle(0,0,22,0x263241,0.9).setStrokeStyle(2,0xffffff,0.55); pad.add([outer,knob]); pad.setSize(130,130).setInteractive(new Phaser.Geom.Circle(0,0,65), Phaser.Geom.Circle.Contains);
+      pad.on('pointerdown', p=>this.updateStick(p, baseX, baseY, knob)); pad.on('pointermove', p=>{ if(p.isDown) this.updateStick(p, baseX, baseY, knob); }); pad.on('pointerup',()=>{this.mobile.analogX=0;this.mobile.analogY=0; knob.setPosition(0,0);}); pad.on('pointerout',()=>{this.mobile.analogX=0;this.mobile.analogY=0; knob.setPosition(0,0);});
+      addBtn(84, VIEW_H-170, 'STICK', 'stick', 0x263241).on('pointerdown',()=>{this.mobile.useStick=!this.mobile.useStick; this.message=`Movement ${this.mobile.useStick?'stick':'d-pad'} mode.`; this.messageTimer=1600;});
+      addBtn(84, VIEW_H-118, '▲', 'up'); addBtn(84, VIEW_H-52, '▼', 'down'); addBtn(36, VIEW_H-84, '◀', 'left'); addBtn(132, VIEW_H-84, '▶', 'right');
+      addBtn(VIEW_W-84, VIEW_H-120, 'A', 'a', 0x1f4d2f); addBtn(VIEW_W-142, VIEW_H-84, 'B', 'b', 0x4d1f1f); addBtn(VIEW_W-84, VIEW_H-48, 'X', 'x', 0x1f314d); addBtn(VIEW_W-28, VIEW_H-84, 'Y', 'y', 0x4d3b1f);
     }
+    updateStick(pointer, bx, by, knob) { const x=clamp(pointer.x-bx,-48,48), y=clamp(pointer.y-by,-48,48); knob.setPosition(x,y); this.mobile.analogX=x/48; this.mobile.analogY=y/48; }
+    handleMobileAction(prop) { if(prop==='a') this.handleInteract(); if(prop==='b') this.tryArrest(); if(prop==='x') this.handleTrunk(); if(prop==='y') this.tryReport(); }
+    inputDir() { const kbL=this.keys.left.isDown||this.keys.arrowLeft.isDown, kbR=this.keys.right.isDown||this.keys.arrowRight.isDown, kbU=this.keys.up.isDown||this.keys.arrowUp.isDown, kbD=this.keys.down.isDown||this.keys.arrowDown.isDown; if (this.mobile.useStick && (Math.abs(this.mobile.analogX)>0.15 || Math.abs(this.mobile.analogY)>0.15)) return { left:this.mobile.analogX<-0.25||kbL, right:this.mobile.analogX>0.25||kbR, up:this.mobile.analogY<-0.25||kbU, down:this.mobile.analogY>0.25||kbD, ax:this.mobile.analogX, ay:this.mobile.analogY }; return { left:kbL||this.mobile.left, right:kbR||this.mobile.right, up:kbU||this.mobile.up, down:kbD||this.mobile.down, ax:0, ay:0 }; }
 
-    handleMobileAction(prop) {
-      if (prop === "a") this.handleInteract();
-      if (prop === "b") this.tryArrest();
-      if (prop === "x") this.handleTrunk();
-      if (prop === "y") this.tryReport();
-    }
-
-    inputDir() {
-      const left = this.keys.left.isDown || this.keys.arrowLeft.isDown || this.mobile.left;
-      const right = this.keys.right.isDown || this.keys.arrowRight.isDown || this.mobile.right;
-      const up = this.keys.up.isDown || this.keys.arrowUp.isDown || this.mobile.up;
-      const down = this.keys.down.isDown || this.keys.arrowDown.isDown || this.mobile.down;
-      return { left, right, up, down };
-    }
-
-    update(time, delta) {
-      const dt = delta / 1000;
-      this.shiftMinutes += dt * 0.85;
-      this.updateClosestZone();
-      if (this.inCar) this.updateCar(dt); else this.updatePlayer(dt);
-      this.updateCase(dt);
-      this.updateCivilians(dt);
-      this.updateTraffic();
-      this.updateHUD();
-      if (this.messageTimer > 0) this.messageTimer -= delta;
-    }
-
-    updatePlayer(dt) {
-      const d = this.inputDir();
-      let vx = 0, vy = 0;
-      if (d.left) vx -= 1;
-      if (d.right) vx += 1;
-      if (d.up) vy -= 1;
-      if (d.down) vy += 1;
-      const len = Math.hypot(vx, vy) || 1;
-      vx /= len; vy /= len;
-      this.player.body.setVelocity(vx * 220, vy * 220);
-      if (vx || vy) {
-        const angle = Phaser.Math.RadToDeg(Math.atan2(vy, vx));
-        this.playerFacing = ["E","SE","S","SW","W","NW","N","NE"][Math.round(((angle + 360) % 360) / 45) % 8];
-      }
-      const zoomTarget = 0.84;
-      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, zoomTarget, 0.05));
-    }
-
-    updateCar(dt) {
-      const stats = VEHICLES.unmarked_sedan;
-      const d = this.inputDir();
-      this.car.isBraking = d.down;
-      const speed = Math.hypot(this.car.vx, this.car.vy);
-      const speedRatio = clamp(speed / stats.topSpeed, 0.15, 1);
-      if (d.left) this.car.heading -= stats.steeringRate * dt * speedRatio;
-      if (d.right) this.car.heading += stats.steeringRate * dt * speedRatio;
-      const fx = Math.cos(this.car.heading);
-      const fy = Math.sin(this.car.heading);
-      if (d.up && GAME.car.fuel > 0) {
-        this.car.vx += fx * stats.acceleration * dt;
-        this.car.vy += fy * stats.acceleration * dt;
-        GAME.car.fuel = Math.max(0, GAME.car.fuel - dt * (0.85 + speed / 360));
-      }
-      if (d.down) {
-        this.car.vx -= fx * stats.brakeForce * dt;
-        this.car.vy -= fy * stats.brakeForce * dt;
-      }
-      // traction pulls movement vector slowly toward heading, leaving room for slide.
-      const forwardMag = this.car.vx * fx + this.car.vy * fy;
-      const targetVx = fx * forwardMag;
-      const targetVy = fy * forwardMag;
-      this.car.vx += (targetVx - this.car.vx) * stats.traction;
-      this.car.vy += (targetVy - this.car.vy) * stats.traction;
-      this.car.vx *= stats.friction;
-      this.car.vy *= stats.friction;
-      const currentSpeed = Math.hypot(this.car.vx, this.car.vy);
-      if (currentSpeed > stats.topSpeed) {
-        this.car.vx = (this.car.vx / currentSpeed) * stats.topSpeed;
-        this.car.vy = (this.car.vy / currentSpeed) * stats.topSpeed;
-      }
-      this.car.body.setVelocity(this.car.vx, this.car.vy);
-      this.car.rotationFrame = this.getVehicleFrame(this.car.heading);
-      this.syncVehicleSprites();
-      const zoomTarget = currentSpeed > 300 ? 0.48 : currentSpeed > 160 ? 0.6 : 0.72;
-      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, zoomTarget, 0.04));
-    }
-
-    getVehicleFrame(angleRadians) {
-      // Frame 0 points north/up. Positive frame index moves clockwise around 360 degrees.
-      const degrees = Phaser.Math.RadToDeg(angleRadians);
-      const normalized = Phaser.Math.Wrap(degrees + 90, 0, 360);
-      return Math.round(normalized / VEHICLES.unmarked_sedan.frame.degreesPerFrame) % VEHICLES.unmarked_sedan.frame.count;
-    }
-
-    syncVehicleSprites() {
-      if (!this.carBaseSprite || !this.carShadowSprite || !this.carDamageSprite || !this.car) return;
-      const frame = this.car.rotationFrame || 0;
-      const stats = VEHICLES.unmarked_sedan;
-      const vs = GAME.car.visualState;
-      const dmg = GAME.car.damage;
-
-      let baseTexture = stats.sprites.clean;
-      if (vs.destroyed || dmg >= 100) {
-        baseTexture = stats.sprites.burnt;
-      } else if (vs.hoodOpen) {
-        baseTexture = stats.sprites.hoodOpen;
-      } else if (vs.trunkOpen) {
-        baseTexture = stats.sprites.trunkOpen;
-      } else if (vs.driverDoorOpen) {
-        baseTexture = stats.sprites.driverDoorOpen;
-      }
-
-      this.carShadowSprite.setFrame(frame);
-      this.carBaseSprite.setTexture(baseTexture);
-      this.carBaseSprite.setFrame(frame);
-
-      const lightsVisible = !vs.destroyed && (vs.lightsOn || this.car.isBraking);
-      this.carLightsSprite.setVisible(lightsVisible);
-      this.carLightsSprite.setFrame(frame);
-      this.carLightsSprite.setAlpha(this.car.isBraking ? 1 : 0.78);
-
-      const damageVisible = !vs.destroyed && dmg > 0;
-      this.carDamageSprite.setVisible(damageVisible);
-      this.carDamageSprite.setFrame(frame);
-      this.carDamageSprite.setAlpha(damageVisible ? clamp(dmg / 100, 0.22, 0.82) : 0);
-
-      const smokeVisible = !vs.destroyed && (vs.smokeFire || dmg >= 70);
-      this.carSmokeSprite.setVisible(smokeVisible);
-      this.carSmokeSprite.setFrame(frame);
-      this.carSmokeSprite.setAlpha(smokeVisible ? clamp((dmg - 45) / 55, 0.45, 0.95) : 0);
-
-      if (dmg >= 70 && !vs.destroyed) {
-        this.carBaseSprite.setTint(0xc8c0b8);
-      } else {
-        this.carBaseSprite.clearTint();
-      }
-    }
-
-    carHitWall() {
-      const spd = Math.hypot(this.car.vx, this.car.vy);
-      if (spd > 80) GAME.car.damage = Math.min(100, GAME.car.damage + Math.round(spd / 90));
-      this.car.vx *= -0.28;
-      this.car.vy *= -0.28;
-      this.car.body.setVelocity(this.car.vx, this.car.vy);
-      this.syncVehicleSprites();
-    }
-
-    updateCase(dt) {
-      if (!GAME.case.active) {
-        const trigger = INTERACTION_ZONES.find(z => z.id === "bennys_shoplifting_trigger");
-        const actor = this.inCar ? this.car : this.player;
-        if (rectOverlapsSprite(trigger, actor)) this.startShopliftingCase();
-      }
-      if (GAME.case.active && !GAME.case.suspectArrested && !GAME.case.complete) {
-        const flee = SPAWN_POINTS.find(s => s.id === "bennys_suspect_flee");
-        this.physics.moveTo(this.suspect, flee.x, flee.y, 105);
-        if (distance(this.suspect, flee) < 35) {
-          this.suspect.body.setVelocity(0, 0);
-          this.message = "Suspect reached the back lot. Cut him off or arrest him nearby.";
-          this.messageTimer = 3000;
-        }
-      }
-    }
-
-    startShopliftingCase() {
-      GAME.case.active = true;
-      this.dispatch = "Raven Hook Dispatch: Shoplifting in progress at Benny's Market.";
-      this.objective = "Catch Eddie Cross, collect evidence, get clerk statement, store evidence in trunk.";
-      this.message = "Case started: Benny's Market shoplifting.";
-      this.messageTimer = 4000;
-      const s = SPAWN_POINTS.find(p => p.id === "bennys_suspect");
-      this.suspect.setPosition(s.x, s.y);
-      this.suspect.activeCase = true;
-      this.suspect.visible = true;
-      this.evidence.visible = true;
-      this.witness.visible = true;
-    }
-
-    updateCivilians(dt) {
-      for (const c of this.civilians) {
-        if (!c.nodeTarget || distance(c, c.nodeTarget) < 12) {
-          c.nodeTarget = new Phaser.Math.Vector2(
-            clamp(c.x + Phaser.Math.Between(-150, 150), 80, WORLD_W - 80),
-            clamp(c.y + Phaser.Math.Between(-150, 150), 80, WORLD_H - 80)
-          );
-        }
-        this.physics.moveTo(c, c.nodeTarget.x, c.nodeTarget.y, 45);
-      }
-    }
-
-    updateTraffic() {
-      for (let i = 0; i < this.trafficCars.length; i++) {
-        const c = this.trafficCars[i];
-        if (c.x < -120 || c.x > WORLD_W + 120) {
-          c.destroy();
-          this.trafficCars.splice(i, 1);
-          this.spawnTraffic(i + Math.floor(Math.random() * 4));
-          i--;
-        }
-      }
-    }
-
-    updateClosestZone() {
-      const actor = this.inCar ? this.car : this.player;
-      let closest = null;
-      for (const z of INTERACTION_ZONES) {
-        if (rectOverlapsSprite(z, actor)) { closest = z; break; }
-      }
-      this.closestZone = closest;
-    }
-
-    handleInteract() {
-      if (this.inCar) {
-        this.inCar = false;
-        this.player.setVisible(true);
-        this.player.setPosition(this.car.x - 34, this.car.y + 8);
-        this.player.body.enable = true;
-        this.car.body.setVelocity(0, 0);
-        this.car.vx = this.car.vy = 0;
-        this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
-        GAME.car.visualState.driverDoorOpen = true;
-        this.syncVehicleSprites();
-        this.time.delayedCall(900, () => { GAME.car.visualState.driverDoorOpen = false; this.syncVehicleSprites(); });
-        this.message = "Exited vehicle.";
-        this.messageTimer = 2200;
-        return;
-      }
-      if (distance(this.player, this.car) < 70) {
-        this.inCar = true;
-        this.player.setVisible(false);
-        this.player.body.enable = false;
-        this.cameras.main.startFollow(this.car, true, 0.08, 0.08);
-        GAME.car.visualState.driverDoorOpen = true;
-        this.syncVehicleSprites();
-        this.time.delayedCall(700, () => { GAME.car.visualState.driverDoorOpen = false; this.syncVehicleSprites(); });
-        this.message = "Entered unmarked sedan.";
-        this.messageTimer = 2200;
-        return;
-      }
-      if (!this.closestZone) return;
-      const z = this.closestZone;
-      if (z.type === "crime_trigger") this.startShopliftingCase();
-      if (z.type === "evidence" && GAME.case.active && !GAME.case.evidenceCollected) {
-        GAME.case.evidenceCollected = true;
-        this.playerInventory.push("stolen_cigarettes");
-        this.evidence.visible = false;
-        this.message = "Evidence collected: stolen cigarettes.";
-        this.messageTimer = 3000;
-      }
-      if (z.type === "witness") {
-        GAME.case.witnessStatement = true;
-        this.message = z.npcId === "marlene_pike"
-          ? "Marlene Pike: 'He stuffed cartons in his jacket and ran for the back.'"
-          : "Witness statement logged.";
-        this.messageTimer = 4200;
-      }
-      if (z.type === "evidence_dropoff") {
-        this.message = GAME.case.evidenceInTrunk ? "Evidence chain logged at station." : "No trunk evidence ready for drop-off.";
-        this.messageTimer = 3000;
-      }
-      if (z.type === "door" || z.type === "roof") {
-        this.message = `${z.label}: interior/roof layer planned. Full transition comes next build.`;
-        this.messageTimer = 3000;
-      }
-      if (z.type === "payphone") {
-        this.message = "Payphone: dead line. Future case trigger point.";
-        this.messageTimer = 2800;
-      }
-    }
-
-    tryArrest() {
-      if (!GAME.case.active || GAME.case.suspectArrested) return;
-      const actor = this.inCar ? this.car : this.player;
-      if (distance(actor, this.suspect) < 75) {
-        GAME.case.suspectArrested = true;
-        this.suspect.body.setVelocity(0, 0);
-        this.suspect.setFillStyle(0x552222, 0.6);
-        this.dispatch = "Dispatch: Suspect detained. Secure evidence and witness statement.";
-        this.objective = "Collect evidence, talk to clerk, store evidence in trunk, return to report room.";
-        this.message = "Arrested Eddie Cross.";
-        this.messageTimer = 3200;
-      } else {
-        this.message = "No suspect close enough to arrest.";
-        this.messageTimer = 2200;
-      }
-    }
-
-    handleTrunk() {
-      const trunkZone = INTERACTION_ZONES.find(z => z.id === "detective_trunk");
-      const actor = this.inCar ? this.car : this.player;
-      if (!rectOverlapsSprite(trunkZone, actor) && distance(actor, this.car) > 80) {
-        this.message = "Move near the detective sedan trunk.";
-        this.messageTimer = 2500;
-        return;
-      }
-      GAME.car.visualState.trunkOpen = true;
-      this.syncVehicleSprites();
-      this.time.delayedCall(2200, () => { GAME.car.visualState.trunkOpen = false; this.syncVehicleSprites(); });
-      if (this.playerInventory.includes("stolen_cigarettes") && !GAME.case.evidenceInTrunk) {
-        GAME.case.evidenceInTrunk = true;
-        GAME.car.trunk.push("stolen_cigarettes");
-        this.message = "Stored evidence in trunk: stolen cigarettes.";
-        this.messageTimer = 3000;
-      } else {
-        this.message = GAME.case.evidenceInTrunk ? "Trunk contains: stolen cigarettes." : "Trunk empty. Collect evidence first.";
-        this.messageTimer = 3000;
-      }
-    }
-
-    tryReport() {
-      const reportZone = INTERACTION_ZONES.find(z => z.id === "report_desk");
-      const actor = this.inCar ? this.car : this.player;
-      if (rectOverlapsSprite(reportZone, actor)) {
-        this.scene.start("ReportScene");
-      } else {
-        this.message = "Return to the Report Room desk at Raven Hook Precinct.";
-        this.messageTimer = 2800;
-      }
-    }
-
-    updateHUD() {
-      const speed = Math.round(Math.hypot(this.car.vx || 0, this.car.vy || 0) / 4.7);
-      const hour = Math.floor(this.shiftMinutes / 60) % 24;
-      const min = Math.floor(this.shiftMinutes % 60).toString().padStart(2, "0");
-      const flags = [
-        GAME.case.active ? "CASE" : "PATROL",
-        GAME.case.suspectArrested ? "ARREST" : "NO ARREST",
-        GAME.case.evidenceCollected ? "EVIDENCE" : "NO EVIDENCE",
-        GAME.case.witnessStatement ? "WITNESS" : "NO WITNESS",
-        GAME.case.evidenceInTrunk ? "TRUNK" : "NO TRUNK"
-      ].join(" | ");
-      this.hudText.setText(`${RH_CENTRAL_V03.name} | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`);
-      const vs = GAME.car.visualState;
-      const carState = vs.destroyed ? "WRECK" : vs.hoodOpen ? "HOOD" : vs.trunkOpen ? "TRUNK" : vs.driverDoorOpen ? "DOOR" : (vs.smokeFire || GAME.car.damage >= 70) ? "SMOKE" : "NORMAL";
-      this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame ?? 0} | Car ${carState} | Lights ${vs.lightsOn ? "ON" : "off"}`);
-      this.promptText.setText(this.closestZone ? `E: ${this.closestZone.label || this.closestZone.type}` : "E enter/exit | SPACE arrest | T trunk | R report");
-      this.layerText.setText(`Debug C:${this.debug.collision ? "ON" : "off"} I:${this.debug.interaction ? "ON" : "off"} P:${this.debug.spawns ? "ON" : "off"} M:${this.debug.mapRef ? "ON" : "off"}`);
-      this.messageText.setText(this.messageTimer > 0 ? this.message : "");
-    }
-
-    redrawDebug() {
-      this.debugGraphics.clear();
-      if (this.debug.collision) {
-        for (const r of COLLISION_RECTS) {
-          if (r.type === "curb") continue;
-          const color = r.type === "large_prop" ? COLORS.orange : COLORS.red;
-          this.debugGraphics.fillStyle(color, 0.22).fillRect(r.x, r.y, r.w, r.h);
-          this.debugGraphics.lineStyle(3, color, 0.9).strokeRect(r.x, r.y, r.w, r.h);
-        }
-      }
-      if (this.debug.interaction) {
-        for (const z of INTERACTION_ZONES) {
-          const color = z.type === "door" ? COLORS.blue : z.type === "roof" ? COLORS.green : z.type === "evidence" ? COLORS.yellow : z.type === "witness" ? COLORS.purple : z.type === "crime_trigger" ? COLORS.orange : z.type === "report" ? COLORS.cyan : 0xffffff;
-          this.debugGraphics.fillStyle(color, 0.25).fillRect(z.x, z.y, z.w, z.h);
-          this.debugGraphics.lineStyle(2, color, 0.95).strokeRect(z.x, z.y, z.w, z.h);
-        }
-      }
-      if (this.debug.spawns) {
-        for (const s of SPAWN_POINTS) {
-          const color = s.type === "player" ? COLORS.blue : s.type === "vehicle" ? 0xffffff : s.type === "suspect" ? COLORS.red : s.type === "witness" ? COLORS.purple : s.type === "evidence" ? COLORS.yellow : s.type.includes("traffic") ? COLORS.cyan : s.type.includes("despawn") ? COLORS.green : 0xaaaaaa;
-          this.debugGraphics.fillStyle(color, 0.85).fillCircle(s.x, s.y, 11);
-          this.debugGraphics.lineStyle(2, 0x000000, 0.7).strokeCircle(s.x, s.y, 11);
-        }
-      }
-    }
-
-    toggleReferenceOverlay() {
-      if (!this.refOverlay) {
-        this.refOverlay = this.add.container(WORLD_W / 2, WORLD_H / 2).setDepth(1000).setVisible(false);
-        const bg = this.add.rectangle(0, 0, 900, 220, 0x02060a, 0.92).setStrokeStyle(2, COLORS.cyan, 0.7);
-        const txt = this.add.text(-420, -80,
-          "Reference masks are disabled in the live mobile build to prevent preload black screens.\n\n" +
-          "Use C for collision boxes, I for interaction zones, and P for spawn points.\n" +
-          "Those debug layers are generated from the real JS map data.",
-          { fontFamily: "Courier New", fontSize: "16px", color: "#ffffff", wordWrap: { width: 840 } }
-        );
-        this.refOverlay.add([bg, txt]);
-      }
-      this.refOverlay.setVisible(this.debug.mapRef);
-    }
+    update(time, delta) { const dt=delta/1000; this.shiftMinutes += dt*0.85; this.updateClosestZone(); if(this.inCar) this.updateCar(dt); else this.updatePlayer(dt); this.updateCase(dt); this.updateCivilians(); this.updateHUD(); if(this.messageTimer>0) this.messageTimer-=delta; }
+    updatePlayer() { const d=this.inputDir(); let vx=d.ax||0, vy=d.ay||0; if(!vx&&!vy){ if(d.left)vx-=1; if(d.right)vx+=1; if(d.up)vy-=1; if(d.down)vy+=1; } const len=Math.hypot(vx,vy)||1; vx/=len; vy/=len; this.player.body.setVelocity(vx*220,vy*220); if(vx||vy){ const angle=Phaser.Math.RadToDeg(Math.atan2(vy,vx)); this.playerFacing=['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8]; } this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom,0.84,0.05)); }
+    updateCar(dt) { const d=this.inputDir(); this.car.isBraking=d.down; const speed=Math.hypot(this.car.vx,this.car.vy); const speedRatio=clamp(speed/VEHICLE.topSpeed,0.15,1); if(d.left) this.car.heading-=VEHICLE.steeringRate*dt*speedRatio; if(d.right) this.car.heading+=VEHICLE.steeringRate*dt*speedRatio; const fx=Math.cos(this.car.heading), fy=Math.sin(this.car.heading); if((d.up || d.ay < -0.25) && GAME.car.fuel>0){ this.car.vx+=fx*VEHICLE.acceleration*dt; this.car.vy+=fy*VEHICLE.acceleration*dt; GAME.car.fuel=Math.max(0,GAME.car.fuel-dt*(0.85+speed/360)); } if(d.down || d.ay > 0.25){ this.car.vx-=fx*VEHICLE.brakeForce*dt; this.car.vy-=fy*VEHICLE.brakeForce*dt; } const fmag=this.car.vx*fx+this.car.vy*fy; this.car.vx += (fx*fmag-this.car.vx)*VEHICLE.traction; this.car.vy += (fy*fmag-this.car.vy)*VEHICLE.traction; this.car.vx*=VEHICLE.friction; this.car.vy*=VEHICLE.friction; const sp=Math.hypot(this.car.vx,this.car.vy); if(sp>VEHICLE.topSpeed){ this.car.vx=(this.car.vx/sp)*VEHICLE.topSpeed; this.car.vy=(this.car.vy/sp)*VEHICLE.topSpeed; } this.car.body.setVelocity(this.car.vx,this.car.vy); this.car.rotationFrame=this.getVehicleFrame(this.car.heading); this.carFallback && this.car.setRotation(this.car.heading+Math.PI/2); this.syncVehicleSprites(); this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, sp>300?0.48:sp>160?0.6:0.72,0.04)); }
+    getVehicleFrame(a) { const deg=Phaser.Math.RadToDeg(a); const norm=Phaser.Math.Wrap(deg+90,0,360); return Math.round(norm/VEHICLE.frame.degreesPerFrame)%VEHICLE.frame.count; }
+    syncVehicleSprites() { this.ensureSpriteLayers(); if(!this.spriteLayersMade) return; this.car.setRotation(0); const frame=this.car.rotationFrame||0, vs=GAME.car.visualState, dmg=GAME.car.damage; let base=VEHICLE.sprites.clean; if(vs.trunkOpen && this.textures.exists(VEHICLE.sprites.trunkOpen)) base=VEHICLE.sprites.trunkOpen; else if(vs.driverDoorOpen && this.textures.exists(VEHICLE.sprites.driverDoorOpen)) base=VEHICLE.sprites.driverDoorOpen; this.carShadowSprite.setFrame(frame); this.carBaseSprite.setTexture(base).setFrame(frame); this.carLightsSprite.setVisible(vs.lightsOn||this.car.isBraking).setFrame(frame).setAlpha(this.car.isBraking?1:0.78); this.carDamageSprite.setVisible(dmg>0).setFrame(frame).setAlpha(dmg>0?clamp(dmg/100,0.22,0.82):0); this.carSmokeSprite.setVisible(vs.smokeFire||dmg>=70).setFrame(frame).setAlpha(vs.smokeFire||dmg>=70?0.72:0); }
+    carHitWall() { const spd=Math.hypot(this.car.vx,this.car.vy); if(spd>80) GAME.car.damage=Math.min(100,GAME.car.damage+Math.round(spd/90)); this.car.vx*=-0.28; this.car.vy*=-0.28; this.car.body.setVelocity(this.car.vx,this.car.vy); this.syncVehicleSprites(); }
+    updateCase() { if(!GAME.case.active){ const trg=INTERACTION_ZONES.find(z=>z.id==='bennys_shoplifting_trigger'); if(overlap(trg,this.inCar?this.car:this.player)) this.startShopliftingCase(); } if(GAME.case.active&&!GAME.case.suspectArrested&&!GAME.case.complete){ const flee=SPAWN_POINTS.find(s=>s.id==='bennys_suspect_flee'); this.physics.moveTo(this.suspect,flee.x,flee.y,105); if(dist(this.suspect,flee)<35) this.suspect.body.setVelocity(0,0); } }
+    startShopliftingCase() { GAME.case.active=true; this.dispatch="Raven Hook Dispatch: Shoplifting in progress at Benny's Market."; this.objective='Catch Eddie Cross, collect evidence, get clerk statement, store evidence in trunk.'; this.message="Case started: Benny's Market shoplifting."; this.messageTimer=4000; const s=SPAWN_POINTS.find(p=>p.id==='bennys_suspect'); this.suspect.setPosition(s.x,s.y); this.suspect.visible=true; this.evidence.visible=true; this.witness.visible=true; }
+    updateCivilians() { for(const c of this.civilians){ if(!c.nodeTarget||dist(c,c.nodeTarget)<12) c.nodeTarget=new Phaser.Math.Vector2(clamp(c.x+Phaser.Math.Between(-150,150),80,WORLD_W-80),clamp(c.y+Phaser.Math.Between(-150,150),80,WORLD_H-80)); this.physics.moveTo(c,c.nodeTarget.x,c.nodeTarget.y,45); } }
+    updateClosestZone() { const actor=this.inCar?this.car:this.player; this.closestZone=null; for(const z of INTERACTION_ZONES){ if(overlap(z,actor)){ this.closestZone=z; break; } } }
+    handleInteract() { if(this.inCar){ this.inCar=false; this.player.setVisible(true).setPosition(this.car.x-34,this.car.y+8); this.player.body.enable=true; this.car.body.setVelocity(0,0); this.car.vx=this.car.vy=0; this.cameras.main.startFollow(this.player,true,0.08,0.08); GAME.car.visualState.driverDoorOpen=true; this.syncVehicleSprites(); this.time.delayedCall(900,()=>{GAME.car.visualState.driverDoorOpen=false;this.syncVehicleSprites();}); this.message='Exited vehicle.'; this.messageTimer=2200; return; } if(dist(this.player,this.car)<70){ this.inCar=true; this.player.setVisible(false); this.player.body.enable=false; this.cameras.main.startFollow(this.car,true,0.08,0.08); GAME.car.visualState.driverDoorOpen=true; this.syncVehicleSprites(); this.time.delayedCall(700,()=>{GAME.car.visualState.driverDoorOpen=false;this.syncVehicleSprites();}); this.message='Entered unmarked sedan.'; this.messageTimer=2200; return; } if(!this.closestZone) return; const z=this.closestZone; if(z.type==='crime_trigger') this.startShopliftingCase(); if(z.type==='evidence'&&GAME.case.active&&!GAME.case.evidenceCollected){ GAME.case.evidenceCollected=true; this.playerInventory.push('stolen_cigarettes'); this.evidence.visible=false; this.message='Evidence collected: stolen cigarettes.'; this.messageTimer=3000; } if(z.type==='witness'){ GAME.case.witnessStatement=true; this.message=z.npcId==='marlene_pike'?"Marlene Pike: 'He stuffed cartons in his jacket and ran for the back.'":'Witness statement logged.'; this.messageTimer=4200; } }
+    tryArrest(){ if(!GAME.case.active||GAME.case.suspectArrested)return; const actor=this.inCar?this.car:this.player; if(dist(actor,this.suspect)<75){ GAME.case.suspectArrested=true; this.suspect.body.setVelocity(0,0); this.suspect.setFillStyle(0x552222,0.6); this.dispatch='Dispatch: Suspect detained. Secure evidence and witness statement.'; this.objective='Collect evidence, talk to clerk, store evidence in trunk, return to report room.'; this.message='Arrested Eddie Cross.'; this.messageTimer=3200; } else { this.message='No suspect close enough to arrest.'; this.messageTimer=2200; } }
+    handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
+    tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
+    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | Art ${this.spriteLayersMade?'SPRITE':'FALLBACK'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
+    redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
   }
 
   class ReportScene extends Phaser.Scene {
-    constructor() { super("ReportScene"); }
-    create() {
-      this.cameras.main.setBackgroundColor("#101018");
-      const g = this.add.graphics();
-      g.fillStyle(0xe0d0a5, 1).fillRoundedRect(100, 40, VIEW_W - 200, VIEW_H - 80, 12);
-      g.lineStyle(4, 0x2b2117, 1).strokeRoundedRect(100, 40, VIEW_W - 200, VIEW_H - 80, 12);
-      const scoreItems = [
-        ["Correct location: Benny's Market", GAME.case.active],
-        ["Correct crime: Shoplifting", GAME.case.active],
-        ["Suspect arrested: Eddie Cross", GAME.case.suspectArrested],
-        ["Evidence collected: stolen cigarettes", GAME.case.evidenceCollected],
-        ["Evidence stored in trunk", GAME.case.evidenceInTrunk],
-        ["Witness statement: Marlene Pike", GAME.case.witnessStatement]
-      ];
-      let score = 0;
-      for (const item of scoreItems) if (item[1]) score += 100;
-      if (score >= 500 && !GAME.case.reportFiled) {
-        GAME.xp += score;
-        GAME.case.complete = true;
-        GAME.case.reportFiled = true;
-        GAME.day += 1;
-      }
-      makeText(this, VIEW_W / 2, 74, "RAVEN HOOK POLICE DEPARTMENT", 24, "#2b2117").setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 110, "INCIDENT REPORT — BENNY'S MARKET SHOPLIFTING", 18, "#2b2117").setOrigin(0.5);
-      let y = 160;
-      for (const [label, ok] of scoreItems) {
-        makeText(this, 160, y, `${ok ? "✓" : "✗"} ${label}`, 18, ok ? "#134f24" : "#7a1c1c");
-        y += 38;
-      }
-      makeText(this, 160, y + 10, `REPORT SCORE: ${score} / 600`, 22, "#2b2117");
-      makeText(this, 160, y + 50, score >= 500 ? "Report accepted. Day advanced. XP awarded." : "Report incomplete. Return to the field and finish the case.", 18, score >= 500 ? "#134f24" : "#7a1c1c");
-      makeText(this, VIEW_W / 2, VIEW_H - 78, "PRESS ENTER / TAP TO RETURN", 18, "#2b2117").setOrigin(0.5);
-      this.input.keyboard.once("keydown-ENTER", () => this.scene.start("GameScene"));
-      this.input.once("pointerdown", () => this.scene.start("GameScene"));
-    }
+    constructor(){ super('ReportScene'); }
+    create(){ this.cameras.main.setBackgroundColor('#101018'); const g=this.add.graphics(); g.fillStyle(0xe0d0a5,1).fillRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); g.lineStyle(4,0x2b2117,1).strokeRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); const items=[["Correct location: Benny's Market",GAME.case.active],["Correct crime: Shoplifting",GAME.case.active],["Suspect arrested: Eddie Cross",GAME.case.suspectArrested],["Evidence collected: stolen cigarettes",GAME.case.evidenceCollected],["Evidence stored in trunk",GAME.case.evidenceInTrunk],["Witness statement: Marlene Pike",GAME.case.witnessStatement]]; let score=0; for(const i of items) if(i[1]) score+=100; if(score>=500&&!GAME.case.reportFiled){ GAME.xp+=score; GAME.case.complete=true; GAME.case.reportFiled=true; GAME.day+=1; } makeText(this,VIEW_W/2,74,'RAVEN HOOK POLICE DEPARTMENT',24,'#2b2117').setOrigin(0.5); makeText(this,VIEW_W/2,110,"INCIDENT REPORT — BENNY'S MARKET SHOPLIFTING",18,'#2b2117').setOrigin(0.5); let y=160; for(const [label,ok] of items){ makeText(this,160,y,`${ok?'✓':'✗'} ${label}`,18,ok?'#134f24':'#7a1c1c'); y+=38; } makeText(this,160,y+10,`REPORT SCORE: ${score} / 600`,22,'#2b2117'); makeText(this,160,y+50,score>=500?'Report accepted. Day advanced. XP awarded.':'Report incomplete. Return to the field and finish the case.',18,score>=500?'#134f24':'#7a1c1c'); makeText(this,VIEW_W/2,VIEW_H-78,'PRESS ENTER / TAP TO RETURN',18,'#2b2117').setOrigin(0.5); this.input.keyboard.once('keydown-ENTER',()=>this.scene.start('GameScene')); this.input.once('pointerdown',()=>this.scene.start('GameScene')); }
   }
 
-  const config = {
-    type: Phaser.AUTO,
-    parent: "game",
-    width: VIEW_W,
-    height: VIEW_H,
-    backgroundColor: "#05070b",
-    pixelArt: true,
-    roundPixels: true,
-    scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
-    physics: { default: "arcade", arcade: { debug: false } },
-    scene: [TitleScene, GameScene, ReportScene]
-  };
-
-  new Phaser.Game(config);
+  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, GameScene, ReportScene] });
 })();
 </script>
 </body>
