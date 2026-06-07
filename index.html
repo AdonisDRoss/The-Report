@@ -103,6 +103,11 @@
     path: 'assets/maps/rh_central_ground.png'
   };
 
+  const BUILDING_SHEET_ASSET = {
+    key: 'building_exterior_sheet',
+    path: 'assets/reference/layer_02_building_exterior_sheet.png'
+  };
+
   const TITLE_ASSET = {
     key: 'title_raven_hook_clean_960x540',
     path: 'assets/ui/title/title_raven_hook_clean_960x540.png'
@@ -176,6 +181,7 @@
     lazyLoadGameAssets() {
       const files = [
         { type: 'image', key: GROUND_ASSET.key, path: GROUND_ASSET.path },
+        { type: 'image', key: BUILDING_SHEET_ASSET.key, path: BUILDING_SHEET_ASSET.path },
         { type: 'spritesheet', key: PLAYER_ASSET.key, path: PLAYER_ASSET.path, fw: PLAYER_ASSET.frameWidth, fh: PLAYER_ASSET.frameHeight },
         { type: 'spritesheet', key: 'detective_sedan_clean_64', path: 'assets/vehicles/detective_sedan/detective_sedan_clean_64.png', fw: 128, fh: 128 },
         { type: 'spritesheet', key: 'detective_sedan_shadow_64', path: 'assets/vehicles/detective_sedan/detective_sedan_shadow_64.png', fw: 128, fh: 128 },
@@ -189,6 +195,7 @@
       this.assetErrors = [];
       this.load.on('filecomplete', (key) => {
         if (key === GROUND_ASSET.key) this.applyGroundMap();
+        if (key === BUILDING_SHEET_ASSET.key) this.applyBuildingSheet();
         if (key === PLAYER_ASSET.key) this.ensurePlayerSprite();
         this.ensureSpriteLayers();
         this.syncVehicleSprites();
@@ -267,8 +274,15 @@
     }
 
     drawBuildings() {
-      const g = this.add.graphics().setDepth(2);
-      const drawB = (r, label, color, neon) => { g.fillStyle(color, 0.9).fillRoundedRect(r.x, r.y, r.w, r.h, 10); g.lineStyle(3, neon, 0.95).strokeRoundedRect(r.x, r.y, r.w, r.h, 10); g.fillStyle(0, 0.32).fillRect(r.x + 8, r.y + r.h - 42, r.w - 16, 34); makeText(this, r.x + r.w / 2, r.y + r.h - 33, label, 16, '#fff').setOrigin(0.5).setDepth(3); };
+      this.buildingLabels = [];
+      const g = this.buildingGraphics = this.add.graphics().setDepth(2);
+      const drawB = (r, label, color, neon) => {
+        g.fillStyle(color, 0.9).fillRoundedRect(r.x, r.y, r.w, r.h, 10);
+        g.lineStyle(3, neon, 0.95).strokeRoundedRect(r.x, r.y, r.w, r.h, 10);
+        g.fillStyle(0, 0.32).fillRect(r.x + 8, r.y + r.h - 42, r.w - 16, 34);
+        const t = makeText(this, r.x + r.w / 2, r.y + r.h - 33, label, 16, '#fff').setOrigin(0.5).setDepth(3);
+        this.buildingLabels.push(t);
+      };
       drawB({x:285,y:155,w:565,h:430}, 'RAVEN HOOK PRECINCT', 0x1c2a37, COLORS.neonBlue);
       drawB({x:725,y:145,w:210,h:315}, 'GARAGE', 0x222931, COLORS.neonBlue);
       drawB({x:205,y:905,w:320,h:300}, 'REPORT ROOM', 0x2a2420, COLORS.amber);
@@ -498,7 +512,7 @@
     tryArrest(){ if(!GAME.case.active||GAME.case.suspectArrested)return; const actor=this.inCar?this.car:this.player; if(dist(actor,this.suspect)<75){ GAME.case.suspectArrested=true; this.suspect.body.setVelocity(0,0); this.suspect.setFillStyle(0x552222,0.6); this.dispatch='Dispatch: Suspect detained. Secure evidence and witness statement.'; this.objective='Collect evidence, talk to clerk, store evidence in trunk, return to report room.'; this.message='Arrested Eddie Cross.'; this.messageTimer=3200; } else { this.message='No suspect close enough to arrest.'; this.messageTimer=2200; } }
     handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
     tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
-    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Map ${this.realGround?'PNG':'fallback'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
+    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingSheet?'sheet':'fallback'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
     redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
   }
 
