@@ -30,6 +30,25 @@
   const WORLD_W = 2048;
   const WORLD_H = 1536;
 
+  // GitHub Pages-safe asset base.
+  // When deployed at https://adonisdross.github.io/The-Report/, absolute /The-Report/ paths avoid
+  // mobile browser relative-path failures after scene changes.
+  const ASSET_BASE = window.location.hostname.endsWith("github.io") ? "/The-Report/" : "./";
+  function assetPath(path) {
+    return ASSET_BASE + String(path).replace(/^\/?/, "");
+  }
+
+  function showFatalError(message) {
+    const box = document.createElement("div");
+    box.style.cssText = "position:fixed;inset:0;z-index:99999;background:#05070b;color:#ffdf59;font:14px Courier New,monospace;padding:18px;white-space:pre-wrap;overflow:auto;";
+    box.textContent = "THE REPORT LOAD ERROR\n\n" + message;
+    document.body.appendChild(box);
+  }
+
+  window.addEventListener("error", (event) => {
+    showFatalError(event.message + "\n" + (event.filename || "") + ":" + (event.lineno || ""));
+  });
+
   const COLORS = {
     white: 0xffffff,
     black: 0x000000,
@@ -216,7 +235,7 @@
   class TitleScene extends Phaser.Scene {
     constructor() { super("TitleScene"); }
     preload() {
-      this.load.image("ground", RH_CENTRAL_V03.layers.ground);
+      // Title scene draws its own art; no heavy assets needed here.
     }
     create() {
       this.cameras.main.setBackgroundColor("#05070b");
@@ -247,26 +266,44 @@
     constructor() { super("GameScene"); }
 
     preload() {
-      this.load.image("ground", RH_CENTRAL_V03.layers.ground);
-      this.load.image("layer02", RH_CENTRAL_V03.layers.buildingsRef);
-      this.load.image("layer03", RH_CENTRAL_V03.layers.interiorsRef);
-      this.load.image("layer04", RH_CENTRAL_V03.layers.rooftopsRef);
-      this.load.image("layer05", RH_CENTRAL_V03.layers.propsRef);
-      this.load.image("layer06", RH_CENTRAL_V03.layers.collisionMaskRef);
-      this.load.image("layer07", RH_CENTRAL_V03.layers.interactionMaskRef);
-      this.load.image("layer08", RH_CENTRAL_V03.layers.spawnMaskRef);
-      this.load.spritesheet("detective_sedan_clean_64", "assets/vehicles/detective_sedan/detective_sedan_clean_64.png", { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_damage_64", "assets/vehicles/detective_sedan/detective_sedan_damage_64.png", { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_shadow_64", "assets/vehicles/detective_sedan/detective_sedan_shadow_64.png", { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_trunk_open_64", "assets/vehicles/detective_sedan/detective_sedan_trunk_open_64.png", { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_driver_door_open_64", "assets/vehicles/detective_sedan/detective_sedan_driver_door_open_64.png", { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_lights_overlay_64", "assets/vehicles/detective_sedan/detective_sedan_lights_overlay_64.png", { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_hood_open_64", "assets/vehicles/detective_sedan/detective_sedan_hood_open_64.png", { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_smoke_fire_64", "assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png", { frameWidth: 128, frameHeight: 128 });
-      this.load.spritesheet("detective_sedan_burnt_64", "assets/vehicles/detective_sedan/detective_sedan_burnt_64.png", { frameWidth: 128, frameHeight: 128 });
+      this.loadingText = this.add.text(20, 20, "LOADING RAVEN HOOK CENTRAL...", {
+        fontFamily: "Courier New",
+        fontSize: "18px",
+        color: "#ffdf59",
+        stroke: "#000",
+        strokeThickness: 3
+      }).setScrollFactor(0).setDepth(9999);
+
+      this.load.on("progress", (value) => {
+        this.loadingText.setText(`LOADING RAVEN HOOK CENTRAL... ${Math.round(value * 100)}%`);
+      });
+
+      this.load.on("loaderror", (file) => {
+        const src = file?.src || file?.url || file?.key || "unknown";
+        this.loadingText.setText(`ASSET LOAD ERROR:\n${src}`);
+        console.error("The Report asset load error:", file);
+      });
+
+      this.load.image("ground", assetPath(RH_CENTRAL_V03.layers.ground));
+      // Reference art masks are not preloaded on mobile.
+      // The live map uses JS collision / interaction / spawn data instead.
+      // This prevents black-screening from loading too many large debug-only images at once.
+      this.load.spritesheet("detective_sedan_clean_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_clean_64.png"), { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_damage_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_damage_64.png"), { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_shadow_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_shadow_64.png"), { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_trunk_open_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_trunk_open_64.png"), { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_driver_door_open_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_driver_door_open_64.png"), { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_lights_overlay_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_lights_overlay_64.png"), { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_hood_open_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_hood_open_64.png"), { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_smoke_fire_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png"), { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_burnt_64", assetPath("assets/vehicles/detective_sedan/detective_sedan_burnt_64.png"), { frameWidth: 128, frameHeight: 128 });
     }
 
     create() {
+      if (this.loadingText) {
+        this.loadingText.destroy();
+        this.loadingText = null;
+      }
       this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
       this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
       this.cameras.main.setBackgroundColor("#070b10");
@@ -886,10 +923,14 @@
     toggleReferenceOverlay() {
       if (!this.refOverlay) {
         this.refOverlay = this.add.container(WORLD_W / 2, WORLD_H / 2).setDepth(1000).setVisible(false);
-        const bg = this.add.rectangle(0, 0, 980, 760, 0x02060a, 0.9).setStrokeStyle(2, COLORS.cyan, 0.7);
-        const img = this.add.image(0, 30, "layer06").setDisplaySize(920, 690).setAlpha(0.82);
-        const txt = this.add.text(-460, -365, "Layer 06 reference mask preview. Real collision uses JS data.", { fontFamily: "Courier New", fontSize: "16px", color: "#ffffff" });
-        this.refOverlay.add([bg, img, txt]);
+        const bg = this.add.rectangle(0, 0, 900, 220, 0x02060a, 0.92).setStrokeStyle(2, COLORS.cyan, 0.7);
+        const txt = this.add.text(-420, -80,
+          "Reference masks are disabled in the live mobile build to prevent preload black screens.\n\n" +
+          "Use C for collision boxes, I for interaction zones, and P for spawn points.\n" +
+          "Those debug layers are generated from the real JS map data.",
+          { fontFamily: "Courier New", fontSize: "16px", color: "#ffffff", wordWrap: { width: 840 } }
+        );
+        this.refOverlay.add([bg, txt]);
       }
       this.refOverlay.setVisible(this.debug.mapRef);
     }
