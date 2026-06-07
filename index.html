@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+  <title>The Report v0.1</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #080b10;
+      font-family: Courier New, monospace;
+    }
+    #game {
+      width: 100vw;
+      height: 100vh;
+    }
+    canvas {
+      image-rendering: pixelated;
+    }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <script>
+  (() => {
+    const WIDTH = 960;
+    const HEIGHT = 540;
+    const WORLD_W = 2200;
+    const WORLD_H = 1600;
+
+    const COLORS = {
+      asphalt: 0x161a1f,
+      road: 0x222831,
+      roadLine: 0xd6b552,
+      grass: 0x17201a,
+      sidewalk: 0x4b4b45,
+      brick: 0x603230,
+      neonPink: 0xff4fa3,
+      neonCyan: 0x31d4ff,
+      amber: 0xffbd55,
+      paper: 0xd7c39c,
+      policeBlue: 0x2f75ff,
+      danger: 0xff4a4a,
+      good: 0x80ff8f,
+      white: 0xffffff,
+      black: 0x000000
+    };
+
+    const save = {
+      day: 1,
+      rank: "Detective Trainee",
+      xp: 0,
+      fuel: 72,
+      carDamage: 0,
+      trunk: [],
+      activeCase: null,
+      currentCrime: null,
+      solvedToday: false,
+      reportHistory: []
+    };
+
+    function makeText(scene, x, y, value, size = 16, color = "#ffffff") {
+      return scene.add.text(x, y, value, {
+        fontFamily: "Courier New",
+        fontSize: `${size}px`,
+        color,
+        stroke: "#000000",
+        strokeThickness: 3
+      });
+    }
+
+    function distance(a, b) {
+      return Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y);
+    }
+
+    class TitleScene extends Phaser.Scene {
+      constructor() { super("TitleScene"); }
+      create() {
+        this.cameras.main.setBackgroundColor("#05070b");
+        const g = this.add.graphics();
+        g.fillStyle(0x080b10, 1).fillRect(0, 0, WIDTH, HEIGHT);
+        for (let i = 0; i < 18; i++) {
+          const x = Phaser.Math.Between(0, WIDTH);
+          const h = Phaser.Math.Between(90, 260);
+          const w = Phaser.Math.Between(35, 85);
+          const y = HEIGHT - h - Phaser.Math.Between(0, 30);
+          g.fillStyle(0x10151e, 1).fillRect(x, y, w, h);
+          if (i % 3 === 0) g.fillStyle(COLORS.neonPink, 0.8).fillRect(x + 8, y + 18, w - 16, 5);
+          if (i % 4 === 0) g.fillStyle(COLORS.neonCyan, 0.7).fillRect(x + 7, y + 42, w - 14, 4);
+        }
+        g.fillStyle(0x111827, 0.95).fillRect(0, HEIGHT - 110, WIDTH, 110);
+        g.lineStyle(3, COLORS.roadLine, 0.5).lineBetween(0, HEIGHT - 55, WIDTH, HEIGHT - 55);
+
+        makeText(this, WIDTH / 2, 105, "THE REPORT", 58, "#f4d28a").setOrigin(0.5);
+        makeText(this, WIDTH / 2, 168, "1986 ROOKHAVEN DETECTIVE SANDBOX", 18, "#86e7ff").setOrigin(0.5);
+        makeText(this, WIDTH / 2, 235, "Patrol. Investigate. Collect evidence. Return to the station. File the report.", 17, "#ffffff").setOrigin(0.5);
+        makeText(this, WIDTH / 2, 305, "PRESS ENTER / TAP TO START SHIFT", 22, "#ff78bd").setOrigin(0.5);
+        makeText(this, WIDTH / 2, 374, "Controls: WASD/Arrows drive or walk | E interact | SPACE arrest | T trunk | R report", 15, "#dddddd").setOrigin(0.5);
+
+        this.input.keyboard.once("keydown-ENTER", () => this.scene.start("GameScene"));
+        this.input.once("pointerdown", () => this.scene.start("GameScene"));
+      }
+    }
+
+    class GameScene extends Phaser.Scene {
+      constructor() { super("GameScene"); }
+
+      create() {
+        this.cameras.main.setBackgroundColor("#11151b");
+        this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
+        this.keys = this.input.keyboard.addKeys({
+          up: "W", down: "S", left: "A", right: "D",
+          arrowUp: "UP", arrowDown: "DOWN", arrowLeft: "LEFT", arrowRight: "RIGHT",
+          interact: "E", arrest: "SPACE", trunk: "T", report: "R",
+          restart: "ENTER"
+        });
+        this.input.keyboard.on("keydown-E", () => this.handleInteract());
+        this.input.keyboard.on("keydown-SPACE", () => this.tryArrest());
+        this.input.keyboard.on("keydown-T", () => this.handleTrunk());
+        this.input.keyboard.on("keydown-R", () => this.tryReport());
+
+        this.inCar = false;
+        this.shiftTime = 8 * 60;
+        this.shiftLength = 12 * 60;
+        this.dispatchLog = [];
+        this.playerInventory = [];
+        this.sceneEvidence = [];
+        this.crimeState = "waiting";
+        this.crimeTimer = 0;
+        this.lastCrimeUpdate = 0;
+        this.messageTimer = 0;
+        this.message = "Start shift: leave the station and patrol Rookhaven.";
+        this.activeObjective = "Patrol until dispatch calls.";
+        save.solvedToday = false;
+        save.activeCase = null;
+
+        this.buildWorld();
+        this.createActors();
+        this.createHUD();
+        this.createMobileControls();
+
+        this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+        this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
+        this.cameras.main.setZoom(1);
+      }
+
+      buildWorld() {
+        this.buildings = this.physics.add.staticGroup();
+        const g = this.add.graphics();
+        g.fillStyle(COLORS.grass, 1).fillRect(0, 0, WORLD_W, WORLD_H);
+
+        // Major roads
+        g.fillStyle(COLORS.road, 1);
+        g.fillRect(0, 690, WORLD_W, 230);
+        g.fillRect(900, 0, 260, WORLD_H);
+        g.fillRect(0, 250, WORLD_W, 130);
+        g.fillRect(340, 0, 140, WORLD_H);
+
+        // Road lines
+        g.lineStyle(5, COLORS.roadLine, 0.75);
+        for (let x = 20; x < WORLD_W; x += 90) {
+          g.lineBetween(x, 805, x + 42, 805);
+          g.lineBetween(x, 315, x + 42, 315);
+        }
+        for (let y = 20; y < WORLD_H; y += 90) {
+          g.lineBetween(1030, y, 1030, y + 42);
+          g.lineBetween(410, y, 410, y + 42);
+        }
+
+        // Sidewalk slabs
+        g.fillStyle(COLORS.sidewalk, 1);
+        g.fillRect(0, 650, WORLD_W, 40);
+        g.fillRect(0, 920, WORLD_W, 40);
+        g.fillRect(860, 0, 40, WORLD_H);
+        g.fillRect(1160, 0, 40, WORLD_H);
+        g.fillRect(0, 210, WORLD_W, 40);
+        g.fillRect(0, 380, WORLD_W, 40);
+        g.fillRect(300, 0, 40, WORLD_H);
+        g.fillRect(480, 0, 40, WORLD_H);
+
+        this.locations = {};
+        this.makeBuilding(90, 980, 290, 210, "POLICE", 0x243955, "#86e7ff", "station");
+        this.makeBuilding(1320, 510, 240, 160, "BENNY'S MARKET", 0x554424, "#f4d28a", "market");
+        this.makeBuilding(610, 490, 220, 160, "DINER", 0x533139, "#ff78bd", "diner");
+        this.makeBuilding(1330, 980, 250, 160, "BLUE STAR MOTEL", 0x2e314f, "#86e7ff", "motel");
+        this.makeBuilding(650, 1050, 220, 150, "GAS", 0x304b32, "#80ff8f", "gas");
+        this.makeBuilding(1650, 435, 280, 230, "WAREHOUSE", 0x3e3e42, "#cccccc", "warehouse");
+        this.makeBuilding(120, 470, 230, 160, "PAWN", 0x4d3530, "#f4d28a", "pawn");
+        this.makeBuilding(1720, 1000, 250, 190, "ARCADE", 0x39254d, "#ff78bd", "arcade");
+
+        // Gas pumps and station zone
+        this.gasZone = this.add.zone(740, 960, 210, 150);
+        this.physics.add.existing(this.gasZone, true);
+        g.fillStyle(0x1a2d1b, 1).fillRoundedRect(625, 940, 240, 85, 8);
+        g.fillStyle(0xff3355, 1).fillRect(675, 970, 24, 38);
+        g.fillStyle(0xffffff, 1).fillRect(680, 976, 14, 9);
+        g.fillStyle(0xff3355, 1).fillRect(785, 970, 24, 38);
+        g.fillStyle(0xffffff, 1).fillRect(790, 976, 14, 9);
+
+        // Decorative payphones / dumpsters / neon props
+        const props = [
+          [1280, 705, 0x31d4ff], [1560, 700, 0xff4fa3], [585, 925, 0xffbd55],
+          [128, 1220, 0x31d4ff], [460, 610, 0xff4a4a], [1180, 470, 0xffbd55]
+        ];
+        props.forEach(([x, y, c]) => {
+          g.fillStyle(0x05070b, 1).fillRect(x, y, 22, 38);
+          g.fillStyle(c, 1).fillRect(x + 3, y + 4, 16, 8);
+        });
+      }
+
+      makeBuilding(x, y, w, h, label, color, labelColor, key) {
+        const shadow = this.add.rectangle(x + 10, y + 10, w, h, 0x050505, 0.35).setOrigin(0, 0);
+        const b = this.add.rectangle(x, y, w, h, color, 1).setOrigin(0, 0);
+        const roof = this.add.rectangle(x + 9, y + 9, w - 18, h - 18, color + 0x111111, 0.5).setOrigin(0, 0);
+        const body = this.add.rectangle(x + w / 2, y + h / 2, w, h, color, 1);
+        this.physics.add.existing(body, true);
+        this.buildings.add(body);
+        makeText(this, x + w / 2, y + 22, label, 15, labelColor).setOrigin(0.5);
+        this.locations[key] = { x: x + w / 2, y: y + h + 38, w, h, name: label };
+        return body;
+      }
+
+      createActors() {
+        // Player detective
+        this.player = this.add.container(this.locations.station.x, this.locations.station.y + 40);
+        const coat = this.add.rectangle(0, 8, 22, 28, 0x3a3028, 1);
+        const head = this.add.circle(0, -9, 8, 0xb87845, 1);
+        const hat = this.add.rectangle(0, -18, 24, 5, 0x141414, 1);
+        const tie = this.add.rectangle(0, 4, 4, 17, 0xa53838, 1);
+        this.player.add([coat, head, hat, tie]);
+        this.physics.add.existing(this.player);
+        this.player.body.setSize(22, 32).setOffset(-11, -16).setCollideWorldBounds(true);
+        this.physics.add.collider(this.player, this.buildings);
+
+        // Detective car
+        this.car = this.add.container(this.locations.station.x + 185, this.locations.station.y + 55);
+        this.carBody = this.add.rectangle(0, 0, 64, 34, 0x101820, 1);
+        this.carHood = this.add.rectangle(16, 0, 24, 28, 0x1c2f45, 1);
+        this.carRoof = this.add.rectangle(-10, 0, 24, 26, 0x30475c, 1);
+        this.carLight = this.add.rectangle(-1, -18, 18, 4, COLORS.policeBlue, 1);
+        this.carTail = this.add.rectangle(-34, -9, 5, 7, COLORS.danger, 1);
+        this.carTail2 = this.add.rectangle(-34, 9, 5, 7, COLORS.danger, 1);
+        this.car.add([this.carBody, this.carHood, this.carRoof, this.carLight, this.carTail, this.carTail2]);
+        this.physics.add.existing(this.car);
+        this.car.body.setSize(64, 36).setOffset(-32, -18).setCollideWorldBounds(true);
+        this.car.body.setDrag(110);
+        this.car.body.setMaxVelocity(460);
+        this.physics.add.collider(this.car, this.buildings, () => {
+          const speed = this.car.body.velocity.length();
+          if (speed > 160) save.carDamage = Math.min(100, save.carDamage + 0.05);
+        });
+
+        // NPC civilians
+        this.npcs = this.physics.add.group();
+        this.spawnCivilians();
+
+        // Shoplifting suspect and witness are created but inactive
+        this.suspect = this.makeNPC(1390, 730, 0xc22f2f, "Eddie Cross", "suspect");
+        this.suspect.setVisible(false);
+        this.suspect.body.enable = false;
+        this.suspectData = {
+          name: "Eddie Cross",
+          charge: "Petty Theft",
+          arrested: false,
+          escaped: false
+        };
+
+        this.clerk = this.makeNPC(1350, 710, 0xe7b96c, "Marlene Pike", "witness");
+        this.clerk.setVisible(false);
+        this.clerk.body.enable = false;
+      }
+
+      makeNPC(x, y, color, name, role = "civilian") {
+        const npc = this.add.container(x, y);
+        npc.add(this.add.circle(0, -8, 7, 0xc9915b, 1));
+        npc.add(this.add.rectangle(0, 9, 18, 25, color, 1));
+        npc.nameTag = makeText(this, x, y - 34, name, 11, "#ffffff").setOrigin(0.5).setVisible(false);
+        this.physics.add.existing(npc);
+        npc.body.setSize(18, 32).setOffset(-9, -16).setCollideWorldBounds(true);
+        npc.role = role;
+        npc.npcName = name;
+        npc.wanderTarget = new Phaser.Math.Vector2(x, y);
+        this.physics.add.collider(npc, this.buildings);
+        this.npcs.add(npc);
+        return npc;
+      }
+
+      spawnCivilians() {
+        const names = ["Ray", "Donna", "Vic", "Sharon", "Lenny", "Tina", "Mack", "Nora", "Cal", "Rita", "Walt", "June"];
+        const colors = [0x4f7cac, 0x8a4f7a, 0x8f6b32, 0x3c8760, 0xa94d43, 0x6b5ca5];
+        for (let i = 0; i < 28; i++) {
+          const x = Phaser.Math.Between(80, WORLD_W - 80);
+          const y = Phaser.Math.Between(80, WORLD_H - 80);
+          const npc = this.makeNPC(x, y, Phaser.Utils.Array.GetRandom(colors), names[i % names.length], "civilian");
+          npc.speed = Phaser.Math.Between(22, 58);
+          npc.nextThink = Phaser.Math.Between(0, 2200);
+        }
+      }
+
+      createHUD() {
+        this.hud = this.add.container(0, 0).setScrollFactor(0).setDepth(9999);
+        const bgTop = this.add.rectangle(0, 0, WIDTH, 74, 0x000000, 0.58).setOrigin(0, 0);
+        const bgBottom = this.add.rectangle(0, HEIGHT - 72, WIDTH, 72, 0x000000, 0.64).setOrigin(0, 0);
+        this.hud.add([bgTop, bgBottom]);
+
+        this.caseText = makeText(this, 16, 10, "", 15, "#f4d28a").setScrollFactor(0);
+        this.objectiveText = makeText(this, 16, 35, "", 14, "#ffffff").setScrollFactor(0);
+        this.dispatchText = makeText(this, 16, HEIGHT - 62, "", 15, "#86e7ff").setScrollFactor(0);
+        this.helpText = makeText(this, 16, HEIGHT - 33, "", 13, "#dddddd").setScrollFactor(0);
+        this.carText = makeText(this, WIDTH - 295, HEIGHT - 62, "", 16, "#80ff8f").setScrollFactor(0);
+        this.rankText = makeText(this, WIDTH - 330, 10, "", 15, "#ffffff").setScrollFactor(0);
+        this.clockText = makeText(this, WIDTH - 330, 35, "", 15, "#ff78bd").setScrollFactor(0);
+        this.hud.add([this.caseText, this.objectiveText, this.dispatchText, this.helpText, this.carText, this.rankText, this.clockText]);
+
+        this.messageBox = makeText(this, WIDTH / 2, 90, "", 16, "#ffffff").setOrigin(0.5).setScrollFactor(0).setDepth(10000);
+      }
+
+      createMobileControls() {
+        // Simple touch buttons for phones/tablets.
+        const buttonStyle = { fontFamily: "Courier New", fontSize: "18px", color: "#ffffff", backgroundColor: "#00000099", padding: { x: 9, y: 7 } };
+        this.touch = { up: false, down: false, left: false, right: false };
+        const addBtn = (x, y, label, keyName) => {
+          const btn = this.add.text(x, y, label, buttonStyle).setScrollFactor(0).setDepth(10001).setInteractive();
+          btn.on("pointerdown", () => this.touch[keyName] = true);
+          btn.on("pointerup", () => this.touch[keyName] = false);
+          btn.on("pointerout", () => this.touch[keyName] = false);
+          return btn;
+        };
+        addBtn(42, HEIGHT - 166, "▲", "up");
+        addBtn(42, HEIGHT - 98, "▼", "down");
+        addBtn(8, HEIGHT - 132, "◀", "left");
+        addBtn(77, HEIGHT - 132, "▶", "right");
+        const eBtn = this.add.text(WIDTH - 126, HEIGHT - 166, "E", buttonStyle).setScrollFactor(0).setDepth(10001).setInteractive();
+        const tBtn = this.add.text(WIDTH - 84, HEIGHT - 132, "T", buttonStyle).setScrollFactor(0).setDepth(10001).setInteractive();
+        const sBtn = this.add.text(WIDTH - 136, HEIGHT - 98, "ARREST", buttonStyle).setScrollFactor(0).setDepth(10001).setInteractive();
+        eBtn.on("pointerdown", () => this.handleInteract());
+        tBtn.on("pointerdown", () => this.handleTrunk());
+        sBtn.on("pointerdown", () => this.tryArrest());
+      }
+
+      update(time, delta) {
+        const dt = delta / 1000;
+        this.updateClock(dt);
+        this.updateCrimeDirector(time, delta);
+        this.updateNPCs(time, delta);
+        if (this.inCar) this.updateCar(delta); else this.updatePlayer(delta);
+        this.updateNameTags();
+        this.updateEvidencePrompts();
+        this.updateHUD();
+        if (this.messageTimer > 0) {
+          this.messageTimer -= delta;
+          this.messageBox.setText(this.message);
+        } else {
+          this.messageBox.setText("");
+        }
+      }
+
+      keyDown(name) {
+        if (name === "up") return this.keys.up.isDown || this.keys.arrowUp.isDown || this.touch.up;
+        if (name === "down") return this.keys.down.isDown || this.keys.arrowDown.isDown || this.touch.down;
+        if (name === "left") return this.keys.left.isDown || this.keys.arrowLeft.isDown || this.touch.left;
+        if (name === "right") return this.keys.right.isDown || this.keys.arrowRight.isDown || this.touch.right;
+        return false;
+      }
+
+      updatePlayer(delta) {
+        const speed = 180;
+        const v = new Phaser.Math.Vector2(0, 0);
+        if (this.keyDown("up")) v.y -= 1;
+        if (this.keyDown("down")) v.y += 1;
+        if (this.keyDown("left")) v.x -= 1;
+        if (this.keyDown("right")) v.x += 1;
+        v.normalize().scale(speed);
+        this.player.body.setVelocity(v.x, v.y);
+        if (Math.abs(v.x) > 0.1 || Math.abs(v.y) > 0.1) {
+          this.player.rotation = Phaser.Math.Angle.Between(0, 0, v.x, v.y) + Math.PI / 2;
+        }
+      }
+
+      updateCar(delta) {
+        const body = this.car.body;
+        const accel = save.fuel > 0 ? 360 : 0;
+        const reverse = save.fuel > 0 ? 230 : 0;
+        const turnSpeed = 2.5;
+        const dt = delta / 1000;
+        const speed = body.velocity.length();
+
+        if (this.keyDown("left")) this.car.rotation -= turnSpeed * dt * (speed > 20 ? 1 : 0.45);
+        if (this.keyDown("right")) this.car.rotation += turnSpeed * dt * (speed > 20 ? 1 : 0.45);
+
+        const forward = new Phaser.Math.Vector2(Math.cos(this.car.rotation), Math.sin(this.car.rotation));
+        if (this.keyDown("up")) body.velocity.add(forward.scale(accel * dt));
+        if (this.keyDown("down")) body.velocity.add(forward.scale(-reverse * dt));
+
+        body.velocity.scale(0.992);
+        this.player.setPosition(this.car.x, this.car.y);
+
+        if (speed > 3) {
+          const burn = (0.0025 + speed * 0.000012) * dt * 60;
+          save.fuel = Math.max(0, save.fuel - burn);
+        }
+      }
+
+      updateClock(dt) {
+        this.shiftTime += dt * 4.0;
+        if (this.shiftTime >= 20 * 60) {
+          this.shiftTime = 20 * 60;
+          if (!this.shiftWarned) {
+            this.showMessage("Shift over. Return to the station and file the report.");
+            this.shiftWarned = true;
+          }
+        }
+      }
+
+      clockString() {
+        const mins = Math.floor(this.shiftTime);
+        const h24 = Math.floor(mins / 60);
+        const m = mins % 60;
+        const suffix = h24 >= 12 ? "PM" : "AM";
+        const h12 = ((h24 + 11) % 12) + 1;
+        return `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
+      }
+
+      updateNPCs(time, delta) {
+        this.npcs.children.each((npc) => {
+          if (!npc.body || !npc.body.enable || npc === this.suspect) return;
+          if (time > npc.nextThink) {
+            npc.nextThink = time + Phaser.Math.Between(900, 2600);
+            npc.wanderTarget.set(Phaser.Math.Clamp(npc.x + Phaser.Math.Between(-220, 220), 40, WORLD_W - 40), Phaser.Math.Clamp(npc.y + Phaser.Math.Between(-180, 180), 40, WORLD_H - 40));
+          }
+          const angle = Phaser.Math.Angle.Between(npc.x, npc.y, npc.wanderTarget.x, npc.wanderTarget.y);
+          const d = Phaser.Math.Distance.Between(npc.x, npc.y, npc.wanderTarget.x, npc.wanderTarget.y);
+          if (d > 20) {
+            const speed = npc.speed || 38;
+            npc.body.setVelocity(Math.cos(angle) * speed, Math.sin(angle) * speed);
+          } else {
+            npc.body.setVelocity(0, 0);
+          }
+        });
+      }
+
+      updateNameTags() {
+        this.npcs.children.each((npc) => {
+          if (!npc.nameTag) return;
+          npc.nameTag.setPosition(npc.x, npc.y - 35);
+          npc.nameTag.setVisible(distance(this.player, npc) < 80 && npc.visible);
+        });
+      }
+
+      updateCrimeDirector(time, delta) {
+        this.crimeTimer += delta;
+        if (this.crimeState === "waiting" && this.crimeTimer > 8500) {
+          this.startShopliftingCrime();
+        }
+        if (this.crimeState === "fleeing" && this.suspect.visible) {
+          const target = new Phaser.Math.Vector2(1660, 790);
+          const a = Phaser.Math.Angle.Between(this.suspect.x, this.suspect.y, target.x, target.y);
+          this.suspect.body.setVelocity(Math.cos(a) * 125, Math.sin(a) * 125);
+          if (distance(this.suspect, target) < 38) {
+            this.suspect.body.setVelocity(0, 0);
+            this.suspect.setVisible(false);
+            this.suspect.body.enable = false;
+            this.suspectData.escaped = true;
+            this.crimeState = "escaped";
+            this.activeObjective = "Suspect escaped. Collect evidence and file what you have.";
+            this.addEvidence(1338, 706, "stolen_cigarettes", "Stolen cigarettes", "Item dropped near Benny's Market.");
+            this.showMessage("Suspect escaped into the warehouse alleys.");
+          }
+        }
+      }
+
+      startShopliftingCrime() {
+        this.crimeState = "fleeing";
+        save.activeCase = {
+          id: "case_shoplift_001",
+          title: "Benny's Market Shoplifting",
+          suspect: "Eddie Cross",
+          witness: "Marlene Pike",
+          evidence: ["stolen_cigarettes"],
+          correctCharge: "Petty Theft"
+        };
+        this.suspect.setPosition(1390, 730);
+        this.suspect.setVisible(true);
+        this.suspect.body.enable = true;
+        this.clerk.setPosition(1350, 710);
+        this.clerk.setVisible(true);
+        this.clerk.body.enable = true;
+        this.clerk.body.setVelocity(0, 0);
+        this.dispatchLog.push("10-32: Shoplifting in progress at Benny's Market. Suspect fleeing eastbound.");
+        this.message = "DISPATCH: Shoplifting at Benny's Market. Suspect fleeing eastbound.";
+        this.messageTimer = 6000;
+        this.activeObjective = "Drive to Benny's Market. Arrest Eddie Cross or recover evidence.";
+      }
+
+      addEvidence(x, y, id, label, description) {
+        if (this.sceneEvidence.some(e => e.id === id)) return;
+        const marker = this.add.container(x, y);
+        marker.add(this.add.rectangle(0, 0, 22, 15, COLORS.paper, 1));
+        marker.add(this.add.rectangle(0, -12, 8, 8, COLORS.danger, 1));
+        marker.id = id;
+        marker.label = label;
+        marker.description = description;
+        marker.collected = false;
+        marker.prompt = makeText(this, x, y - 36, "E: collect evidence", 12, "#f4d28a").setOrigin(0.5).setVisible(false);
+        this.physics.add.existing(marker, true);
+        this.sceneEvidence.push(marker);
+      }
+
+      updateEvidencePrompts() {
+        this.sceneEvidence.forEach(e => {
+          if (e.collected) return;
+          e.prompt.setPosition(e.x, e.y - 36);
+          e.prompt.setVisible(!this.inCar && distance(this.player, e) < 55);
+        });
+      }
+
+      handleInteract() {
+        if (!this.inCar && distance(this.player, this.car) < 78) {
+          this.enterCar();
+          return;
+        }
+        if (this.inCar && Math.abs(this.car.body.velocity.length()) < 45) {
+          this.exitCar();
+          return;
+        }
+        if (this.inCar && distance(this.car, this.gasZone) < 160) {
+          save.fuel = 100;
+          this.showMessage("Fuel tank filled at the gas station.");
+          return;
+        }
+        if (!this.inCar) {
+          for (const ev of this.sceneEvidence) {
+            if (!ev.collected && distance(this.player, ev) < 60) {
+              ev.collected = true;
+              ev.setVisible(false);
+              ev.prompt.destroy();
+              this.playerInventory.push({ id: ev.id, label: ev.label, description: ev.description });
+              this.activeObjective = "Put evidence in the car trunk, then return to station.";
+              this.showMessage(`Collected evidence: ${ev.label}`);
+              return;
+            }
+          }
+          if (this.clerk.visible && distance(this.player, this.clerk) < 70) {
+            if (!this.playerInventory.some(i => i.id === "witness_statement")) {
+              this.playerInventory.push({ id: "witness_statement", label: "Witness statement", description: "Clerk identified Eddie Cross fleeing with stolen cigarettes." });
+              this.showMessage("Witness statement taken from Marlene Pike.");
+            } else {
+              this.showMessage("Marlene already gave a statement.");
+            }
+            return;
+          }
+          if (distance(this.player, { x: this.locations.station.x, y: this.locations.station.y }) < 180) {
+            this.showMessage("Station: press R to file the end-of-shift report.");
+            return;
+          }
+        }
+        this.showMessage(this.inCar ? "Stop the car before exiting. Refuel near the gas pumps." : "Nothing to interact with here.");
+      }
+
+      enterCar() {
+        this.inCar = true;
+        this.player.setVisible(false);
+        this.player.body.enable = false;
+        this.cameras.main.startFollow(this.car, true, 0.08, 0.08);
+        this.showMessage("Entered unmarked sedan.");
+      }
+
+      exitCar() {
+        this.inCar = false;
+        const offset = new Phaser.Math.Vector2(-Math.sin(this.car.rotation), Math.cos(this.car.rotation)).scale(48);
+        this.player.setPosition(this.car.x + offset.x, this.car.y + offset.y);
+        this.player.setVisible(true);
+        this.player.body.enable = true;
+        this.car.body.setVelocity(0, 0);
+        this.cameras.main.startFollow(this.player, true, 0.08, 0.08);
+        this.showMessage("Exited vehicle.");
+      }
+
+      handleTrunk() {
+        const nearCar = distance(this.player, this.car) < 85 || (this.inCar && true);
+        if (!nearCar) {
+          this.showMessage("Move near the detective car trunk.");
+          return;
+        }
+        if (this.playerInventory.length === 0) {
+          const list = save.trunk.length ? save.trunk.map(i => i.label).join(", ") : "empty";
+          this.showMessage(`Trunk inventory: ${list}`);
+          return;
+        }
+        save.trunk.push(...this.playerInventory);
+        const moved = this.playerInventory.map(i => i.label).join(", ");
+        this.playerInventory = [];
+        this.showMessage(`Stored in trunk: ${moved}`);
+      }
+
+      tryArrest() {
+        if (!this.suspect.visible || this.suspectData.arrested) {
+          this.showMessage("No arrest target nearby.");
+          return;
+        }
+        const actor = this.inCar ? this.car : this.player;
+        if (distance(actor, this.suspect) < 86) {
+          this.suspectData.arrested = true;
+          this.suspect.body.setVelocity(0, 0);
+          this.suspect.setVisible(false);
+          this.suspect.body.enable = false;
+          this.crimeState = "arrested";
+          save.solvedToday = true;
+          this.addEvidence(this.suspect.x + 20, this.suspect.y + 10, "stolen_cigarettes", "Stolen cigarettes", "Recovered from Eddie Cross after arrest.");
+          this.activeObjective = "Collect evidence, take witness statement, store items in trunk, return to station.";
+          this.showMessage("Eddie Cross arrested. Recover the stolen item as evidence.");
+        } else {
+          this.showMessage("Get closer to the suspect to arrest.");
+        }
+      }
+
+      tryReport() {
+        const target = this.inCar ? this.car : this.player;
+        if (distance(target, { x: this.locations.station.x, y: this.locations.station.y }) > 220) {
+          this.showMessage("Return to the police station before filing the report.");
+          return;
+        }
+        this.scene.start("ReportScene", {
+          save: save,
+          trunk: save.trunk,
+          playerInventory: this.playerInventory,
+          crimeState: this.crimeState,
+          suspectData: this.suspectData,
+          shiftTime: this.clockString()
+        });
+      }
+
+      showMessage(text) {
+        this.message = text;
+        this.messageTimer = 4200;
+      }
+
+      updateHUD() {
+        const caseTitle = save.activeCase ? save.activeCase.title : "No active case";
+        this.caseText.setText(`CASE: ${caseTitle}`);
+        this.objectiveText.setText(`OBJECTIVE: ${this.activeObjective}`);
+        this.dispatchText.setText(this.dispatchLog.length ? this.dispatchLog[this.dispatchLog.length - 1] : "Radio quiet. Patrol the district.");
+
+        const inv = this.playerInventory.length ? this.playerInventory.map(i => i.label).join(", ") : "none";
+        const trunk = save.trunk.length ? save.trunk.map(i => i.label).join(", ") : "empty";
+        const nearStation = distance(this.inCar ? this.car : this.player, { x: this.locations.station.x, y: this.locations.station.y }) < 220;
+        const help = this.inCar
+          ? "E exit/refuel near gas | SPACE arrest close suspect | R report at station"
+          : `E interact/enter/collect | T trunk | SPACE arrest | R report${nearStation ? "" : " at station"} | Carrying: ${inv} | Trunk: ${trunk}`;
+        this.helpText.setText(help.substring(0, 135));
+
+        const speed = Math.round(this.car.body.velocity.length() * 0.21);
+        this.carText.setText(`MPH ${String(speed).padStart(3, "0")}   FUEL ${Math.round(save.fuel)}%   DMG ${Math.round(save.carDamage)}%`);
+        this.rankText.setText(`DAY ${save.day} | ${save.rank} | XP ${save.xp}`);
+        this.clockText.setText(`TIME ${this.clockString()}`);
+      }
+    }
+
+    class ReportScene extends Phaser.Scene {
+      constructor() { super("ReportScene"); }
+      init(data) { this.dataFromGame = data; }
+
+      create() {
+        this.cameras.main.setBackgroundColor("#211b14");
+        this.selectedSuspect = "Unknown";
+        this.selectedCharge = "None";
+        this.includeEvidence = false;
+        this.includeWitness = false;
+        this.submitted = false;
+
+        const g = this.add.graphics();
+        g.fillStyle(0x33251a, 1).fillRect(0, 0, WIDTH, HEIGHT);
+        g.fillStyle(COLORS.paper, 1).fillRoundedRect(90, 42, WIDTH - 180, HEIGHT - 84, 8);
+        g.lineStyle(3, 0x3a2a1a, 1).strokeRoundedRect(90, 42, WIDTH - 180, HEIGHT - 84, 8);
+        g.fillStyle(0x3a2a1a, 1).fillRect(90, 96, WIDTH - 180, 3);
+
+        makeText(this, WIDTH / 2, 62, "ROOKHAVEN POLICE DEPARTMENT", 24, "#1c1c1c").setOrigin(0.5);
+        makeText(this, WIDTH / 2, 91, "END OF SHIFT INCIDENT REPORT", 18, "#1c1c1c").setOrigin(0.5);
+
+        const activeCase = save.activeCase || { title: "No Case", correctCharge: "None", suspect: "Unknown" };
+        this.caseInfo = makeText(this, 130, 122,
+          `Case: ${activeCase.title}\nDate: Day ${save.day}, 1986\nFiled: ${this.dataFromGame.shiftTime}\nDetective Rank: ${save.rank}`,
+          16, "#1c1c1c"
+        );
+
+        const evidenceNames = save.trunk.map(i => i.label);
+        this.evidenceText = makeText(this, 130, 218, `Evidence in trunk: ${evidenceNames.length ? evidenceNames.join(", ") : "NONE"}`, 15, "#1c1c1c");
+
+        makeText(this, 130, 270, "Build the report:", 17, "#1c1c1c");
+        this.optionsText = makeText(this, 130, 302, "", 15, "#1c1c1c");
+        makeText(this, 130, 432, "1 Suspect: Eddie Cross / Unknown   2 Charge: Petty Theft / None   3 Include Evidence   4 Include Witness   ENTER Submit", 13, "#1c1c1c");
+
+        this.resultText = makeText(this, WIDTH / 2, 468, "", 17, "#1c1c1c").setOrigin(0.5);
+
+        this.input.keyboard.on("keydown-ONE", () => this.toggleSuspect());
+        this.input.keyboard.on("keydown-TWO", () => this.toggleCharge());
+        this.input.keyboard.on("keydown-THREE", () => this.toggleEvidence());
+        this.input.keyboard.on("keydown-FOUR", () => this.toggleWitness());
+        this.input.keyboard.on("keydown-ENTER", () => this.submitReport());
+        this.input.keyboard.on("keydown-ESC", () => this.scene.start("GameScene"));
+        this.input.once("pointerdown", () => {
+          if (this.submitted) this.scene.start("GameScene");
+        });
+        this.updateOptions();
+      }
+
+      toggleSuspect() {
+        if (this.submitted) return;
+        this.selectedSuspect = this.selectedSuspect === "Eddie Cross" ? "Unknown" : "Eddie Cross";
+        this.updateOptions();
+      }
+      toggleCharge() {
+        if (this.submitted) return;
+        this.selectedCharge = this.selectedCharge === "Petty Theft" ? "None" : "Petty Theft";
+        this.updateOptions();
+      }
+      toggleEvidence() {
+        if (this.submitted) return;
+        this.includeEvidence = !this.includeEvidence;
+        this.updateOptions();
+      }
+      toggleWitness() {
+        if (this.submitted) return;
+        this.includeWitness = !this.includeWitness;
+        this.updateOptions();
+      }
+
+      updateOptions() {
+        const evidenceAvailable = save.trunk.some(i => i.id === "stolen_cigarettes");
+        const witnessAvailable = save.trunk.some(i => i.id === "witness_statement") || (this.dataFromGame.playerInventory || []).some(i => i.id === "witness_statement");
+        this.optionsText.setText(
+          `Suspect: ${this.selectedSuspect}\n` +
+          `Recommended Charge: ${this.selectedCharge}\n` +
+          `Evidence attached: ${this.includeEvidence ? "YES" : "NO"} ${evidenceAvailable ? "" : "(no stolen item in trunk)"}\n` +
+          `Witness statement attached: ${this.includeWitness ? "YES" : "NO"} ${witnessAvailable ? "" : "(no statement taken)"}\n\n` +
+          `Detective Summary:\nResponded to Benny's Market after dispatch reported shoplifting. Suspect fled eastbound. Evidence and witness details were reviewed before filing.`
+        );
+      }
+
+      submitReport() {
+        if (this.submitted) {
+          this.scene.start("GameScene");
+          return;
+        }
+        const evidenceAvailable = save.trunk.some(i => i.id === "stolen_cigarettes");
+        const witnessAvailable = save.trunk.some(i => i.id === "witness_statement") || (this.dataFromGame.playerInventory || []).some(i => i.id === "witness_statement");
+        let score = 0;
+        const notes = [];
+
+        if (this.selectedSuspect === "Eddie Cross") { score += 35; notes.push("Correct suspect identified."); }
+        else { score -= 25; notes.push("Suspect left unknown."); }
+
+        if (this.selectedCharge === "Petty Theft") { score += 25; notes.push("Correct charge recommended."); }
+        else { score -= 15; notes.push("No useful charge recommended."); }
+
+        if (this.includeEvidence && evidenceAvailable) { score += 25; notes.push("Physical evidence attached."); }
+        else if (this.includeEvidence && !evidenceAvailable) { score -= 15; notes.push("Report claims evidence that was not secured in trunk."); }
+        else { score -= 10; notes.push("Physical evidence missing from report."); }
+
+        if (this.includeWitness && witnessAvailable) { score += 15; notes.push("Witness statement attached."); }
+        else if (this.includeWitness && !witnessAvailable) { score -= 10; notes.push("Report references missing witness statement."); }
+        else { notes.push("No witness statement attached."); }
+
+        if (this.dataFromGame.suspectData && this.dataFromGame.suspectData.arrested) { score += 15; notes.push("Suspect was arrested before filing."); }
+        if (this.dataFromGame.suspectData && this.dataFromGame.suspectData.escaped) { score -= 5; notes.push("Suspect escaped; report still may preserve the case."); }
+
+        score = Phaser.Math.Clamp(score, 0, 100);
+        let grade = "D";
+        if (score >= 90) grade = "A";
+        else if (score >= 75) grade = "B";
+        else if (score >= 55) grade = "C";
+
+        save.xp += score;
+        if (save.xp >= 180 && save.rank === "Detective Trainee") save.rank = "Detective Third Grade";
+        if (save.xp >= 400 && save.rank === "Detective Third Grade") save.rank = "Detective Second Grade";
+        save.reportHistory.push({ day: save.day, score, grade, caseTitle: save.activeCase ? save.activeCase.title : "No Case" });
+        save.day += 1;
+        save.activeCase = null;
+        save.currentCrime = null;
+        save.trunk = [];
+        save.fuel = Math.max(save.fuel, 35);
+        this.submitted = true;
+
+        this.resultText.setText(`REPORT FILED — SCORE ${score}/100 — GRADE ${grade}\n${notes.join(" ")}\nPress ENTER or tap to start next shift.`);
+      }
+    }
+
+    const config = {
+      type: Phaser.AUTO,
+      parent: "game",
+      width: WIDTH,
+      height: HEIGHT,
+      backgroundColor: "#080b10",
+      physics: {
+        default: "arcade",
+        arcade: { debug: false }
+      },
+      scale: {
+        mode: Phaser.Scale.FIT,
+        autoCenter: Phaser.Scale.CENTER_BOTH
+      },
+      scene: [TitleScene, GameScene, ReportScene]
+    };
+
+    window.addEventListener("load", () => {
+      if (!window.Phaser) {
+        document.body.innerHTML = "<pre style='color:white;padding:20px'>Phaser failed to load. Check internet access for the CDN script.</pre>";
+        return;
+      }
+      new Phaser.Game(config);
+    });
+  })();
+  </script>
+</body>
+</html>
