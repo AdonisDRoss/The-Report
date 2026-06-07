@@ -144,6 +144,14 @@
 
   const VEHICLES = {
     unmarked_sedan: {
+      id: "detective_sedan_84",
+      name: "1984 Unmarked Detective Sedan",
+      sprites: {
+        clean: "detective_sedan_clean_64",
+        damage: "detective_sedan_damage_64",
+        shadow: "detective_sedan_shadow_64"
+      },
+      frame: { width: 128, height: 128, count: 64, columns: 8, rows: 8, degreesPerFrame: 5.625 },
       mass: 1.25,
       topSpeed: 430,
       acceleration: 520,
@@ -151,7 +159,16 @@
       friction: 0.985,
       traction: 0.074,
       steeringRate: 2.95,
-      damageResistance: 1.0
+      wheelBase: 78,
+      frontWheelOffset: 34,
+      rearWheelOffset: -34,
+      collisionWidth: 34,
+      collisionLength: 62,
+      damageResistance: 1.0,
+      fuelCapacity: 100,
+      fuelBurnRate: 0.018,
+      trunkSlots: 6,
+      radioType: "police_dispatch"
     }
   };
 
@@ -220,6 +237,9 @@
       this.load.image("layer06", RH_CENTRAL_V03.layers.collisionMaskRef);
       this.load.image("layer07", RH_CENTRAL_V03.layers.interactionMaskRef);
       this.load.image("layer08", RH_CENTRAL_V03.layers.spawnMaskRef);
+      this.load.spritesheet("detective_sedan_clean_64", "assets/vehicles/detective_sedan/detective_sedan_clean_64.png", { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_damage_64", "assets/vehicles/detective_sedan/detective_sedan_damage_64.png", { frameWidth: 128, frameHeight: 128 });
+      this.load.spritesheet("detective_sedan_shadow_64", "assets/vehicles/detective_sedan/detective_sedan_shadow_64.png", { frameWidth: 128, frameHeight: 128 });
     }
 
     create() {
@@ -312,19 +332,19 @@
 
       const carSpawn = SPAWN_POINTS.find(s => s.id === "detective_sedan");
       this.car = this.add.container(carSpawn.x, carSpawn.y).setDepth(25);
-      const shadow = this.add.rectangle(7, 8, 34, 62, 0x000000, 0.35);
-      const body = this.add.rectangle(0, 0, 32, 58, 0x202329, 1).setStrokeStyle(2, 0x9db5c7, 1);
-      const hood = this.add.rectangle(0, -17, 24, 14, 0x2a2f36, 1);
-      const light = this.add.rectangle(0, -30, 22, 4, 0x6aa8ff, 0.85);
-      this.car.add([shadow, body, hood, light]);
+      this.carShadowSprite = this.add.sprite(5, 7, "detective_sedan_shadow_64", 0).setAlpha(0.48).setScale(0.54);
+      this.carBaseSprite = this.add.sprite(0, 0, "detective_sedan_clean_64", 0).setScale(0.54);
+      this.carDamageSprite = this.add.sprite(0, 0, "detective_sedan_damage_64", 0).setAlpha(0).setVisible(false).setScale(0.54);
+      this.car.add([this.carShadowSprite, this.carBaseSprite, this.carDamageSprite]);
       this.physics.add.existing(this.car);
-      this.car.body.setSize(32, 58);
+      this.car.body.setSize(34, 62);
       this.car.body.setCollideWorldBounds(true);
       this.car.heading = -Math.PI / 2;
       this.car.vx = 0;
       this.car.vy = 0;
       this.car.rotationFrame = 0;
-      this.car.damageFlash = body;
+      this.car.vehicleId = "unmarked_sedan";
+      this.syncVehicleSprites();
 
       this.physics.add.collider(this.player, this.walls);
       this.physics.add.collider(this.car, this.walls, () => this.carHitWall());
@@ -482,10 +502,38 @@
         this.car.vy = (this.car.vy / currentSpeed) * stats.topSpeed;
       }
       this.car.body.setVelocity(this.car.vx, this.car.vy);
-      this.car.setRotation(this.car.heading + Math.PI / 2);
-      this.car.rotationFrame = Math.round(((Phaser.Math.RadToDeg(this.car.heading) + 360) % 360) / 5.625) % 64;
+      this.car.rotationFrame = this.getVehicleFrame(this.car.heading);
+      this.syncVehicleSprites();
       const zoomTarget = currentSpeed > 300 ? 0.48 : currentSpeed > 160 ? 0.6 : 0.72;
       this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, zoomTarget, 0.04));
+    }
+
+    getVehicleFrame(angleRadians) {
+      // Frame 0 points north/up. Positive frame index moves clockwise around 360 degrees.
+      const degrees = Phaser.Math.RadToDeg(angleRadians);
+      const normalized = Phaser.Math.Wrap(degrees + 90, 0, 360);
+      return Math.round(normalized / VEHICLES.unmarked_sedan.frame.degreesPerFrame) % VEHICLES.unmarked_sedan.frame.count;
+    }
+
+    syncVehicleSprites() {
+      if (!this.carBaseSprite || !this.carShadowSprite || !this.carDamageSprite || !this.car) return;
+      const frame = this.car.rotationFrame || 0;
+      this.carBaseSprite.setFrame(frame);
+      this.carShadowSprite.setFrame(frame);
+      this.carDamageSprite.setFrame(frame);
+      const dmg = GAME.car.damage;
+      if (dmg <= 0) {
+        this.carDamageSprite.setVisible(false);
+        this.carDamageSprite.setAlpha(0);
+      } else {
+        this.carDamageSprite.setVisible(true);
+        this.carDamageSprite.setAlpha(clamp(dmg / 100, 0.22, 0.82));
+      }
+      if (dmg >= 70) {
+        this.carBaseSprite.setTint(0xc8c0b8);
+      } else {
+        this.carBaseSprite.clearTint();
+      }
     }
 
     carHitWall() {
@@ -494,6 +542,7 @@
       this.car.vx *= -0.28;
       this.car.vy *= -0.28;
       this.car.body.setVelocity(this.car.vx, this.car.vy);
+      this.syncVehicleSprites();
     }
 
     updateCase(dt) {
@@ -672,7 +721,7 @@
         GAME.case.evidenceInTrunk ? "TRUNK" : "NO TRUNK"
       ].join(" | ");
       this.hudText.setText(`${RH_CENTRAL_V03.name} | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`);
-      this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | 64-frame heading index: ${this.car.rotationFrame ?? 0} | Facing: ${this.playerFacing}`);
+      this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | 64-frame car sprite index: ${this.car.rotationFrame ?? 0} | Facing: ${this.playerFacing}`);
       this.promptText.setText(this.closestZone ? `E: ${this.closestZone.label || this.closestZone.type}` : "E enter/exit | SPACE arrest | T trunk | R report");
       this.layerText.setText(`Debug C:${this.debug.collision ? "ON" : "off"} I:${this.debug.interaction ? "ON" : "off"} P:${this.debug.spawns ? "ON" : "off"} M:${this.debug.mapRef ? "ON" : "off"}`);
       this.messageText.setText(this.messageTimer > 0 ? this.message : "");
