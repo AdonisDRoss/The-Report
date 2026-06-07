@@ -1,44 +1,44 @@
-# The Report v0.1
+# The Report — Raven Hook Central v0.3 Layered Build
 
-A small Phaser browser prototype for an 80s overhead/isometric detective sandbox.
+First production-map test for the locked v0.3 loop:
 
-## What is included
+Precinct → Market → Crime → Evidence → Trunk → Report
 
-- Title screen
-- One playable Rookhaven district block
-- Detective walking controls
-- Unmarked 80s-style detective sedan
-- Enter/exit vehicle
-- Speedometer
-- Fuel drain and gas station refill
-- NPC civilians
-- Dynamic shoplifting crime at Benny's Market
-- Suspect chase/arrest
-- Evidence pickup
-- Trunk storage
-- Witness statement
-- End-of-shift report screen
-- Report scoring
-- Rank XP and day progression
+## Contents
+
+- `index.html` — playable Phaser prototype using the new 2048x1536 Raven Hook Central layered map data.
+- `assets/maps/rh_central_ground.png` — Layer 01 ground base.
+- `assets/reference/layer_02_building_exterior_sheet.png` — building exterior reference sheet.
+- `assets/reference/layer_03_interior_blocks_sheet.png` — interior blocks reference sheet.
+- `assets/reference/layer_04_rooftop_blocks_sheet.png` — rooftop blocks reference sheet.
+- `assets/reference/layer_05_props_sheet.png` — props asset sheet.
+- `assets/reference/layer_06_collision_navigation_mask.png` — collision/navigation visual guide.
+- `assets/reference/layer_07_interaction_zones_mask.png` — interaction visual guide.
+- `assets/reference/layer_08_spawn_placement_mask.png` — spawn placement visual guide.
+- `src/data/rhCentralV03Map.js` — separate map-data reference file.
 
 ## Controls
 
-- WASD / Arrow keys: walk or drive
-- E: interact, enter/exit car, collect evidence, talk to witness, refuel
-- SPACE: arrest nearby suspect
-- T: store carried evidence in trunk / inspect trunk
-- R: file report at police station
-- ENTER: start / submit report / continue
+Keyboard:
 
-## How to run
+- WASD / Arrows — walk or drive
+- E — interact / enter / exit / collect / talk
+- Space — arrest
+- T — trunk
+- R — report
+- C — collision debug
+- I — interaction debug
+- P — spawn debug
+- M — reference mask preview
 
-Open `index.html` in a browser, or upload the folder to Replit/GitHub Pages.
+Mobile:
 
-The prototype loads Phaser from CDN:
+- SNES-style on-screen D-pad
+- A — interact
+- B — arrest
+- X — trunk
+- Y — report
 
-`https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js`
+## Notes
 
-## GitHub Pages
-
-Put `index.html` at the repo root, then enable Pages from your GitHub repo settings.
-
+Layer 06, 07, and 08 are visual guides only. Real collision, interactions, and spawn points are coded as data in `index.html` and `src/data/rhCentralV03Map.js`.
