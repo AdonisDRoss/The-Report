@@ -114,7 +114,7 @@
       makeText(this, VIEW_W / 2, 150, 'RAVEN HOOK CENTRAL v0.3', 24, '#86e7ff').setOrigin(0.5);
       makeText(this, VIEW_W / 2, 245, 'Precinct → Market → Crime → Evidence → Trunk → Report', 18, '#ffffff').setOrigin(0.5);
       makeText(this, VIEW_W / 2, 325, 'ENTER / TAP TO START', 24, '#f4d28a').setOrigin(0.5);
-      makeText(this, VIEW_W / 2, 388, 'Mobile-safe build: no blocking asset preload', 15, '#eeeeee').setOrigin(0.5);
+      makeText(this, VIEW_W / 2, 388, 'Mobile-safe build: raised SNES controls + staggered asset loading', 15, '#eeeeee').setOrigin(0.5);
       this.input.keyboard.once('keydown-ENTER', () => this.scene.start('GameScene'));
       this.input.once('pointerdown', () => this.scene.start('GameScene'));
     }
@@ -144,19 +144,38 @@
     }
 
     lazyLoadCarSprites() {
+      // Load the clean car first so the real vehicle appears as soon as one asset succeeds.
+      // Load overlays afterward so one bad/slow overlay cannot keep the car stuck as a fallback box.
       const files = [
-        ['spritesheet','detective_sedan_clean_64','assets/vehicles/detective_sedan/detective_sedan_clean_64.png'],
-        ['spritesheet','detective_sedan_damage_64','assets/vehicles/detective_sedan/detective_sedan_damage_64.png'],
-        ['spritesheet','detective_sedan_shadow_64','assets/vehicles/detective_sedan/detective_sedan_shadow_64.png'],
-        ['spritesheet','detective_sedan_trunk_open_64','assets/vehicles/detective_sedan/detective_sedan_trunk_open_64.png'],
-        ['spritesheet','detective_sedan_driver_door_open_64','assets/vehicles/detective_sedan/detective_sedan_driver_door_open_64.png'],
-        ['spritesheet','detective_sedan_lights_overlay_64','assets/vehicles/detective_sedan/detective_sedan_lights_overlay_64.png'],
-        ['spritesheet','detective_sedan_smoke_fire_64','assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png']
+        ['detective_sedan_clean_64','assets/vehicles/detective_sedan/detective_sedan_clean_64.png'],
+        ['detective_sedan_shadow_64','assets/vehicles/detective_sedan/detective_sedan_shadow_64.png'],
+        ['detective_sedan_lights_overlay_64','assets/vehicles/detective_sedan/detective_sedan_lights_overlay_64.png'],
+        ['detective_sedan_damage_64','assets/vehicles/detective_sedan/detective_sedan_damage_64.png'],
+        ['detective_sedan_trunk_open_64','assets/vehicles/detective_sedan/detective_sedan_trunk_open_64.png'],
+        ['detective_sedan_driver_door_open_64','assets/vehicles/detective_sedan/detective_sedan_driver_door_open_64.png'],
+        ['detective_sedan_smoke_fire_64','assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png']
       ];
-      this.load.on('loaderror', (file) => console.warn('Optional asset failed:', file.key, file.src || file.url));
-      this.load.once('complete', () => { this.carArtReady = this.textures.exists('detective_sedan_clean_64'); this.syncVehicleSprites(); this.message = this.carArtReady ? 'Detective sedan sprites loaded.' : 'Using fallback car art.'; this.messageTimer = 2500; });
-      for (const [, key, path] of files) if (!this.textures.exists(key)) this.load.spritesheet(key, A(path), { frameWidth: 128, frameHeight: 128 });
-      this.load.start();
+      this.assetErrors = [];
+      this.load.on('filecomplete', () => {
+        this.ensureSpriteLayers();
+        this.syncVehicleSprites();
+        if (this.textures.exists('detective_sedan_clean_64')) {
+          this.carArtReady = true;
+          this.message = 'Detective sedan asset loaded.';
+          this.messageTimer = 1800;
+        }
+      });
+      this.load.on('loaderror', (file) => {
+        const src = file?.src || file?.url || file?.key || 'unknown';
+        this.assetErrors.push(src);
+        console.warn('Optional asset failed:', file.key, src);
+        this.message = 'Optional vehicle asset failed. Fallback still playable.';
+        this.messageTimer = 2600;
+      });
+      for (const [key, path] of files) {
+        if (!this.textures.exists(key)) this.load.spritesheet(key, A(path), { frameWidth: 128, frameHeight: 128 });
+      }
+      if (!this.load.isLoading()) this.load.start();
     }
 
     bindKeys() {
@@ -232,15 +251,32 @@
     }
 
     ensureSpriteLayers() {
-      if (this.spriteLayersMade || !this.textures.exists('detective_sedan_clean_64')) return;
-      this.car.removeAll(true);
-      this.carShadowSprite = this.add.sprite(5,7,'detective_sedan_shadow_64',0).setAlpha(0.48).setScale(0.54);
-      this.carBaseSprite = this.add.sprite(0,0,'detective_sedan_clean_64',0).setScale(0.54);
-      this.carLightsSprite = this.add.sprite(0,0,'detective_sedan_lights_overlay_64',0).setAlpha(0.78).setScale(0.54);
-      this.carDamageSprite = this.add.sprite(0,0,'detective_sedan_damage_64',0).setAlpha(0).setVisible(false).setScale(0.54);
-      this.carSmokeSprite = this.add.sprite(0,0,'detective_sedan_smoke_fire_64',0).setAlpha(0).setVisible(false).setScale(0.54);
-      this.car.add([this.carShadowSprite,this.carBaseSprite,this.carLightsSprite,this.carDamageSprite,this.carSmokeSprite]);
-      this.spriteLayersMade = true;
+      if (!this.textures.exists('detective_sedan_clean_64')) return;
+      if (!this.spriteLayersMade) {
+        this.car.removeAll(true);
+        this.spriteLayersMade = true;
+      }
+      if (!this.carShadowSprite) {
+        if (this.textures.exists('detective_sedan_shadow_64')) this.carShadowSprite = this.add.sprite(5,7,'detective_sedan_shadow_64',0).setAlpha(0.48).setScale(0.54);
+        else this.carShadowSprite = this.add.rectangle(5,7,34,62,0x000000,0.35);
+        this.car.add(this.carShadowSprite);
+      }
+      if (!this.carBaseSprite) {
+        this.carBaseSprite = this.add.sprite(0,0,'detective_sedan_clean_64',0).setScale(0.54);
+        this.car.add(this.carBaseSprite);
+      }
+      if (!this.carLightsSprite && this.textures.exists('detective_sedan_lights_overlay_64')) {
+        this.carLightsSprite = this.add.sprite(0,0,'detective_sedan_lights_overlay_64',0).setAlpha(0.78).setScale(0.54);
+        this.car.add(this.carLightsSprite);
+      }
+      if (!this.carDamageSprite && this.textures.exists('detective_sedan_damage_64')) {
+        this.carDamageSprite = this.add.sprite(0,0,'detective_sedan_damage_64',0).setAlpha(0).setVisible(false).setScale(0.54);
+        this.car.add(this.carDamageSprite);
+      }
+      if (!this.carSmokeSprite && this.textures.exists('detective_sedan_smoke_fire_64')) {
+        this.carSmokeSprite = this.add.sprite(0,0,'detective_sedan_smoke_fire_64',0).setAlpha(0).setVisible(false).setScale(0.54);
+        this.car.add(this.carSmokeSprite);
+      }
     }
 
     createHUD() {
@@ -252,22 +288,56 @@
     }
 
     createMobileControls() {
-      const addBtn = (x,y,label,prop,color=0x111827) => { const c=this.add.container(x,y).setScrollFactor(0).setDepth(2500); const bg=this.add.circle(0,0,28,color,0.78).setStrokeStyle(2,0xffffff,0.5); const tx=this.add.text(0,-9,label,{fontFamily:'Courier New',fontSize:'18px',color:'#fff'}).setOrigin(0.5); c.add([bg,tx]); c.setSize(64,64).setInteractive(); c.on('pointerdown',()=>{this.mobile[prop]=true; if(['a','b','x','y'].includes(prop)) this.handleMobileAction(prop);}); c.on('pointerup',()=>this.mobile[prop]=false); c.on('pointerout',()=>this.mobile[prop]=false); return c; };
-      const baseX=86, baseY=VIEW_H-86; const pad=this.add.container(baseX,baseY).setScrollFactor(0).setDepth(2500); const outer=this.add.circle(0,0,58,0x111827,0.65).setStrokeStyle(2,0xffffff,0.35); const knob=this.add.circle(0,0,22,0x263241,0.9).setStrokeStyle(2,0xffffff,0.55); pad.add([outer,knob]); pad.setSize(130,130).setInteractive(new Phaser.Geom.Circle(0,0,65), Phaser.Geom.Circle.Contains);
-      pad.on('pointerdown', p=>this.updateStick(p, baseX, baseY, knob)); pad.on('pointermove', p=>{ if(p.isDown) this.updateStick(p, baseX, baseY, knob); }); pad.on('pointerup',()=>{this.mobile.analogX=0;this.mobile.analogY=0; knob.setPosition(0,0);}); pad.on('pointerout',()=>{this.mobile.analogX=0;this.mobile.analogY=0; knob.setPosition(0,0);});
-      addBtn(84, VIEW_H-170, 'STICK', 'stick', 0x263241).on('pointerdown',()=>{this.mobile.useStick=!this.mobile.useStick; this.message=`Movement ${this.mobile.useStick?'stick':'d-pad'} mode.`; this.messageTimer=1600;});
-      addBtn(84, VIEW_H-118, '▲', 'up'); addBtn(84, VIEW_H-52, '▼', 'down'); addBtn(36, VIEW_H-84, '◀', 'left'); addBtn(132, VIEW_H-84, '▶', 'right');
-      addBtn(VIEW_W-84, VIEW_H-120, 'A', 'a', 0x1f4d2f); addBtn(VIEW_W-142, VIEW_H-84, 'B', 'b', 0x4d1f1f); addBtn(VIEW_W-84, VIEW_H-48, 'X', 'x', 0x1f314d); addBtn(VIEW_W-28, VIEW_H-84, 'Y', 'y', 0x4d3b1f);
+      const addBtn = (x,y,label,prop,color=0x111827, radius=28, font='18px') => {
+        const c=this.add.container(x,y).setScrollFactor(0).setDepth(2500);
+        const bg=this.add.circle(0,0,radius,color,0.78).setStrokeStyle(2,0xffffff,0.5);
+        const tx=this.add.text(0,-8,label,{fontFamily:'Courier New',fontSize:font,color:'#fff'}).setOrigin(0.5);
+        c.add([bg,tx]); c.setSize(radius*2+12,radius*2+12).setInteractive();
+        c.on('pointerdown',()=>{this.mobile[prop]=true; if(['a','b','x','y','sel','sta'].includes(prop)) this.handleMobileAction(prop);});
+        c.on('pointerup',()=>this.mobile[prop]=false); c.on('pointerout',()=>this.mobile[prop]=false); return c;
+      };
+      // Raised layout for iPhone Safari: keeps controls above the browser bottom toolbar.
+      const baseX=92, baseY=VIEW_H-178;
+      const pad=this.add.container(baseX,baseY).setScrollFactor(0).setDepth(2500);
+      const outer=this.add.circle(0,0,58,0x111827,0.65).setStrokeStyle(2,0xffffff,0.35);
+      const knob=this.add.circle(0,0,22,0x263241,0.9).setStrokeStyle(2,0xffffff,0.55);
+      pad.add([outer,knob]); pad.setSize(130,130).setInteractive(new Phaser.Geom.Circle(0,0,65), Phaser.Geom.Circle.Contains);
+      pad.on('pointerdown', p=>this.updateStick(p, baseX, baseY, knob));
+      pad.on('pointermove', p=>{ if(p.isDown) this.updateStick(p, baseX, baseY, knob); });
+      pad.on('pointerup',()=>{this.mobile.analogX=0;this.mobile.analogY=0; knob.setPosition(0,0);});
+      pad.on('pointerout',()=>{this.mobile.analogX=0;this.mobile.analogY=0; knob.setPosition(0,0);});
+      addBtn(92, VIEW_H-306, 'STICK', 'stick', 0x263241, 26, '12px').on('pointerdown',()=>{this.mobile.useStick=!this.mobile.useStick; this.message=`Movement ${this.mobile.useStick?'stick':'d-pad'} mode.`; this.messageTimer=1600;});
+      addBtn(92, baseY-72, '▲', 'up'); addBtn(92, baseY+72, '▼', 'down'); addBtn(24, baseY, '◀', 'left'); addBtn(160, baseY, '▶', 'right');
+      const ax=VIEW_W-90, ay=VIEW_H-245;
+      addBtn(ax, ay, 'A', 'a', 0x1f4d2f);
+      addBtn(ax-66, ay+46, 'B', 'b', 0x4d1f1f);
+      addBtn(ax, ay+92, 'X', 'x', 0x1f314d);
+      addBtn(ax+58, ay+46, 'Y', 'y', 0x4d3b1f);
+      addBtn(VIEW_W-208, VIEW_H-304, 'SEL', 'sel', 0x263241, 24, '12px');
+      addBtn(VIEW_W-140, VIEW_H-304, 'STA', 'sta', 0x263241, 24, '12px');
     }
     updateStick(pointer, bx, by, knob) { const x=clamp(pointer.x-bx,-48,48), y=clamp(pointer.y-by,-48,48); knob.setPosition(x,y); this.mobile.analogX=x/48; this.mobile.analogY=y/48; }
-    handleMobileAction(prop) { if(prop==='a') this.handleInteract(); if(prop==='b') this.tryArrest(); if(prop==='x') this.handleTrunk(); if(prop==='y') this.tryReport(); }
+    handleMobileAction(prop) { if(prop==='a') this.handleInteract(); if(prop==='b') this.tryArrest(); if(prop==='x'||prop==='sel') this.handleTrunk(); if(prop==='y'||prop==='sta') this.tryReport(); }
     inputDir() { const kbL=this.keys.left.isDown||this.keys.arrowLeft.isDown, kbR=this.keys.right.isDown||this.keys.arrowRight.isDown, kbU=this.keys.up.isDown||this.keys.arrowUp.isDown, kbD=this.keys.down.isDown||this.keys.arrowDown.isDown; if (this.mobile.useStick && (Math.abs(this.mobile.analogX)>0.15 || Math.abs(this.mobile.analogY)>0.15)) return { left:this.mobile.analogX<-0.25||kbL, right:this.mobile.analogX>0.25||kbR, up:this.mobile.analogY<-0.25||kbU, down:this.mobile.analogY>0.25||kbD, ax:this.mobile.analogX, ay:this.mobile.analogY }; return { left:kbL||this.mobile.left, right:kbR||this.mobile.right, up:kbU||this.mobile.up, down:kbD||this.mobile.down, ax:0, ay:0 }; }
 
     update(time, delta) { const dt=delta/1000; this.shiftMinutes += dt*0.85; this.updateClosestZone(); if(this.inCar) this.updateCar(dt); else this.updatePlayer(dt); this.updateCase(dt); this.updateCivilians(); this.updateHUD(); if(this.messageTimer>0) this.messageTimer-=delta; }
     updatePlayer() { const d=this.inputDir(); let vx=d.ax||0, vy=d.ay||0; if(!vx&&!vy){ if(d.left)vx-=1; if(d.right)vx+=1; if(d.up)vy-=1; if(d.down)vy+=1; } const len=Math.hypot(vx,vy)||1; vx/=len; vy/=len; this.player.body.setVelocity(vx*220,vy*220); if(vx||vy){ const angle=Phaser.Math.RadToDeg(Math.atan2(vy,vx)); this.playerFacing=['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8]; } this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom,0.84,0.05)); }
     updateCar(dt) { const d=this.inputDir(); this.car.isBraking=d.down; const speed=Math.hypot(this.car.vx,this.car.vy); const speedRatio=clamp(speed/VEHICLE.topSpeed,0.15,1); if(d.left) this.car.heading-=VEHICLE.steeringRate*dt*speedRatio; if(d.right) this.car.heading+=VEHICLE.steeringRate*dt*speedRatio; const fx=Math.cos(this.car.heading), fy=Math.sin(this.car.heading); if((d.up || d.ay < -0.25) && GAME.car.fuel>0){ this.car.vx+=fx*VEHICLE.acceleration*dt; this.car.vy+=fy*VEHICLE.acceleration*dt; GAME.car.fuel=Math.max(0,GAME.car.fuel-dt*(0.85+speed/360)); } if(d.down || d.ay > 0.25){ this.car.vx-=fx*VEHICLE.brakeForce*dt; this.car.vy-=fy*VEHICLE.brakeForce*dt; } const fmag=this.car.vx*fx+this.car.vy*fy; this.car.vx += (fx*fmag-this.car.vx)*VEHICLE.traction; this.car.vy += (fy*fmag-this.car.vy)*VEHICLE.traction; this.car.vx*=VEHICLE.friction; this.car.vy*=VEHICLE.friction; const sp=Math.hypot(this.car.vx,this.car.vy); if(sp>VEHICLE.topSpeed){ this.car.vx=(this.car.vx/sp)*VEHICLE.topSpeed; this.car.vy=(this.car.vy/sp)*VEHICLE.topSpeed; } this.car.body.setVelocity(this.car.vx,this.car.vy); this.car.rotationFrame=this.getVehicleFrame(this.car.heading); this.carFallback && this.car.setRotation(this.car.heading+Math.PI/2); this.syncVehicleSprites(); this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, sp>300?0.48:sp>160?0.6:0.72,0.04)); }
     getVehicleFrame(a) { const deg=Phaser.Math.RadToDeg(a); const norm=Phaser.Math.Wrap(deg+90,0,360); return Math.round(norm/VEHICLE.frame.degreesPerFrame)%VEHICLE.frame.count; }
-    syncVehicleSprites() { this.ensureSpriteLayers(); if(!this.spriteLayersMade) return; this.car.setRotation(0); const frame=this.car.rotationFrame||0, vs=GAME.car.visualState, dmg=GAME.car.damage; let base=VEHICLE.sprites.clean; if(vs.trunkOpen && this.textures.exists(VEHICLE.sprites.trunkOpen)) base=VEHICLE.sprites.trunkOpen; else if(vs.driverDoorOpen && this.textures.exists(VEHICLE.sprites.driverDoorOpen)) base=VEHICLE.sprites.driverDoorOpen; this.carShadowSprite.setFrame(frame); this.carBaseSprite.setTexture(base).setFrame(frame); this.carLightsSprite.setVisible(vs.lightsOn||this.car.isBraking).setFrame(frame).setAlpha(this.car.isBraking?1:0.78); this.carDamageSprite.setVisible(dmg>0).setFrame(frame).setAlpha(dmg>0?clamp(dmg/100,0.22,0.82):0); this.carSmokeSprite.setVisible(vs.smokeFire||dmg>=70).setFrame(frame).setAlpha(vs.smokeFire||dmg>=70?0.72:0); }
+    syncVehicleSprites() {
+      this.ensureSpriteLayers();
+      if(!this.spriteLayersMade || !this.carBaseSprite) return;
+      this.car.setRotation(0);
+      const frame=this.car.rotationFrame||0, vs=GAME.car.visualState, dmg=GAME.car.damage;
+      let base=VEHICLE.sprites.clean;
+      if(vs.trunkOpen && this.textures.exists(VEHICLE.sprites.trunkOpen)) base=VEHICLE.sprites.trunkOpen;
+      else if(vs.driverDoorOpen && this.textures.exists(VEHICLE.sprites.driverDoorOpen)) base=VEHICLE.sprites.driverDoorOpen;
+      if (this.carShadowSprite?.setFrame && this.textures.exists('detective_sedan_shadow_64')) this.carShadowSprite.setFrame(frame);
+      this.carBaseSprite.setTexture(base).setFrame(frame);
+      if (this.carLightsSprite) this.carLightsSprite.setVisible(vs.lightsOn||this.car.isBraking).setFrame(frame).setAlpha(this.car.isBraking?1:0.78);
+      if (this.carDamageSprite) this.carDamageSprite.setVisible(dmg>0).setFrame(frame).setAlpha(dmg>0?clamp(dmg/100,0.22,0.82):0);
+      if (this.carSmokeSprite) this.carSmokeSprite.setVisible(vs.smokeFire||dmg>=70).setFrame(frame).setAlpha(vs.smokeFire||dmg>=70?0.72:0);
+    }
     carHitWall() { const spd=Math.hypot(this.car.vx,this.car.vy); if(spd>80) GAME.car.damage=Math.min(100,GAME.car.damage+Math.round(spd/90)); this.car.vx*=-0.28; this.car.vy*=-0.28; this.car.body.setVelocity(this.car.vx,this.car.vy); this.syncVehicleSprites(); }
     updateCase() { if(!GAME.case.active){ const trg=INTERACTION_ZONES.find(z=>z.id==='bennys_shoplifting_trigger'); if(overlap(trg,this.inCar?this.car:this.player)) this.startShopliftingCase(); } if(GAME.case.active&&!GAME.case.suspectArrested&&!GAME.case.complete){ const flee=SPAWN_POINTS.find(s=>s.id==='bennys_suspect_flee'); this.physics.moveTo(this.suspect,flee.x,flee.y,105); if(dist(this.suspect,flee)<35) this.suspect.body.setVelocity(0,0); } }
     startShopliftingCase() { GAME.case.active=true; this.dispatch="Raven Hook Dispatch: Shoplifting in progress at Benny's Market."; this.objective='Catch Eddie Cross, collect evidence, get clerk statement, store evidence in trunk.'; this.message="Case started: Benny's Market shoplifting."; this.messageTimer=4000; const s=SPAWN_POINTS.find(p=>p.id==='bennys_suspect'); this.suspect.setPosition(s.x,s.y); this.suspect.visible=true; this.evidence.visible=true; this.witness.visible=true; }
