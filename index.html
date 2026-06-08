@@ -38,6 +38,9 @@
     followLerp: 0.14
   };
 
+  // Roof/building art sits above player/car so the player cannot visually walk over roofs.
+  const ROOF_DEPTH = 44;
+
   const COLORS = {
     blue: 0x3d7dff, cyan: 0x45e6ff, red: 0xff3f45, green: 0x55ff7a,
     yellow: 0xffdf59, orange: 0xff9a3d, purple: 0xb86cff,
@@ -77,8 +80,57 @@
     { id: 'bennys_evidence', x: 1510, y: 380, w: 80, h: 80, type: 'evidence', label: 'Stolen Cigarettes' },
     { id: 'bennys_witness', x: 1370, y: 505, w: 115, h: 80, type: 'witness', npcId: 'marlene_pike', label: 'Clerk Witness' },
     { id: 'red_gull_witness', x: 1280, y: 1020, w: 135, h: 95, type: 'witness', npcId: 'diner_witness', label: 'Diner Witness' },
+    { id: 'red_gull_front', x: 1285, y: 1132, w: 150, h: 58, type: 'door', label: 'Red Gull Diner Entrance' },
+    { id: 'laundromat_front', x: 1715, y: 1140, w: 140, h: 58, type: 'door', label: 'Laundromat Entrance' },
+    { id: 'evidence_door', x: 705, y: 1205, w: 140, h: 58, type: 'door', label: 'Evidence Drop-Off Entrance' },
     { id: 'payphone', x: 1575, y: 1185, w: 95, h: 95, type: 'payphone', label: 'Payphone' }
   ];
+
+
+  const BUILDING_ENTRIES = {
+    precinct_front: {
+      id: 'precinct',
+      title: 'Raven Hook Police Department',
+      subtitle: 'Major Crimes bullpen, report desk, records counter, holding rooms.',
+      returnSpawn: { x: 552, y: 652 }
+    },
+    garage_door: {
+      id: 'garage',
+      title: 'Raven Hook Police Garage',
+      subtitle: 'Motor pool, tool benches, evidence impound, unmarked sedan bay.',
+      returnSpawn: { x: 820, y: 540 }
+    },
+    report_room_door: {
+      id: 'report_room',
+      title: 'Report Room',
+      subtitle: 'File case reports, type incident details, close completed calls.',
+      returnSpawn: { x: 390, y: 1268 }
+    },
+    evidence_door: {
+      id: 'evidence_dropoff',
+      title: 'Evidence Drop-Off',
+      subtitle: 'Secure counter, bagged property, logged contraband, chain of custody.',
+      returnSpawn: { x: 770, y: 1268 }
+    },
+    bennys_front: {
+      id: 'bennys_market',
+      title: "Benny's Market",
+      subtitle: 'Corner store aisles, register counter, back room, witness area.',
+      returnSpawn: { x: 1480, y: 650 }
+    },
+    red_gull_front: {
+      id: 'red_gull_diner',
+      title: 'Red Gull Diner',
+      subtitle: 'Late-night booths, counter stools, payphone, back hallway.',
+      returnSpawn: { x: 1350, y: 1195 }
+    },
+    laundromat_front: {
+      id: 'laundromat',
+      title: 'Laundromat',
+      subtitle: 'Rows of machines, folding tables, side office, back exit.',
+      returnSpawn: { x: 1785, y: 1205 }
+    }
+  };
 
   const SPAWN_POINTS = [
     { id: 'player_start', x: 550, y: 675, type: 'player' },
@@ -262,34 +314,7 @@
 
   class GameScene extends Phaser.Scene {
     constructor() { super('GameScene'); }
-
-    registerUi(obj) {
-      if (!obj) return obj;
-      if (!this.uiObjects) this.uiObjects = [];
-      if (!this.uiObjects.includes(obj)) this.uiObjects.push(obj);
-      if (obj.setScrollFactor) obj.setScrollFactor(0);
-      return obj;
-    }
-
-    setupUiCamera() {
-      if (this.uiCamera) return;
-      this.uiCamera = this.cameras.add(0, 0, VIEW_W, VIEW_H)
-        .setScroll(0, 0)
-        .setZoom(1)
-        .setName('UICamera');
-      this.uiCamera.roundPixels = true;
-      this.refreshCameraIgnores();
-    }
-
-    refreshCameraIgnores() {
-      if (!this.uiCamera || !this.uiObjects) return;
-      this.cameras.main.ignore(this.uiObjects);
-
-      const uiSet = new Set(this.uiObjects);
-      const worldObjects = this.children.list.filter(obj => !uiSet.has(obj));
-      this.uiCamera.ignore(worldObjects);
-    }
-
+    init(data) { this.entryData = data || {}; }
     preload() { /* intentionally empty: prevents iOS Safari 90/100% preload lock */ }
     create() {
       this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
@@ -306,7 +331,7 @@
       this.debug = { collision:false, interaction:false, spawns:false };
       this.debugGraphics = this.add.graphics().setDepth(1100);
 
-      this.drawGround(); this.drawBuildings(); this.createCollision(); this.createEntities(); this.createHUD(); this.createMobileControls(); this.setupUiCamera(); this.bindKeys();
+      this.drawGround(); this.drawBuildings(); this.createCollision(); this.createEntities(); this.applyEntrySpawn(); this.createHUD(); this.createMobileControls(); this.bindKeys();
       this.cameras.main.roundPixels = true;
       this.cameras.main.startFollow(this.player, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
@@ -388,9 +413,48 @@
         this.message = on ? 'Theme music on.' : 'Theme music paused.';
         this.messageTimer = 1800;
       });
+      this.input.keyboard.on('keydown-Z', () => {
+        CAMERA.playerZoom = CAMERA.playerZoom >= 1.5 ? 1.18 : CAMERA.playerZoom + 0.08;
+        this.cameras.main.setZoom(CAMERA.playerZoom);
+        this.message = `Player camera zoom locked at ${CAMERA.playerZoom.toFixed(2)}.`;
+        this.messageTimer = 1800;
+      });
       this.input.keyboard.on('keydown', (e) => this.vehicleDebug(e));
     }
 
+
+
+    applyEntrySpawn() {
+      if (!this.entryData?.spawn || !this.player) return;
+      const { x, y } = this.entryData.spawn;
+      this.inCar = false;
+      this.player.setPosition(x, y);
+      if (this.player.body) {
+        this.player.body.enable = true;
+        this.player.body.setVelocity(0, 0);
+      }
+      if (this.car?.body) this.car.body.setVelocity(0, 0);
+      if (this.playerSprite) this.playerSprite.setVisible(true).setPosition(x, y);
+      this.message = this.entryData.message || 'Back on Raven Hook streets.';
+      this.messageTimer = 2200;
+    }
+
+    enterBuilding(zone) {
+      const info = BUILDING_ENTRIES[zone.id];
+      if (!info) {
+        this.message = `${zone.label || 'Door'} is locked for now.`;
+        this.messageTimer = 1800;
+        return;
+      }
+
+      if (this.player?.body) this.player.body.setVelocity(0, 0);
+      this.scene.start('InteriorScene', {
+        buildingId: info.id,
+        title: info.title,
+        subtitle: info.subtitle,
+        returnSpawn: info.returnSpawn
+      });
+    }
 
     toggleBuildingArt() {
       const currentVisible = this.realBuildingImages?.[0]?.visible ?? this.realBuildingSheet?.[0]?.visible ?? false;
@@ -433,12 +497,12 @@
 
     drawBuildings() {
       this.buildingLabels = [];
-      const g = this.buildingGraphics = this.add.graphics().setDepth(2);
+      const g = this.buildingGraphics = this.add.graphics().setDepth(ROOF_DEPTH);
       const drawB = (r, label, color, neon) => {
         g.fillStyle(color, 0.9).fillRoundedRect(r.x, r.y, r.w, r.h, 10);
         g.lineStyle(3, neon, 0.95).strokeRoundedRect(r.x, r.y, r.w, r.h, 10);
         g.fillStyle(0, 0.32).fillRect(r.x + 8, r.y + r.h - 42, r.w - 16, 34);
-        const t = makeText(this, r.x + r.w / 2, r.y + r.h - 33, label, 16, '#fff').setOrigin(0.5).setDepth(3);
+        const t = makeText(this, r.x + r.w / 2, r.y + r.h - 33, label, 16, '#fff').setOrigin(0.5).setDepth(ROOF_DEPTH + 1);
         this.buildingLabels.push(t);
       };
       drawB({x:285,y:155,w:565,h:430}, 'RAVEN HOOK PRECINCT', 0x1c2a37, COLORS.neonBlue);
@@ -525,7 +589,7 @@
         const img = this.add.image(x, y, b.key)
           .setOrigin(0, 0)
           .setDisplaySize(w, h)
-          .setDepth(2);
+          .setDepth(ROOF_DEPTH);
         img.setName(b.name);
         this.realBuildingImages.push(img);
       }
@@ -559,7 +623,7 @@
           .setOrigin(0, 0)
           .setCrop(cx, cy, cw, ch)
           .setDisplaySize(w, h)
-          .setDepth(2);
+          .setDepth(ROOF_DEPTH);
         img.setName(p.name);
         this.realBuildingSheet.push(img);
       }
@@ -689,19 +753,11 @@
     }
 
     createHUD() {
-      this.uiObjects = [];
-
-      this.hudBg = this.registerUi(
-        this.add.rectangle(10, 10, 940, 92, 0x02060a, 0.72)
-          .setOrigin(0,0)
-          .setDepth(2000)
-      );
-
-      this.hudText = this.registerUi(makeText(this, 20, 18, '', 14, '#ffffff', true));
-      this.carText = this.registerUi(makeText(this, 20, 64, '', 14, '#86e7ff', true));
-      this.promptText = this.registerUi(makeText(this, VIEW_W/2, VIEW_H-40, '', 15, '#f4d28a', true).setOrigin(0.5));
-      this.layerText = this.registerUi(makeText(this, VIEW_W-20, 18, '', 12, '#ffb6df', true).setOrigin(1,0));
-      this.messageText = this.registerUi(makeText(this, VIEW_W/2, 118, '', 16, '#fff', true).setOrigin(0.5));
+      this.add.rectangle(10, 10, 940, 92, 0x02060a, 0.72).setOrigin(0,0).setScrollFactor(0).setDepth(2000);
+      this.hudText = makeText(this, 20, 18, '', 14, '#ffffff', true); this.carText = makeText(this, 20, 64, '', 14, '#86e7ff', true);
+      this.promptText = makeText(this, VIEW_W/2, VIEW_H-40, '', 15, '#f4d28a', true).setOrigin(0.5);
+      this.layerText = makeText(this, VIEW_W-20, 18, '', 12, '#ffb6df', true).setOrigin(1,0);
+      this.messageText = makeText(this, VIEW_W/2, 118, '', 16, '#fff', true).setOrigin(0.5);
     }
 
     createMobileControls() {
@@ -711,14 +767,14 @@
         const tx=this.add.text(0,-8,label,{fontFamily:'Courier New',fontSize:font,color:'#fff'}).setOrigin(0.5);
         c.add([bg,tx]); c.setSize(radius*2+12,radius*2+12).setInteractive();
         c.on('pointerdown',()=>{this.mobile[prop]=true; if(['a','b','x','y','sel','sta'].includes(prop)) this.handleMobileAction(prop);});
-        c.on('pointerup',()=>this.mobile[prop]=false); c.on('pointerout',()=>this.mobile[prop]=false); this.registerUi(c); this.registerUi(bg); this.registerUi(tx); return c;
+        c.on('pointerup',()=>this.mobile[prop]=false); c.on('pointerout',()=>this.mobile[prop]=false); return c;
       };
       // Raised layout for iPhone Safari: keeps controls above the browser bottom toolbar.
       const baseX=92, baseY=VIEW_H-178;
       const pad=this.add.container(baseX,baseY).setScrollFactor(0).setDepth(2500);
       const outer=this.add.circle(0,0,58,0x111827,0.65).setStrokeStyle(2,0xffffff,0.35);
       const knob=this.add.circle(0,0,22,0x263241,0.9).setStrokeStyle(2,0xffffff,0.55);
-      pad.add([outer,knob]); pad.setSize(130,130).setInteractive(new Phaser.Geom.Circle(0,0,65), Phaser.Geom.Circle.Contains); this.registerUi(pad); this.registerUi(outer); this.registerUi(knob);
+      pad.add([outer,knob]); pad.setSize(130,130).setInteractive(new Phaser.Geom.Circle(0,0,65), Phaser.Geom.Circle.Contains);
       pad.on('pointerdown', p=>this.updateStick(p, baseX, baseY, knob));
       pad.on('pointermove', p=>{ if(p.isDown) this.updateStick(p, baseX, baseY, knob); });
       pad.on('pointerup',()=>{this.mobile.analogX=0;this.mobile.analogY=0; knob.setPosition(0,0);});
@@ -737,7 +793,7 @@
     handleMobileAction(prop) { if(prop==='a') this.handleInteract(); if(prop==='b') this.tryArrest(); if(prop==='x'||prop==='sel') this.handleTrunk(); if(prop==='y'||prop==='sta') this.tryReport(); }
     inputDir() { const kbL=this.keys.left.isDown||this.keys.arrowLeft.isDown, kbR=this.keys.right.isDown||this.keys.arrowRight.isDown, kbU=this.keys.up.isDown||this.keys.arrowUp.isDown, kbD=this.keys.down.isDown||this.keys.arrowDown.isDown; if (this.mobile.useStick && (Math.abs(this.mobile.analogX)>0.15 || Math.abs(this.mobile.analogY)>0.15)) return { left:this.mobile.analogX<-0.25||kbL, right:this.mobile.analogX>0.25||kbR, up:this.mobile.analogY<-0.25||kbU, down:this.mobile.analogY>0.25||kbD, ax:this.mobile.analogX, ay:this.mobile.analogY }; return { left:kbL||this.mobile.left, right:kbR||this.mobile.right, up:kbU||this.mobile.up, down:kbD||this.mobile.down, ax:0, ay:0 }; }
 
-    update(time, delta) { const dt=delta/1000; this.shiftMinutes += dt*0.85; this.updateClosestZone(); if(this.inCar) this.updateCar(dt); else this.updatePlayer(dt); this.updateCase(dt); this.updateCivilians(); this.updateHUD(); this.refreshCameraIgnores(); if(this.messageTimer>0) this.messageTimer-=delta; }
+    update(time, delta) { const dt=delta/1000; this.shiftMinutes += dt*0.85; this.updateClosestZone(); if(this.inCar) this.updateCar(dt); else this.updatePlayer(dt); this.updateCase(dt); this.updateCivilians(); this.updateHUD(); if(this.messageTimer>0) this.messageTimer-=delta; }
     updatePlayer() {
       const d=this.inputDir(); let vx=d.ax||0, vy=d.ay||0;
       if(!vx&&!vy){ if(d.left)vx-=1; if(d.right)vx+=1; if(d.up)vy-=1; if(d.down)vy+=1; }
@@ -833,6 +889,7 @@
       }
       if(!this.closestZone) return;
       const z=this.closestZone;
+      if(z.type==='door') this.enterBuilding(z);
       if(z.type==='crime_trigger') this.startShopliftingCase();
       if(z.type==='evidence'&&GAME.case.active&&!GAME.case.evidenceCollected){
         GAME.case.evidenceCollected=true; this.playerInventory.push('stolen_cigarettes'); this.evidence.visible=false;
@@ -865,8 +922,135 @@
     }
     handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
     tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
-    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
+    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report | Z zoom'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
     redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
+  }
+
+
+  class InteriorScene extends Phaser.Scene {
+    constructor(){ super('InteriorScene'); }
+
+    init(data) {
+      this.dataIn = data || {};
+      this.returnSpawn = this.dataIn.returnSpawn || { x: 550, y: 675 };
+    }
+
+    create() {
+      this.cameras.main.setBackgroundColor('#070b10');
+
+      const g = this.add.graphics();
+      g.fillStyle(0x080b10, 1).fillRect(0, 0, VIEW_W, VIEW_H);
+
+      g.fillStyle(0x1a1715, 1).fillRoundedRect(100, 72, 760, 396, 12);
+      g.lineStyle(6, 0x050505, 1).strokeRoundedRect(100, 72, 760, 396, 12);
+
+      g.fillStyle(0x27201b, 1).fillRect(126, 104, 708, 326);
+      g.lineStyle(1, 0x3a3028, 0.45);
+      for (let x = 126; x <= 834; x += 48) g.lineBetween(x, 104, x, 430);
+      for (let y = 104; y <= 430; y += 48) g.lineBetween(126, y, 834, y);
+
+      const id = this.dataIn.buildingId || 'interior';
+      if (id === 'precinct') this.drawPrecinct(g);
+      else if (id === 'garage') this.drawGarage(g);
+      else if (id === 'bennys_market') this.drawMarket(g);
+      else if (id === 'red_gull_diner') this.drawDiner(g);
+      else if (id === 'laundromat') this.drawLaundromat(g);
+      else if (id === 'evidence_dropoff') this.drawEvidence(g);
+      else this.drawOffice(g);
+
+      g.fillStyle(0x1d2938, 1).fillRoundedRect(420, 425, 120, 38, 6);
+      g.lineStyle(2, COLORS.cyan, 0.9).strokeRoundedRect(420, 425, 120, 38, 6);
+
+      makeText(this, VIEW_W/2, 24, this.dataIn.title || 'Interior', 24, '#f4d28a').setOrigin(0.5);
+      makeText(this, VIEW_W/2, 52, this.dataIn.subtitle || 'Temporary enterable building interior.', 13, '#86e7ff').setOrigin(0.5);
+      makeText(this, VIEW_W/2, VIEW_H - 42, 'A / E / ENTER / TAP — EXIT TO STREET', 17, '#f4d28a').setOrigin(0.5);
+
+      this.exitReady = false;
+      this.time.delayedCall(220, () => { this.exitReady = true; });
+
+      const exit = () => {
+        if (!this.exitReady) return;
+        this.scene.start('GameScene', {
+          spawn: this.returnSpawn,
+          message: `Exited ${this.dataIn.title || 'building'}.`
+        });
+      };
+
+      this.input.keyboard.once('keydown-ENTER', exit);
+      this.input.keyboard.once('keydown-E', exit);
+      this.input.keyboard.once('keydown-A', exit);
+      this.input.once('pointerdown', exit);
+    }
+
+    propRect(g, x, y, w, h, color, outline = 0x000000) {
+      g.fillStyle(color, 1).fillRoundedRect(x, y, w, h, 5);
+      g.lineStyle(2, outline, 0.75).strokeRoundedRect(x, y, w, h, 5);
+    }
+
+    drawPrecinct(g) {
+      this.propRect(g, 155, 130, 190, 70, 0x343944, COLORS.neonBlue);
+      this.propRect(g, 390, 130, 170, 70, 0x2a2d36, COLORS.neonBlue);
+      this.propRect(g, 610, 130, 160, 70, 0x2b2117, COLORS.amber);
+      this.propRect(g, 165, 270, 130, 95, 0x202a2f, COLORS.cyan);
+      this.propRect(g, 350, 270, 260, 42, 0x111827, COLORS.red);
+      this.propRect(g, 650, 260, 110, 100, 0x1d232b, COLORS.purple);
+      makeText(this, 205, 150, 'BULLPEN', 13, '#fff');
+      makeText(this, 414, 150, 'RECORDS', 13, '#fff');
+      makeText(this, 645, 150, 'CHIEF', 13, '#fff');
+      makeText(this, 382, 280, 'REPORT DESK', 13, '#fff');
+    }
+
+    drawGarage(g) {
+      this.propRect(g, 155, 130, 180, 230, 0x161a20, 0x888888);
+      this.propRect(g, 390, 130, 180, 230, 0x111820, 0x888888);
+      this.propRect(g, 635, 120, 130, 70, 0x3a2020, COLORS.red);
+      this.propRect(g, 630, 230, 150, 40, 0x30343a, COLORS.amber);
+      this.propRect(g, 620, 310, 170, 45, 0x202a2f, COLORS.cyan);
+      makeText(this, 180, 145, 'BAY 1', 13, '#fff');
+      makeText(this, 415, 145, 'BAY 2', 13, '#fff');
+      makeText(this, 650, 145, 'TOOLS', 13, '#fff');
+    }
+
+    drawMarket(g) {
+      for (let y = 135; y <= 325; y += 62) this.propRect(g, 190, y, 430, 32, 0x2d2920, COLORS.amber);
+      this.propRect(g, 650, 130, 115, 80, 0x202a2f, COLORS.cyan);
+      this.propRect(g, 650, 250, 115, 95, 0x2a1f1f, COLORS.red);
+      makeText(this, 680, 155, 'REGISTER', 12, '#fff');
+      makeText(this, 680, 275, 'BACK ROOM', 12, '#fff');
+    }
+
+    drawDiner(g) {
+      this.propRect(g, 160, 130, 530, 48, 0x3b1e23, COLORS.red);
+      for (let x = 180; x <= 620; x += 80) this.propRect(g, x, 235, 52, 52, 0x2d2621, COLORS.amber);
+      this.propRect(g, 710, 120, 70, 220, 0x1f242c, COLORS.neonBlue);
+      makeText(this, 190, 145, 'COUNTER', 13, '#fff');
+      makeText(this, 722, 150, 'PAYPHONE', 11, '#fff');
+    }
+
+    drawLaundromat(g) {
+      for (let x = 170; x <= 650; x += 86) {
+        this.propRect(g, x, 130, 60, 60, 0x263241, COLORS.cyan);
+        this.propRect(g, x, 285, 60, 60, 0x263241, COLORS.cyan);
+      }
+      this.propRect(g, 300, 215, 350, 36, 0x2b2117, COLORS.amber);
+      makeText(this, 330, 222, 'FOLDING TABLES', 13, '#fff');
+    }
+
+    drawEvidence(g) {
+      this.propRect(g, 170, 135, 580, 62, 0x202a2f, COLORS.cyan);
+      for (let x = 185; x <= 700; x += 84) this.propRect(g, x, 255, 60, 74, 0x34302a, COLORS.amber);
+      this.propRect(g, 655, 345, 90, 42, 0x3a2020, COLORS.red);
+      makeText(this, 205, 155, 'EVIDENCE COUNTER', 13, '#fff');
+      makeText(this, 672, 354, 'LOCKER', 12, '#fff');
+    }
+
+    drawOffice(g) {
+      this.propRect(g, 170, 145, 240, 120, 0x2b2117, COLORS.amber);
+      this.propRect(g, 510, 145, 230, 120, 0x202a2f, COLORS.cyan);
+      this.propRect(g, 300, 310, 330, 50, 0x1d232b, COLORS.neonBlue);
+      makeText(this, 205, 168, 'OFFICE', 13, '#fff');
+      makeText(this, 545, 168, 'FILES', 13, '#fff');
+    }
   }
 
   class ReportScene extends Phaser.Scene {
@@ -874,7 +1058,7 @@
     create(){ this.cameras.main.setBackgroundColor('#101018'); const g=this.add.graphics(); g.fillStyle(0xe0d0a5,1).fillRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); g.lineStyle(4,0x2b2117,1).strokeRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); const items=[["Correct location: Benny's Market",GAME.case.active],["Correct crime: Shoplifting",GAME.case.active],["Suspect arrested: Eddie Cross",GAME.case.suspectArrested],["Evidence collected: stolen cigarettes",GAME.case.evidenceCollected],["Evidence stored in trunk",GAME.case.evidenceInTrunk],["Witness statement: Marlene Pike",GAME.case.witnessStatement]]; let score=0; for(const i of items) if(i[1]) score+=100; if(score>=500&&!GAME.case.reportFiled){ GAME.xp+=score; GAME.case.complete=true; GAME.case.reportFiled=true; GAME.day+=1; } makeText(this,VIEW_W/2,74,'RAVEN HOOK POLICE DEPARTMENT',24,'#2b2117').setOrigin(0.5); makeText(this,VIEW_W/2,110,"INCIDENT REPORT — BENNY'S MARKET SHOPLIFTING",18,'#2b2117').setOrigin(0.5); let y=160; for(const [label,ok] of items){ makeText(this,160,y,`${ok?'✓':'✗'} ${label}`,18,ok?'#134f24':'#7a1c1c'); y+=38; } makeText(this,160,y+10,`REPORT SCORE: ${score} / 600`,22,'#2b2117'); makeText(this,160,y+50,score>=500?'Report accepted. Day advanced. XP awarded.':'Report incomplete. Return to the field and finish the case.',18,score>=500?'#134f24':'#7a1c1c'); makeText(this,VIEW_W/2,VIEW_H-78,'PRESS ENTER / TAP TO RETURN',18,'#2b2117').setOrigin(0.5); this.input.keyboard.once('keydown-ENTER',()=>this.scene.start('GameScene')); this.input.once('pointerdown',()=>this.scene.start('GameScene')); }
   }
 
-  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, GameScene, ReportScene] });
+  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, GameScene, InteriorScene, ReportScene] });
 })();
 </script>
 </body>
