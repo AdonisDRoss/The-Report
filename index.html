@@ -8,10 +8,11 @@
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
       background: #05070b; font-family: "Courier New", monospace;
-      touch-action: none; user-select: none;
+      touch-action: none; user-select: none; -webkit-user-select: none;
+      overscroll-behavior: none; position: fixed;
     }
-    #game { width: 100vw; height: 100vh; }
-    canvas { image-rendering: pixelated; }
+    #game { width: 100vw; height: 100vh; position: fixed; inset: 0; touch-action: none; }
+    canvas { image-rendering: pixelated; touch-action: none; }
   </style>
 </head>
 <body>
@@ -22,6 +23,14 @@
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
+
+  const CAMERA = {
+    playerZoom: 1.28,
+    carSlowZoom: 1.08,
+    carMidZoom: 0.96,
+    carFastZoom: 0.82,
+    followLerp: 0.12
+  };
 
   const COLORS = {
     blue: 0x3d7dff, cyan: 0x45e6ff, red: 0xff3f45, green: 0x55ff7a,
@@ -264,7 +273,10 @@
       this.debugGraphics = this.add.graphics().setDepth(1100);
 
       this.drawGround(); this.drawBuildings(); this.createCollision(); this.createEntities(); this.createHUD(); this.createMobileControls(); this.bindKeys();
-      this.cameras.main.startFollow(this.player, true, 0.08, 0.08); this.cameras.main.setZoom(0.82);
+      this.cameras.main.roundPixels = true;
+      this.cameras.main.startFollow(this.player, true, CAMERA.followLerp, CAMERA.followLerp);
+      this.cameras.main.setDeadzone(70, 50);
+      this.cameras.main.setZoom(CAMERA.playerZoom);
       this.lazyLoadGameAssets();
     }
 
@@ -340,6 +352,12 @@
       this.input.keyboard.on('keydown-M', () => {
         const on = toggleTheme(this);
         this.message = on ? 'Theme music on.' : 'Theme music paused.';
+        this.messageTimer = 1800;
+      });
+      this.input.keyboard.on('keydown-Z', () => {
+        CAMERA.playerZoom = CAMERA.playerZoom >= 1.5 ? 1.18 : CAMERA.playerZoom + 0.08;
+        this.cameras.main.setZoom(CAMERA.playerZoom);
+        this.message = `Player camera zoom locked at ${CAMERA.playerZoom.toFixed(2)}.`;
         this.messageTimer = 1800;
       });
       this.input.keyboard.on('keydown', (e) => this.vehicleDebug(e));
@@ -693,9 +711,9 @@
       if(moving){ const angle=Phaser.Math.RadToDeg(Math.atan2(vy,vx)); this.playerFacing=['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8]; }
       this.ensurePlayerSprite();
       this.updatePlayerSprite(moving);
-      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom,0.84,0.05));
+      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, CAMERA.playerZoom, 0.08));
     }
-    updateCar(dt) { const d=this.inputDir(); this.car.isBraking=d.down; const speed=Math.hypot(this.car.vx,this.car.vy); const speedRatio=clamp(speed/VEHICLE.topSpeed,0.15,1); if(d.left) this.car.heading-=VEHICLE.steeringRate*dt*speedRatio; if(d.right) this.car.heading+=VEHICLE.steeringRate*dt*speedRatio; const fx=Math.cos(this.car.heading), fy=Math.sin(this.car.heading); if((d.up || d.ay < -0.25) && GAME.car.fuel>0){ this.car.vx+=fx*VEHICLE.acceleration*dt; this.car.vy+=fy*VEHICLE.acceleration*dt; GAME.car.fuel=Math.max(0,GAME.car.fuel-dt*(0.85+speed/360)); } if(d.down || d.ay > 0.25){ this.car.vx-=fx*VEHICLE.brakeForce*dt; this.car.vy-=fy*VEHICLE.brakeForce*dt; } const fmag=this.car.vx*fx+this.car.vy*fy; this.car.vx += (fx*fmag-this.car.vx)*VEHICLE.traction; this.car.vy += (fy*fmag-this.car.vy)*VEHICLE.traction; this.car.vx*=VEHICLE.friction; this.car.vy*=VEHICLE.friction; const sp=Math.hypot(this.car.vx,this.car.vy); if(sp>VEHICLE.topSpeed){ this.car.vx=(this.car.vx/sp)*VEHICLE.topSpeed; this.car.vy=(this.car.vy/sp)*VEHICLE.topSpeed; } this.car.body.setVelocity(this.car.vx,this.car.vy); this.car.rotationFrame=this.getVehicleFrame(this.car.heading); this.carFallback && this.car.setRotation(this.car.heading+Math.PI/2); this.syncVehicleSprites(); this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, sp>300?0.48:sp>160?0.6:0.72,0.04)); }
+    updateCar(dt) { const d=this.inputDir(); this.car.isBraking=d.down; const speed=Math.hypot(this.car.vx,this.car.vy); const speedRatio=clamp(speed/VEHICLE.topSpeed,0.15,1); if(d.left) this.car.heading-=VEHICLE.steeringRate*dt*speedRatio; if(d.right) this.car.heading+=VEHICLE.steeringRate*dt*speedRatio; const fx=Math.cos(this.car.heading), fy=Math.sin(this.car.heading); if((d.up || d.ay < -0.25) && GAME.car.fuel>0){ this.car.vx+=fx*VEHICLE.acceleration*dt; this.car.vy+=fy*VEHICLE.acceleration*dt; GAME.car.fuel=Math.max(0,GAME.car.fuel-dt*(0.85+speed/360)); } if(d.down || d.ay > 0.25){ this.car.vx-=fx*VEHICLE.brakeForce*dt; this.car.vy-=fy*VEHICLE.brakeForce*dt; } const fmag=this.car.vx*fx+this.car.vy*fy; this.car.vx += (fx*fmag-this.car.vx)*VEHICLE.traction; this.car.vy += (fy*fmag-this.car.vy)*VEHICLE.traction; this.car.vx*=VEHICLE.friction; this.car.vy*=VEHICLE.friction; const sp=Math.hypot(this.car.vx,this.car.vy); if(sp>VEHICLE.topSpeed){ this.car.vx=(this.car.vx/sp)*VEHICLE.topSpeed; this.car.vy=(this.car.vy/sp)*VEHICLE.topSpeed; } this.car.body.setVelocity(this.car.vx,this.car.vy); this.car.rotationFrame=this.getVehicleFrame(this.car.heading); this.carFallback && this.car.setRotation(this.car.heading+Math.PI/2); this.syncVehicleSprites(); this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, sp>300?CAMERA.carFastZoom:sp>160?CAMERA.carMidZoom:CAMERA.carSlowZoom,0.04)); }
     getVehicleFrame(a) { const deg=Phaser.Math.RadToDeg(a); const norm=Phaser.Math.Wrap(deg+90,0,360); return Math.round(norm/VEHICLE.frame.degreesPerFrame)%VEHICLE.frame.count; }
     syncVehicleSprites() {
       this.ensureSpriteLayers();
@@ -760,7 +778,9 @@
         this.player.body.enable=true;
         this.updatePlayerSprite(false);
         this.car.body.setVelocity(0,0); this.car.vx=this.car.vy=0;
-        this.cameras.main.startFollow(this.player,true,0.08,0.08);
+        this.cameras.main.startFollow(this.player,true,CAMERA.followLerp,CAMERA.followLerp);
+        this.cameras.main.setDeadzone(70, 50);
+        this.cameras.main.setZoom(CAMERA.playerZoom);
         GAME.car.visualState.driverDoorOpen=true; this.syncVehicleSprites();
         this.time.delayedCall(900,()=>{GAME.car.visualState.driverDoorOpen=false;this.syncVehicleSprites();});
         this.message='Exited vehicle.'; this.messageTimer=2200; return;
@@ -769,7 +789,8 @@
         this.inCar=true;
         this.player.setVisible(false); this.player.body.enable=false;
         if(this.playerSprite) this.playerSprite.setVisible(false);
-        this.cameras.main.startFollow(this.car,true,0.08,0.08);
+        this.cameras.main.startFollow(this.car,true,CAMERA.followLerp,CAMERA.followLerp);
+        this.cameras.main.setDeadzone(90, 70);
         GAME.car.visualState.driverDoorOpen=true; this.syncVehicleSprites();
         this.time.delayedCall(700,()=>{GAME.car.visualState.driverDoorOpen=false;this.syncVehicleSprites();});
         this.message='Entered unmarked sedan.'; this.messageTimer=2200; return;
@@ -808,7 +829,7 @@
     }
     handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
     tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
-    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
+    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report | Z zoom'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
     redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
   }
 
