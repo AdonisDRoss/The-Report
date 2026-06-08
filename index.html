@@ -48,6 +48,10 @@
     neonBlue: 0x4bbcff, neonPink: 0xff4fb8, amber: 0xffbd55
   };
 
+  // HARD START LOCK: first playable scene starts in Police Station Floor 1.
+  // Exiting the station sets fromStationExit=true so the street map can load normally.
+  const START_IN_POLICE_STATION = true;
+
   const GAME = {
     day: 1, xp: 0, rank: 'Detective Trainee',
     car: {
@@ -208,6 +212,18 @@
     volume: 0.55
   };
 
+  const POLICE_STATION_ASSETS = {
+    base: {
+      key: 'police_station_floor1_base',
+      path: 'assets/interiors/police_station/police_station_floor1_base.png'
+    },
+    props: {
+      key: 'police_station_floor1_props',
+      path: 'assets/interiors/police_station/police_station_floor1_props.png'
+    }
+  };
+
+
   let THEME_MUSIC = null;
 
   function startTheme(scene) {
@@ -294,7 +310,7 @@
 
       const start = () => {
         startTheme(this);
-        this.scene.start('GameScene');
+        this.scene.start(START_IN_POLICE_STATION ? 'PoliceStationScene' : 'GameScene');
       };
 
       // Browser/iOS audio unlock: starts the theme on the same tap/key press that starts the game.
@@ -347,6 +363,10 @@
 
     preload() { /* intentionally empty: prevents iOS Safari 90/100% preload lock */ }
     create() {
+      if (START_IN_POLICE_STATION && !this.entryData?.fromStationExit) {
+        this.scene.start('PoliceStationScene');
+        return;
+      }
       this.physics.world.setBounds(0, 0, WORLD_W, WORLD_H);
       this.cameras.main.setBounds(0, 0, WORLD_W, WORLD_H);
       this.cameras.main.setBackgroundColor('#070b10');
@@ -959,6 +979,294 @@
   }
 
 
+
+  class PoliceStationScene extends Phaser.Scene {
+    constructor() { super('PoliceStationScene'); }
+
+    preload() {
+      this.load.image(POLICE_STATION_ASSETS.base.key, A(POLICE_STATION_ASSETS.base.path));
+      this.load.image(POLICE_STATION_ASSETS.props.key, A(POLICE_STATION_ASSETS.props.path));
+      this.load.spritesheet(PLAYER_ASSET.key, A(PLAYER_ASSET.path), {
+        frameWidth: PLAYER_ASSET.frameWidth,
+        frameHeight: PLAYER_ASSET.frameHeight
+      });
+
+      this.load.on('loaderror', (file) => {
+        if (file?.key === PLAYER_ASSET.key && !this._triedPlayerFallback) {
+          this._triedPlayerFallback = true;
+          this.load.spritesheet(PLAYER_ASSET.key, A(PLAYER_ASSET.fallbackPath), {
+            frameWidth: PLAYER_ASSET.frameWidth,
+            frameHeight: PLAYER_ASSET.frameHeight
+          });
+        }
+      });
+    }
+
+    create() {
+      this.stationW = 1600;
+      this.stationH = 1000;
+      this.physics.world.setBounds(0, 0, this.stationW, this.stationH);
+      this.cameras.main.setBounds(0, 0, this.stationW, this.stationH);
+      this.cameras.main.setBackgroundColor('#05070b');
+
+      this.keys = this.input.keyboard.addKeys({
+        up: 'W', down: 'S', left: 'A', right: 'D',
+        arrowUp: 'UP', arrowDown: 'DOWN', arrowLeft: 'LEFT', arrowRight: 'RIGHT',
+        interact: 'E', enter: 'ENTER'
+      });
+
+      this.mobile = { up:false, down:false, left:false, right:false, a:false };
+
+      this.add.image(0, 0, POLICE_STATION_ASSETS.base.key)
+        .setOrigin(0, 0)
+        .setDisplaySize(this.stationW, this.stationH)
+        .setDepth(0);
+
+      this.add.image(0, 0, POLICE_STATION_ASSETS.props.key)
+        .setOrigin(0, 0)
+        .setDisplaySize(this.stationW, this.stationH)
+        .setDepth(8);
+
+      // Bottom-middle station door circled in the user's screenshot.
+      this.exitZone = {
+        id: 'station_exit_main',
+        x: 720,
+        y: 895,
+        w: 175,
+        h: 95,
+        label: 'Exit to Central Street'
+      };
+
+      this.hotspots = [
+        this.exitZone,
+        { id:'station_phone', x:410, y:500, w:120, h:120, label:'Use Station Phone' },
+        { id:'report_room', x:85, y:80, w:240, h:230, label:'File Report' },
+        { id:'evidence_intake', x:360, y:80, w:280, h:230, label:'Submit Evidence' },
+        { id:'stairs_floor_2', x:700, y:70, w:120, h:265, label:'Stairs to Floor 2 - Locked' },
+        { id:'holding_cells', x:995, y:80, w:365, h:260, label:'Check Holding Cells' }
+      ];
+
+      this.walls = this.physics.add.staticGroup();
+      this.addCollisionRects();
+
+      const startX = 800;
+      const startY = 825;
+      this.playerBody = this.add.rectangle(startX, startY, 22, 28, COLORS.blue, 0.0).setDepth(30);
+      this.physics.add.existing(this.playerBody);
+      this.playerBody.body.setCollideWorldBounds(true);
+      this.physics.add.collider(this.playerBody, this.walls);
+
+      this.playerFacing = 'S';
+      this.playerSprite = null;
+      if (this.textures.exists(PLAYER_ASSET.key)) {
+        this.createPlayerAnims();
+        this.playerSprite = this.add.sprite(startX, startY, PLAYER_ASSET.key, this.frameForFacing())
+          .setOrigin(0.5, PLAYER_ASSET.originY)
+          .setScale(PLAYER_ASSET.scale)
+          .setDepth(31);
+      } else {
+        this.playerFallback = this.add.rectangle(startX, startY, 22, 28, COLORS.blue, 1).setDepth(31);
+      }
+
+      this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
+      this.cameras.main.setDeadzone(42, 32);
+      this.cameras.main.setZoom(CAMERA.playerZoom);
+
+      this.promptBg = this.add.rectangle(VIEW_W / 2, VIEW_H - 38, 760, 42, 0x02060a, 0.72)
+        .setScrollFactor(0)
+        .setDepth(2000);
+      this.promptText = makeText(this, VIEW_W / 2, VIEW_H - 47, 'Raven Hook Police Station Floor 1', 15, '#f4d28a', true)
+        .setOrigin(0.5)
+        .setDepth(2001);
+      this.infoText = makeText(this, 18, 18, 'POLICE STATION FLOOR 1 | A/E interact | Bottom middle door exits to street', 14, '#86e7ff', true)
+        .setDepth(2001);
+
+      this.input.keyboard.on('keydown-E', () => this.handleInteract());
+      this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
+      this.input.keyboard.on('keydown-A', () => this.handleInteract());
+      this.input.once('pointerdown', () => startTheme(this));
+      this.createMobileControls();
+    }
+
+    addCollisionRects() {
+      const rects = [
+        // Keep collision light for first pass. We want to test navigation before tightening it.
+        { x:0, y:0, w:1600, h:28 },
+        { x:0, y:972, w:1600, h:28 },
+        { x:0, y:0, w:28, h:1000 },
+        { x:1572, y:0, w:28, h:1000 },
+
+        // Front desk / counter
+        { x:390, y:505, w:300, h:140 },
+
+        // Large bullpen desk clusters
+        { x:330, y:140, w:330, h:290 },
+
+        // Holding cells and bars area
+        { x:995, y:60, w:355, h:245 },
+
+        // Booking counter
+        { x:980, y:350, w:310, h:95 },
+
+        // Locker room fixtures
+        { x:1040, y:700, w:300, h:130 },
+
+        // Garage/utility clutter
+        { x:1330, y:600, w:220, h:300 },
+
+        // Report/evidence fixed furniture
+        { x:50, y:40, w:280, h:250 },
+        { x:55, y:595, w:300, h:285 }
+      ];
+
+      for (const r of rects) {
+        const block = this.add.rectangle(r.x + r.w / 2, r.y + r.h / 2, r.w, r.h, 0xff0000, 0);
+        this.physics.add.existing(block, true);
+        this.walls.add(block);
+      }
+    }
+
+    createMobileControls() {
+      const addBtn = (x,y,label,prop,color=0x111827, radius=28, font='18px') => {
+        const c=this.add.container(x,y).setScrollFactor(0).setDepth(2500);
+        const bg=this.add.circle(0,0,radius,color,0.78).setStrokeStyle(2,0xffffff,0.5);
+        const tx=this.add.text(0,-8,label,{fontFamily:'Courier New',fontSize:font,color:'#fff'}).setOrigin(0.5);
+        c.add([bg,tx]); c.setSize(radius*2+12,radius*2+12).setInteractive();
+        c.on('pointerdown',()=>{ this.mobile[prop]=true; if(prop==='a') this.handleInteract(); });
+        c.on('pointerup',()=>this.mobile[prop]=false);
+        c.on('pointerout',()=>this.mobile[prop]=false);
+        return c;
+      };
+
+      const baseX=92, baseY=VIEW_H-178;
+      addBtn(92, baseY-72, '▲', 'up');
+      addBtn(92, baseY+72, '▼', 'down');
+      addBtn(24, baseY, '◀', 'left');
+      addBtn(160, baseY, '▶', 'right');
+      addBtn(VIEW_W-90, VIEW_H-245, 'A', 'a', 0x1f4d2f);
+    }
+
+    createPlayerAnims() {
+      if (this.anims.exists('station_detective_walk_south')) return;
+      const rows = [
+        ['south', 0], ['southwest', 1], ['west', 2], ['northwest', 3],
+        ['north', 4], ['northeast', 5], ['east', 6], ['southeast', 7]
+      ];
+      for (const [name, row] of rows) {
+        this.anims.create({
+          key: `station_detective_walk_${name}`,
+          frames: this.anims.generateFrameNumbers(PLAYER_ASSET.key, { start: row * 6, end: row * 6 + 5 }),
+          frameRate: 8,
+          repeat: -1
+        });
+      }
+    }
+
+    frameForFacing() {
+      const rowByFacing = { S: 0, SW: 1, W: 2, NW: 3, N: 4, NE: 5, E: 6, SE: 7 };
+      return (rowByFacing[this.playerFacing] || 0) * 6;
+    }
+
+    animForFacing() {
+      const nameByFacing = { S:'south', SW:'southwest', W:'west', NW:'northwest', N:'north', NE:'northeast', E:'east', SE:'southeast' };
+      return `station_detective_walk_${nameByFacing[this.playerFacing] || 'south'}`;
+    }
+
+    updatePlayerVisual(moving) {
+      const x = this.playerBody.x;
+      const y = this.playerBody.y;
+      if (this.playerSprite) {
+        this.playerSprite.setPosition(x, y);
+        if (moving) {
+          const key = this.animForFacing();
+          if (this.playerSprite.anims.currentAnim?.key !== key || !this.playerSprite.anims.isPlaying) {
+            this.playerSprite.play(key, true);
+          }
+        } else {
+          this.playerSprite.anims.stop();
+          this.playerSprite.setFrame(this.frameForFacing());
+        }
+      }
+      if (this.playerFallback) this.playerFallback.setPosition(x, y);
+    }
+
+    inputDir() {
+      const left = this.keys.left.isDown || this.keys.arrowLeft.isDown || this.mobile.left;
+      const right = this.keys.right.isDown || this.keys.arrowRight.isDown || this.mobile.right;
+      const up = this.keys.up.isDown || this.keys.arrowUp.isDown || this.mobile.up;
+      const down = this.keys.down.isDown || this.keys.arrowDown.isDown || this.mobile.down;
+      let vx = (right ? 1 : 0) - (left ? 1 : 0);
+      let vy = (down ? 1 : 0) - (up ? 1 : 0);
+      const len = Math.hypot(vx, vy) || 1;
+      return { vx: vx / len, vy: vy / len };
+    }
+
+    update() {
+      const d = this.inputDir();
+      const moving = Math.abs(d.vx) > 0.01 || Math.abs(d.vy) > 0.01;
+      this.playerBody.body.setVelocity(d.vx * 220, d.vy * 220);
+
+      if (moving) {
+        const angle = Phaser.Math.RadToDeg(Math.atan2(d.vy, d.vx));
+        this.playerFacing = ['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8];
+      }
+
+      this.updatePlayerVisual(moving);
+
+      const spot = this.getCurrentHotspot();
+      this.currentHotspot = spot;
+      this.promptText.setText(spot ? `A/E: ${spot.label}` : 'Police Station Floor 1 | Bottom middle door exits to street');
+    }
+
+    getCurrentHotspot() {
+      const b = this.playerBody.getBounds();
+      for (const h of this.hotspots) {
+        if (Phaser.Geom.Rectangle.Overlaps(new Phaser.Geom.Rectangle(h.x,h.y,h.w,h.h), b)) return h;
+      }
+      return null;
+    }
+
+    handleInteract() {
+      const h = this.currentHotspot || this.getCurrentHotspot();
+      if (!h) return;
+
+      if (h.id === 'station_exit_main') {
+        this.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: { x: 552, y: 690 },
+          message: 'Exited Raven Hook Police Station.'
+        });
+        return;
+      }
+
+      if (h.id === 'station_phone') {
+        this.promptText.setText('Station phone ready. Beeper callbacks will plug in here.');
+        return;
+      }
+
+      if (h.id === 'report_room') {
+        this.scene.start('ReportScene');
+        return;
+      }
+
+      if (h.id === 'evidence_intake') {
+        this.promptText.setText('Evidence intake ready. Chain-of-custody system plugs in here.');
+        return;
+      }
+
+      if (h.id === 'stairs_floor_2') {
+        this.promptText.setText('Floor 2 is locked until the station expansion update.');
+        return;
+      }
+
+      if (h.id === 'holding_cells') {
+        this.promptText.setText('Holding cells ready. Arrested suspects will appear here.');
+        return;
+      }
+    }
+  }
+
+
   class InteriorScene extends Phaser.Scene {
     constructor(){ super('InteriorScene'); }
 
@@ -1087,10 +1395,10 @@
 
   class ReportScene extends Phaser.Scene {
     constructor(){ super('ReportScene'); }
-    create(){ this.cameras.main.setBackgroundColor('#101018'); const g=this.add.graphics(); g.fillStyle(0xe0d0a5,1).fillRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); g.lineStyle(4,0x2b2117,1).strokeRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); const items=[["Correct location: Benny's Market",GAME.case.active],["Correct crime: Shoplifting",GAME.case.active],["Suspect arrested: Eddie Cross",GAME.case.suspectArrested],["Evidence collected: stolen cigarettes",GAME.case.evidenceCollected],["Evidence stored in trunk",GAME.case.evidenceInTrunk],["Witness statement: Marlene Pike",GAME.case.witnessStatement]]; let score=0; for(const i of items) if(i[1]) score+=100; if(score>=500&&!GAME.case.reportFiled){ GAME.xp+=score; GAME.case.complete=true; GAME.case.reportFiled=true; GAME.day+=1; } makeText(this,VIEW_W/2,74,'RAVEN HOOK POLICE DEPARTMENT',24,'#2b2117').setOrigin(0.5); makeText(this,VIEW_W/2,110,"INCIDENT REPORT — BENNY'S MARKET SHOPLIFTING",18,'#2b2117').setOrigin(0.5); let y=160; for(const [label,ok] of items){ makeText(this,160,y,`${ok?'✓':'✗'} ${label}`,18,ok?'#134f24':'#7a1c1c'); y+=38; } makeText(this,160,y+10,`REPORT SCORE: ${score} / 600`,22,'#2b2117'); makeText(this,160,y+50,score>=500?'Report accepted. Day advanced. XP awarded.':'Report incomplete. Return to the field and finish the case.',18,score>=500?'#134f24':'#7a1c1c'); makeText(this,VIEW_W/2,VIEW_H-78,'PRESS ENTER / TAP TO RETURN',18,'#2b2117').setOrigin(0.5); this.input.keyboard.once('keydown-ENTER',()=>this.scene.start('GameScene')); this.input.once('pointerdown',()=>this.scene.start('GameScene')); }
+    create(){ this.cameras.main.setBackgroundColor('#101018'); const g=this.add.graphics(); g.fillStyle(0xe0d0a5,1).fillRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); g.lineStyle(4,0x2b2117,1).strokeRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); const items=[["Correct location: Benny's Market",GAME.case.active],["Correct crime: Shoplifting",GAME.case.active],["Suspect arrested: Eddie Cross",GAME.case.suspectArrested],["Evidence collected: stolen cigarettes",GAME.case.evidenceCollected],["Evidence stored in trunk",GAME.case.evidenceInTrunk],["Witness statement: Marlene Pike",GAME.case.witnessStatement]]; let score=0; for(const i of items) if(i[1]) score+=100; if(score>=500&&!GAME.case.reportFiled){ GAME.xp+=score; GAME.case.complete=true; GAME.case.reportFiled=true; GAME.day+=1; } makeText(this,VIEW_W/2,74,'RAVEN HOOK POLICE DEPARTMENT',24,'#2b2117').setOrigin(0.5); makeText(this,VIEW_W/2,110,"INCIDENT REPORT — BENNY'S MARKET SHOPLIFTING",18,'#2b2117').setOrigin(0.5); let y=160; for(const [label,ok] of items){ makeText(this,160,y,`${ok?'✓':'✗'} ${label}`,18,ok?'#134f24':'#7a1c1c'); y+=38; } makeText(this,160,y+10,`REPORT SCORE: ${score} / 600`,22,'#2b2117'); makeText(this,160,y+50,score>=500?'Report accepted. Day advanced. XP awarded.':'Report incomplete. Return to the field and finish the case.',18,score>=500?'#134f24':'#7a1c1c'); makeText(this,VIEW_W/2,VIEW_H-78,'PRESS ENTER / TAP TO RETURN',18,'#2b2117').setOrigin(0.5); this.input.keyboard.once('keydown-ENTER',()=>this.scene.start('PoliceStationScene')); this.input.once('pointerdown',()=>this.scene.start('PoliceStationScene')); }
   }
 
-  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, GameScene, InteriorScene, ReportScene] });
+  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, GameScene, InteriorScene, ReportScene] });
 })();
 </script>
 </body>
