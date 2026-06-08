@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central Mobile Safe Build</title>
+  <title>The Report — Raven Hook Central Mobile Safe Build — Building Placement Tuned</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -109,14 +109,14 @@
   };
 
   const BUILDING_IMAGE_ASSETS = [
-    { key: 'bldg_precinct', name: 'precinct', path: 'assets/buildings/raven_hook_central/precinct.png', place: [250, 105, 610, 485] },
-    { key: 'bldg_garage', name: 'garage', path: 'assets/buildings/raven_hook_central/garage.png', place: [715, 130, 225, 350] },
-    { key: 'bldg_bennys_market', name: 'bennys_market', path: 'assets/buildings/raven_hook_central/bennys_market.png', place: [1155, 110, 700, 500] },
-    { key: 'bldg_report_room', name: 'report_room', path: 'assets/buildings/raven_hook_central/report_room.png', place: [190, 900, 345, 320] },
-    { key: 'bldg_evidence_dropoff', name: 'evidence_dropoff', path: 'assets/buildings/raven_hook_central/evidence_dropoff.png', place: [585, 900, 355, 320] },
-    { key: 'bldg_red_gull_diner', name: 'red_gull_diner', path: 'assets/buildings/raven_hook_central/red_gull_diner.png', place: [1110, 835, 460, 325] },
-    { key: 'bldg_laundromat', name: 'laundromat', path: 'assets/buildings/raven_hook_central/laundromat.png', place: [1600, 835, 335, 330] },
-    { key: 'bldg_payphone', name: 'payphone', path: 'assets/buildings/raven_hook_central/payphone.png', place: [1568, 1125, 80, 140] }
+    { key: 'bldg_precinct', name: 'precinct', path: 'assets/buildings/raven_hook_central/precinct.png', place: [302, 158, 525, 402] },
+    { key: 'bldg_garage', name: 'garage', path: 'assets/buildings/raven_hook_central/garage.png', place: [740, 158, 180, 286] },
+    { key: 'bldg_bennys_market', name: 'bennys_market', path: 'assets/buildings/raven_hook_central/bennys_market.png', place: [1195, 162, 592, 386] },
+    { key: 'bldg_report_room', name: 'report_room', path: 'assets/buildings/raven_hook_central/report_room.png', place: [222, 922, 280, 260] },
+    { key: 'bldg_evidence_dropoff', name: 'evidence_dropoff', path: 'assets/buildings/raven_hook_central/evidence_dropoff.png', place: [630, 925, 274, 258] },
+    { key: 'bldg_red_gull_diner', name: 'red_gull_diner', path: 'assets/buildings/raven_hook_central/red_gull_diner.png', place: [1155, 852, 385, 270] },
+    { key: 'bldg_laundromat', name: 'laundromat', path: 'assets/buildings/raven_hook_central/laundromat.png', place: [1645, 852, 252, 278] },
+    { key: 'bldg_payphone', name: 'payphone', path: 'assets/buildings/raven_hook_central/payphone.png', place: [1590, 1192, 54, 72] }
   ];
 
   const TITLE_ASSET = {
@@ -255,7 +255,20 @@
       this.input.keyboard.on('keydown-C', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
       this.input.keyboard.on('keydown-I', () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
       this.input.keyboard.on('keydown-P', () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
+      this.input.keyboard.on('keydown-B', () => this.toggleBuildingArt());
       this.input.keyboard.on('keydown', (e) => this.vehicleDebug(e));
+    }
+
+
+    toggleBuildingArt() {
+      const currentVisible = this.realBuildingImages?.[0]?.visible ?? this.realBuildingSheet?.[0]?.visible ?? false;
+      const nextVisible = !currentVisible;
+      if (this.realBuildingImages) this.realBuildingImages.forEach(img => img.setVisible(nextVisible));
+      if (this.realBuildingSheet) this.realBuildingSheet.forEach(img => img.setVisible(nextVisible));
+      if (this.buildingGraphics) this.buildingGraphics.setVisible(!nextVisible);
+      if (this.buildingLabels) this.buildingLabels.forEach(t => t.setVisible(!nextVisible));
+      this.message = nextVisible ? 'Building PNGs ON.' : 'Building fallback boxes ON.';
+      this.messageTimer = 1800;
     }
 
     vehicleDebug(e) {
@@ -396,14 +409,14 @@
       if (this.realBuildingSheet || this.realBuildingImages || !this.textures.exists(BUILDING_SHEET_ASSET.key)) return;
 
       const pieces = [
-        { name: 'precinct', crop: [20, 25, 470, 430], place: [250, 105, 610, 485] },
-        { name: 'garage', crop: [505, 55, 150, 315], place: [715, 130, 225, 350] },
-        { name: 'bennys_market', crop: [720, 40, 640, 465], place: [1155, 110, 700, 500] },
-        { name: 'report_room', crop: [40, 635, 220, 265], place: [190, 900, 345, 320] },
-        { name: 'evidence_dropoff', crop: [335, 635, 250, 275], place: [585, 900, 355, 320] },
-        { name: 'red_gull_diner', crop: [655, 640, 350, 280], place: [1110, 835, 460, 325] },
-        { name: 'laundromat', crop: [1080, 640, 275, 300], place: [1600, 835, 335, 330] },
-        { name: 'payphone', crop: [1010, 770, 70, 145], place: [1568, 1125, 80, 140] }
+        { name: 'precinct', crop: [20, 25, 470, 430], place: [302, 158, 525, 402] },
+        { name: 'garage', crop: [505, 55, 150, 315], place: [740, 158, 180, 286] },
+        { name: 'bennys_market', crop: [720, 40, 640, 465], place: [1195, 162, 592, 386] },
+        { name: 'report_room', crop: [40, 635, 220, 265], place: [222, 922, 280, 260] },
+        { name: 'evidence_dropoff', crop: [335, 635, 250, 275], place: [630, 925, 274, 258] },
+        { name: 'red_gull_diner', crop: [655, 640, 350, 280], place: [1155, 852, 385, 270] },
+        { name: 'laundromat', crop: [1080, 640, 275, 300], place: [1645, 852, 252, 278] },
+        { name: 'payphone', crop: [1010, 770, 70, 145], place: [1590, 1192, 54, 72] }
       ];
 
       this.realBuildingSheet = [];
