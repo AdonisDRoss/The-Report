@@ -98,6 +98,17 @@
     originY: 0.72
   };
 
+  const EDDIE_CROSS_ASSET = {
+    key: 'eddie_cross',
+    path: 'assets/characters/npcs/eddie_cross/eddie_cross_movement_8dir_96x96.png',
+    frameWidth: 96,
+    frameHeight: 96,
+    scale: 0.58,
+    originY: 0.72
+  };
+
+
+
   const GROUND_ASSET = {
     key: 'rh_central_ground',
     path: 'assets/maps/rh_central_ground.png'
@@ -123,6 +134,58 @@
     key: 'title_raven_hook_clean_960x540',
     path: 'assets/ui/title/title_raven_hook_clean_960x540.png'
   };
+  const THEME_ASSET = {
+    key: 'theme_song',
+    path: 'assets/audio/music/last_band_in_iowa_theme.mp3',
+    volume: 0.55
+  };
+
+  let THEME_MUSIC = null;
+
+  function startTheme(scene) {
+    if (!scene || !scene.sound || !scene.cache.audio.exists(THEME_ASSET.key)) return null;
+
+    if (!THEME_MUSIC) {
+      THEME_MUSIC = scene.sound.add(THEME_ASSET.key, {
+        loop: true,
+        volume: THEME_ASSET.volume
+      });
+    }
+
+    const playNow = () => {
+      if (THEME_MUSIC && !THEME_MUSIC.isPlaying) {
+        THEME_MUSIC.play();
+      }
+    };
+
+    if (scene.sound.locked) {
+      scene.sound.once(Phaser.Sound.Events.UNLOCKED, playNow);
+    } else {
+      playNow();
+    }
+
+    return THEME_MUSIC;
+  }
+
+  function toggleTheme(scene) {
+    const music = THEME_MUSIC || startTheme(scene);
+    if (!music) return false;
+
+    if (music.isPlaying) {
+      music.pause();
+      return false;
+    }
+
+    music.resume();
+    if (!music.isPlaying) music.play();
+    return true;
+  }
+
+  function setThemeVolume(volume) {
+    THEME_ASSET.volume = Phaser.Math.Clamp(volume, 0, 1);
+    if (THEME_MUSIC) THEME_MUSIC.setVolume(THEME_ASSET.volume);
+  }
+
 
   function makeText(scene, x, y, value, size = 16, color = '#fff', fixed = false) {
     const t = scene.add.text(x, y, value, { fontFamily: 'Courier New', fontSize: `${size}px`, color, stroke: '#000', strokeThickness: 3, wordWrap: { width: 900 } });
@@ -138,6 +201,7 @@
 
     preload() {
       this.load.image(TITLE_ASSET.key, A(TITLE_ASSET.path));
+      this.load.audio(THEME_ASSET.key, A(THEME_ASSET.path));
     }
 
     create() {
@@ -157,12 +221,27 @@
 
       // Menu cursor/selection is drawn in Phaser, not baked into the title image.
       this.titleCursor = makeText(this, 360, 314, '▶', 22, '#ff4fb8').setDepth(5);
-      this.startHint = makeText(this, VIEW_W / 2, VIEW_H - 34, 'TAP / ENTER — NEW CASE', 16, '#f4d28a').setOrigin(0.5).setDepth(5);
+      this.startHint = makeText(this, VIEW_W / 2, VIEW_H - 34, 'TAP / ENTER — NEW CASE   |   M — MUSIC', 16, '#f4d28a').setOrigin(0.5).setDepth(5);
       this.tweens.add({ targets: this.startHint, alpha: 0.35, yoyo: true, repeat: -1, duration: 650 });
 
-      const start = () => this.scene.start('GameScene');
+      const start = () => {
+        startTheme(this);
+        this.scene.start('GameScene');
+      };
+
+      // Browser/iOS audio unlock: starts the theme on the same tap/key press that starts the game.
       this.input.keyboard.once('keydown-ENTER', start);
       this.input.once('pointerdown', start);
+
+      this.input.keyboard.on('keydown-M', () => {
+        const on = toggleTheme(this);
+        this.startHint.setText(on ? 'MUSIC ON — TAP / ENTER — NEW CASE' : 'MUSIC OFF — TAP / ENTER — NEW CASE');
+      });
+
+      // Desktop browsers that allow autoplay can start it here; mobile will wait for tap.
+      this.time.delayedCall(250, () => {
+        if (!this.sound.locked) startTheme(this);
+      });
     }
   }
 
@@ -195,6 +274,7 @@
         { type: 'image', key: BUILDING_SHEET_ASSET.key, path: BUILDING_SHEET_ASSET.path },
         ...BUILDING_IMAGE_ASSETS.map(b => ({ type: 'image', key: b.key, path: b.path })),
         { type: 'spritesheet', key: PLAYER_ASSET.key, path: PLAYER_ASSET.path, fw: PLAYER_ASSET.frameWidth, fh: PLAYER_ASSET.frameHeight },
+        { type: 'spritesheet', key: EDDIE_CROSS_ASSET.key, path: EDDIE_CROSS_ASSET.path, fw: EDDIE_CROSS_ASSET.frameWidth, fh: EDDIE_CROSS_ASSET.frameHeight },
         { type: 'spritesheet', key: 'detective_sedan_clean_64', path: 'assets/vehicles/detective_sedan/detective_sedan_clean_64.png', fw: 128, fh: 128 },
         { type: 'spritesheet', key: 'detective_sedan_shadow_64', path: 'assets/vehicles/detective_sedan/detective_sedan_shadow_64.png', fw: 128, fh: 128 },
         { type: 'spritesheet', key: 'detective_sedan_lights_overlay_64', path: 'assets/vehicles/detective_sedan/detective_sedan_lights_overlay_64.png', fw: 128, fh: 128 },
@@ -210,6 +290,7 @@
         if (key === BUILDING_SHEET_ASSET.key) this.applyBuildingSheet();
         if (BUILDING_IMAGE_ASSETS.some(b => b.key === key)) this.applyBuildingImages();
         if (key === PLAYER_ASSET.key) this.ensurePlayerSprite();
+        if (key === EDDIE_CROSS_ASSET.key) this.ensureEddieCrossSprite();
         this.ensureSpriteLayers();
         this.syncVehicleSprites();
 
@@ -256,6 +337,11 @@
       this.input.keyboard.on('keydown-I', () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
       this.input.keyboard.on('keydown-P', () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
       this.input.keyboard.on('keydown-B', () => this.toggleBuildingArt());
+      this.input.keyboard.on('keydown-M', () => {
+        const on = toggleTheme(this);
+        this.message = on ? 'Theme music on.' : 'Theme music paused.';
+        this.messageTimer = 1800;
+      });
       this.input.keyboard.on('keydown', (e) => this.vehicleDebug(e));
     }
 
@@ -333,7 +419,7 @@
       this.car = this.add.container(cs.x, cs.y).setDepth(25); this.carFallback = this.add.rectangle(0,0,32,58,0x202329,1).setStrokeStyle(2,0x9db5c7,1); this.car.add([this.carFallback]);
       this.physics.add.existing(this.car); this.car.body.setSize(34,62); this.car.body.setCollideWorldBounds(true); this.car.heading = -Math.PI/2; this.car.vx = 0; this.car.vy = 0; this.car.rotationFrame = 0;
       this.physics.add.collider(this.player, this.walls); this.physics.add.collider(this.car, this.walls, () => this.carHitWall());
-      this.suspect = this.add.rectangle(-100, -100, 22, 28, COLORS.red).setDepth(28); this.physics.add.existing(this.suspect); this.physics.add.collider(this.suspect, this.walls); this.suspect.visible = false;
+      this.suspect = this.add.rectangle(-100, -100, 22, 28, COLORS.red).setDepth(28); this.physics.add.existing(this.suspect); this.physics.add.collider(this.suspect, this.walls); this.suspect.visible = false; this.suspectActive = false; this.suspectFacing = 'E';
       const ev = SPAWN_POINTS.find(s => s.id === 'stolen_cigarettes'); this.evidence = this.add.circle(ev.x, ev.y, 11, COLORS.yellow).setDepth(27); this.evidence.visible = false;
       const wt = SPAWN_POINTS.find(s => s.id === 'bennys_clerk'); this.witness = this.add.rectangle(wt.x, wt.y, 22, 28, COLORS.purple).setDepth(27); this.witness.visible = false;
       this.civilians = []; for (let i=0;i<7;i++) { const s = SPAWN_POINTS[i%SPAWN_POINTS.length]; const c = this.add.circle((s.x||500)+Phaser.Math.Between(-60,60),(s.y||700)+Phaser.Math.Between(-60,60),8,0xbfc7d1).setDepth(20); this.physics.add.existing(c); c.nodeTarget = new Phaser.Math.Vector2(c.x+Phaser.Math.Between(-120,120), c.y+Phaser.Math.Between(-120,120)); this.civilians.push(c); this.physics.add.collider(c, this.walls); }
@@ -437,6 +523,72 @@
 
       this.message = 'Building sheet loaded from assets/reference.';
       this.messageTimer = 2200;
+    }
+
+
+    createEddieCrossAnims() {
+      if (this.anims.exists('eddie_cross_walk_south')) return;
+      const rows = [
+        ['south', 0], ['southwest', 1], ['west', 2], ['northwest', 3],
+        ['north', 4], ['northeast', 5], ['east', 6], ['southeast', 7]
+      ];
+      for (const [name, row] of rows) {
+        this.anims.create({
+          key: `eddie_cross_walk_${name}`,
+          frames: this.anims.generateFrameNumbers(EDDIE_CROSS_ASSET.key, { start: row * 4, end: row * 4 + 3 }),
+          frameRate: 9,
+          repeat: -1
+        });
+      }
+    }
+
+    directionFromVelocity(vx, vy, fallback = 'S') {
+      if (Math.abs(vx) < 2 && Math.abs(vy) < 2) return fallback;
+      const angle = Phaser.Math.RadToDeg(Math.atan2(vy, vx));
+      return ['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle + 360) % 360) / 45) % 8];
+    }
+
+    eddieFrameForFacing(facing = 'S') {
+      const rowByFacing = { S: 0, SW: 1, W: 2, NW: 3, N: 4, NE: 5, E: 6, SE: 7 };
+      return (rowByFacing[facing] || 0) * 4;
+    }
+
+    eddieAnimForFacing(facing = 'E') {
+      const nameByFacing = { S: 'south', SW: 'southwest', W: 'west', NW: 'northwest', N: 'north', NE: 'northeast', E: 'east', SE: 'southeast' };
+      return `eddie_cross_walk_${nameByFacing[facing] || 'east'}`;
+    }
+
+    ensureEddieCrossSprite() {
+      if (this.eddieSprite || !this.textures.exists(EDDIE_CROSS_ASSET.key) || !this.suspect) return;
+      this.createEddieCrossAnims();
+      this.eddieSprite = this.add.sprite(this.suspect.x, this.suspect.y, EDDIE_CROSS_ASSET.key, this.eddieFrameForFacing(this.suspectFacing || 'E'))
+        .setOrigin(0.5, EDDIE_CROSS_ASSET.originY)
+        .setScale(EDDIE_CROSS_ASSET.scale)
+        .setDepth(29);
+      this.eddieSprite.setVisible(!!this.suspectActive);
+      this.suspect.setVisible(false);
+      this.updateEddieCrossSprite(false);
+      this.message = 'Eddie Cross sprite loaded.';
+      this.messageTimer = 1800;
+    }
+
+    updateEddieCrossSprite(moving = false) {
+      if (!this.eddieSprite || !this.suspect) return;
+      this.eddieSprite.setPosition(this.suspect.x, this.suspect.y);
+      this.eddieSprite.setVisible(!!this.suspectActive);
+      this.suspect.setVisible(false);
+      if (!this.eddieSprite.visible) return;
+
+      const facing = this.suspectFacing || 'E';
+      if (moving && !GAME.case.suspectArrested) {
+        const key = this.eddieAnimForFacing(facing);
+        if (this.eddieSprite.anims.currentAnim?.key !== key || !this.eddieSprite.anims.isPlaying) {
+          this.eddieSprite.play(key, true);
+        }
+      } else {
+        this.eddieSprite.anims.stop();
+        this.eddieSprite.setFrame(this.eddieFrameForFacing(facing));
+      }
     }
 
     createPlayerAnims() {
@@ -560,8 +712,45 @@
       if (this.carSmokeSprite) this.carSmokeSprite.setVisible(vs.smokeFire||dmg>=70).setFrame(frame).setAlpha(vs.smokeFire||dmg>=70?0.72:0);
     }
     carHitWall() { const spd=Math.hypot(this.car.vx,this.car.vy); if(spd>80) GAME.car.damage=Math.min(100,GAME.car.damage+Math.round(spd/90)); this.car.vx*=-0.28; this.car.vy*=-0.28; this.car.body.setVelocity(this.car.vx,this.car.vy); this.syncVehicleSprites(); }
-    updateCase() { if(!GAME.case.active){ const trg=INTERACTION_ZONES.find(z=>z.id==='bennys_shoplifting_trigger'); if(overlap(trg,this.inCar?this.car:this.player)) this.startShopliftingCase(); } if(GAME.case.active&&!GAME.case.suspectArrested&&!GAME.case.complete){ const flee=SPAWN_POINTS.find(s=>s.id==='bennys_suspect_flee'); this.physics.moveTo(this.suspect,flee.x,flee.y,105); if(dist(this.suspect,flee)<35) this.suspect.body.setVelocity(0,0); } }
-    startShopliftingCase() { GAME.case.active=true; this.dispatch="Raven Hook Dispatch: Shoplifting in progress at Benny's Market."; this.objective='Catch Eddie Cross, collect evidence, get clerk statement, store evidence in trunk.'; this.message="Case started: Benny's Market shoplifting."; this.messageTimer=4000; const s=SPAWN_POINTS.find(p=>p.id==='bennys_suspect'); this.suspect.setPosition(s.x,s.y); this.suspect.visible=true; this.evidence.visible=true; this.witness.visible=true; }
+    updateCase() {
+      if (!GAME.case.active) {
+        const trg = INTERACTION_ZONES.find(z => z.id === 'bennys_shoplifting_trigger');
+        if (overlap(trg, this.inCar ? this.car : this.player)) this.startShopliftingCase();
+      }
+
+      let eddieMoving = false;
+      if (GAME.case.active && !GAME.case.suspectArrested && !GAME.case.complete) {
+        const flee = SPAWN_POINTS.find(s => s.id === 'bennys_suspect_flee');
+        this.physics.moveTo(this.suspect, flee.x, flee.y, 105);
+        this.suspectFacing = this.directionFromVelocity(this.suspect.body.velocity.x, this.suspect.body.velocity.y, this.suspectFacing || 'E');
+        eddieMoving = Math.hypot(this.suspect.body.velocity.x, this.suspect.body.velocity.y) > 4;
+        if (dist(this.suspect, flee) < 35) {
+          this.suspect.body.setVelocity(0, 0);
+          eddieMoving = false;
+        }
+      }
+
+      this.ensureEddieCrossSprite();
+      this.updateEddieCrossSprite(eddieMoving);
+    }
+    startShopliftingCase() {
+      GAME.case.active = true;
+      this.suspectActive = true;
+      this.suspectFacing = 'E';
+      this.dispatch = "Raven Hook Dispatch: Shoplifting in progress at Benny's Market.";
+      this.objective = 'Catch Eddie Cross, collect evidence, get clerk statement, store evidence in trunk.';
+      this.message = "Case started: Benny's Market shoplifting.";
+      this.messageTimer = 4000;
+
+      const s = SPAWN_POINTS.find(p => p.id === 'bennys_suspect');
+      this.suspect.setPosition(s.x, s.y);
+      this.suspect.visible = !this.eddieSprite;
+      this.ensureEddieCrossSprite();
+      this.updateEddieCrossSprite(false);
+
+      this.evidence.visible = true;
+      this.witness.visible = true;
+    }
     updateCivilians() { for(const c of this.civilians){ if(!c.nodeTarget||dist(c,c.nodeTarget)<12) c.nodeTarget=new Phaser.Math.Vector2(clamp(c.x+Phaser.Math.Between(-150,150),80,WORLD_W-80),clamp(c.y+Phaser.Math.Between(-150,150),80,WORLD_H-80)); this.physics.moveTo(c,c.nodeTarget.x,c.nodeTarget.y,45); } }
     updateClosestZone() { const actor=this.inCar?this.car:this.player; this.closestZone=null; for(const z of INTERACTION_ZONES){ if(overlap(z,actor)){ this.closestZone=z; break; } } }
     handleInteract() {
@@ -598,10 +787,28 @@
         this.messageTimer=4200;
       }
     }
-    tryArrest(){ if(!GAME.case.active||GAME.case.suspectArrested)return; const actor=this.inCar?this.car:this.player; if(dist(actor,this.suspect)<75){ GAME.case.suspectArrested=true; this.suspect.body.setVelocity(0,0); this.suspect.setFillStyle(0x552222,0.6); this.dispatch='Dispatch: Suspect detained. Secure evidence and witness statement.'; this.objective='Collect evidence, talk to clerk, store evidence in trunk, return to report room.'; this.message='Arrested Eddie Cross.'; this.messageTimer=3200; } else { this.message='No suspect close enough to arrest.'; this.messageTimer=2200; } }
+    tryArrest(){
+      if (!GAME.case.active || GAME.case.suspectArrested) return;
+      const actor = this.inCar ? this.car : this.player;
+      if (dist(actor, this.suspect) < 75) {
+        GAME.case.suspectArrested = true;
+        this.suspectActive = true;
+        this.suspect.body.setVelocity(0, 0);
+        this.suspect.setFillStyle(0x552222, 0);
+        this.suspect.visible = false;
+        this.updateEddieCrossSprite(false);
+        this.dispatch = 'Dispatch: Suspect detained. Secure evidence and witness statement.';
+        this.objective = 'Collect evidence, talk to clerk, store evidence in trunk, return to report room.';
+        this.message = 'Arrested Eddie Cross.';
+        this.messageTimer = 3200;
+      } else {
+        this.message = 'No suspect close enough to arrest.';
+        this.messageTimer = 2200;
+      }
+    }
     handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
     tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
-    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
+    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
     redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
   }
 
