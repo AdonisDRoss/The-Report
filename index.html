@@ -385,7 +385,7 @@
       this.cameras.main.roundPixels = true;
       this.cameras.main.startFollow(this.player, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(CAMERA.playerZoom);
+      this.cameras.main.setZoom(0.85); // station interior zoom-out: shows more room on mobile
       this.lazyLoadGameAssets();
     }
 
@@ -1016,6 +1016,7 @@
       });
 
       this.mobile = { up:false, down:false, left:false, right:false, a:false };
+      this.uiObjects = [];
 
       this.add.image(0, 0, POLICE_STATION_ASSETS.base.key)
         .setOrigin(0, 0)
@@ -1062,7 +1063,7 @@
         this.createPlayerAnims();
         this.playerSprite = this.add.sprite(startX, startY, PLAYER_ASSET.key, this.frameForFacing())
           .setOrigin(0.5, PLAYER_ASSET.originY)
-          .setScale(PLAYER_ASSET.scale)
+          .setScale(0.46)
           .setDepth(31);
       } else {
         this.playerFallback = this.add.rectangle(startX, startY, 22, 28, COLORS.blue, 1).setDepth(31);
@@ -1070,7 +1071,7 @@
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(CAMERA.playerZoom);
+      this.cameras.main.setZoom(0.85); // station interior zoom-out: shows more room on mobile
 
       this.promptBg = this.add.rectangle(VIEW_W / 2, VIEW_H - 38, 760, 42, 0x02060a, 0.72)
         .setScrollFactor(0)
@@ -1080,12 +1081,14 @@
         .setDepth(2001);
       this.infoText = makeText(this, 18, 18, 'POLICE STATION FLOOR 1 | A/E interact | Bottom middle door exits to street', 14, '#86e7ff', true)
         .setDepth(2001);
+      this.uiObjects.push(this.promptBg, this.promptText, this.infoText);
 
       this.input.keyboard.on('keydown-E', () => this.handleInteract());
       this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
       this.input.keyboard.on('keydown-A', () => this.handleInteract());
       this.input.once('pointerdown', () => startTheme(this));
       this.createMobileControls();
+      this.setupStationUiCamera();
     }
 
     addCollisionRects() {
@@ -1135,6 +1138,7 @@
         c.on('pointerdown',()=>{ this.mobile[prop]=true; if(prop==='a') this.handleInteract(); });
         c.on('pointerup',()=>this.mobile[prop]=false);
         c.on('pointerout',()=>this.mobile[prop]=false);
+        if (this.uiObjects) this.uiObjects.push(c);
         return c;
       };
 
