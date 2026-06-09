@@ -1,0 +1,17 @@
+{
+  "pack": "the_report_station_new_assets_pack",
+  "built_from": "index(193).html",
+  "files": {
+    "index.html": "Updated station scene for new 96x128 Malcolm sheet",
+    "assets/interiors/police_station/police_station_floor1_base.png": "Normalized 1600x1000 base map, bright outside removed",
+    "assets/interiors/police_station/police_station_floor1_props.png": "Blank transparent overlay placeholder to avoid bad full-map props",
+    "assets/interiors/police_station/police_station_props_sheet.png": "New transparent prop asset sheet for later manual placement",
+    "assets/characters/main_detective/malcolm_station_new_4dir_12x4_96x128.png": "Cleaned Malcolm station sheet, 12x4 frames, 96x128"
+  },
+  "station_runtime": {
+    "station_camera_zoom": 0.68,
+    "malcolm_station_scale": 1.45,
+    "malcolm_collision_body": "42x64",
+    "controls": "existing station locked controls retained"
+  }
+}

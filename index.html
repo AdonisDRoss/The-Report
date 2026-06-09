@@ -170,6 +170,17 @@
     originY: 0.72
   };
 
+  const MALCOLM_STATION_ASSET = {
+    key: 'malcolm_station_new',
+    path: 'assets/characters/main_detective/malcolm_station_new_4dir_12x4_96x128.png',
+    frameWidth: 96,
+    frameHeight: 128,
+    scale: 1.45,
+    originY: 0.90,
+    cols: 12
+  };
+
+
   const EDDIE_CROSS_ASSET = {
     key: 'eddie_cross',
     path: 'assets/characters/npcs/eddie_cross/eddie_cross_movement_8dir_96x96.png',
@@ -220,6 +231,10 @@
     props: {
       key: 'police_station_floor1_props',
       path: 'assets/interiors/police_station/police_station_floor1_props.png'
+    },
+    propSheet: {
+      key: 'police_station_props_sheet',
+      path: 'assets/interiors/police_station/police_station_props_sheet.png'
     }
   };
 
@@ -986,6 +1001,11 @@
     preload() {
       this.load.image(POLICE_STATION_ASSETS.base.key, A(POLICE_STATION_ASSETS.base.path));
       this.load.image(POLICE_STATION_ASSETS.props.key, A(POLICE_STATION_ASSETS.props.path));
+      this.load.image(POLICE_STATION_ASSETS.propSheet.key, A(POLICE_STATION_ASSETS.propSheet.path));
+      this.load.spritesheet(MALCOLM_STATION_ASSET.key, A(MALCOLM_STATION_ASSET.path), {
+        frameWidth: MALCOLM_STATION_ASSET.frameWidth,
+        frameHeight: MALCOLM_STATION_ASSET.frameHeight
+      });
       this.load.spritesheet(PLAYER_ASSET.key, A(PLAYER_ASSET.path), {
         frameWidth: PLAYER_ASSET.frameWidth,
         frameHeight: PLAYER_ASSET.frameHeight
@@ -1006,7 +1026,7 @@
       // Station control lock: fixed UI camera + manual screen-coordinate mobile buttons.
       this.stationW = 1600;
       this.stationH = 1000;
-      this.stationPlayerScale = 1.08; // chair-reference scale lock: larger station Malcolm
+      this.stationPlayerScale = MALCOLM_STATION_ASSET.scale; // new 96x128 station Malcolm sheet scale
       this.physics.world.setBounds(0, 0, this.stationW, this.stationH);
       this.cameras.main.setBounds(0, 0, this.stationW, this.stationH);
       this.cameras.main.setBackgroundColor('#05070b');
@@ -1029,7 +1049,7 @@
         .setOrigin(0, 0)
         .setDisplaySize(this.stationW, this.stationH)
         .setDepth(8)
-        .setVisible(false); // prop overlay disabled until we rebuild it cleanly
+        .setVisible(false); // blank overlay; use separate prop sheet for future placed sprites
 
       // Bottom-middle station door circled in the user's screenshot.
       this.exitZone = {
@@ -1055,21 +1075,27 @@
 
       const startX = 800;
       const startY = 825;
-      this.playerBody = this.add.rectangle(startX, startY, 34, 46, COLORS.blue, 0.0).setDepth(30);
+      this.playerBody = this.add.rectangle(startX, startY, 42, 64, COLORS.blue, 0.0).setDepth(30);
       this.physics.add.existing(this.playerBody);
       this.playerBody.body.setCollideWorldBounds(true);
       this.physics.add.collider(this.playerBody, this.walls);
 
       this.playerFacing = 'S';
       this.playerSprite = null;
-      if (this.textures.exists(PLAYER_ASSET.key)) {
+      if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
         this.createPlayerAnims();
-        this.playerSprite = this.add.sprite(startX, startY, PLAYER_ASSET.key, this.frameForFacing())
-          .setOrigin(0.5, PLAYER_ASSET.originY)
+        this.playerSprite = this.add.sprite(startX, startY, MALCOLM_STATION_ASSET.key, this.frameForFacing())
+          .setOrigin(0.5, MALCOLM_STATION_ASSET.originY)
           .setScale(this.stationPlayerScale)
           .setDepth(31);
+      } else if (this.textures.exists(PLAYER_ASSET.key)) {
+        this.createPlayerAnims();
+        this.playerSprite = this.add.sprite(startX, startY, PLAYER_ASSET.key, 0)
+          .setOrigin(0.5, PLAYER_ASSET.originY)
+          .setScale(1.45)
+          .setDepth(31);
       } else {
-        this.playerFallback = this.add.rectangle(startX, startY, 22, 28, COLORS.blue, 1).setDepth(31);
+        this.playerFallback = this.add.rectangle(startX, startY, 42, 64, COLORS.blue, 1).setDepth(31);
       }
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
@@ -1258,30 +1284,52 @@
     }
 
     createPlayerAnims() {
-      if (this.anims.exists('station_detective_walk_south')) return;
-      const rows = [
-        ['south', 0], ['southwest', 1], ['west', 2], ['northwest', 3],
-        ['north', 4], ['northeast', 5], ['east', 6], ['southeast', 7]
-      ];
-      for (const [name, row] of rows) {
-        this.anims.create({
-          key: `station_detective_walk_${name}`,
-          frames: this.anims.generateFrameNumbers(PLAYER_ASSET.key, { start: row * 6, end: row * 6 + 5 }),
-          frameRate: 8,
-          repeat: -1
-        });
+      if (this.anims.exists('station_malcolm_walk_south')) return;
+
+      if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
+        const rows = [
+          ['south', 0],
+          ['north', 1],
+          ['east', 2],
+          ['west', 3]
+        ];
+
+        for (const [name, row] of rows) {
+          this.anims.create({
+            key: `station_malcolm_walk_${name}`,
+            frames: this.anims.generateFrameNumbers(MALCOLM_STATION_ASSET.key, {
+              start: row * MALCOLM_STATION_ASSET.cols,
+              end: row * MALCOLM_STATION_ASSET.cols + MALCOLM_STATION_ASSET.cols - 1
+            }),
+            frameRate: 10,
+            repeat: -1
+          });
+        }
       }
     }
 
+
     frameForFacing() {
+      if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
+        const rowByFacing = { S: 0, SW: 3, W: 3, NW: 3, N: 1, NE: 2, E: 2, SE: 2 };
+        return (rowByFacing[this.playerFacing] ?? 0) * MALCOLM_STATION_ASSET.cols;
+      }
+
       const rowByFacing = { S: 0, SW: 1, W: 2, NW: 3, N: 4, NE: 5, E: 6, SE: 7 };
       return (rowByFacing[this.playerFacing] || 0) * 6;
     }
 
+
     animForFacing() {
+      if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
+        const nameByFacing = { S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' };
+        return `station_malcolm_walk_${nameByFacing[this.playerFacing] || 'south'}`;
+      }
+
       const nameByFacing = { S:'south', SW:'southwest', W:'west', NW:'northwest', N:'north', NE:'northeast', E:'east', SE:'southeast' };
       return `station_detective_walk_${nameByFacing[this.playerFacing] || 'south'}`;
     }
+
 
     updatePlayerVisual(moving) {
       const x = this.playerBody.x;
