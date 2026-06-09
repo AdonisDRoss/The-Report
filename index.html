@@ -177,7 +177,7 @@
     path: 'assets/characters/main_detective/malcolm_station_new_4dir_12x4_96x128.png',
     frameWidth: 96,
     frameHeight: 128,
-    scale: 1.45,
+    scale: 1.0,
     originY: 0.90,
     cols: 12
   };
@@ -1158,7 +1158,7 @@
       this.promptText = makeText(this, VIEW_W / 2, VIEW_H - 47, this.floorData.title, 15, '#f4d28a', true)
         .setOrigin(0.5)
         .setDepth(2001);
-      this.infoText = makeText(this, 18, 18, `${this.floorData.title} | A/E interact | Elevator opens floor prompt`, 14, '#86e7ff', true)
+      this.infoText = makeText(this, 18, 18, `${this.floorData.title} | A/E interact | Stairs change floors | Front door exits`, 14, '#86e7ff', true)
         .setDepth(2001);
       this.registerStationUi(this.promptBg);
       this.registerStationUi(this.promptText);
@@ -1207,9 +1207,9 @@
     makeHotspotsForFloor(floorId) {
       if (floorId === 'floor1') {
         return [
-          { id:'station_exit_main', x:720, y:895, w:175, h:95, label:'Exit to Central Street' },
+          { id:'station_exit_main', x:610, y:760, w:380, h:235, label:'Exit to Central Street' },
           { id:'station_elevator', x:700, y:700, w:210, h:145, label:'Elevator' },
-          { id:'stairs_to_floor2', x:690, y:55, w:180, h:275, label:'Stairs to Floor 2' },
+          { id:'stairs_to_floor2', x:610, y:70, w:360, h:380, label:'Stairs to Floor 2' },
           { id:'station_phone', x:410, y:500, w:120, h:120, label:'Use Station Phone' },
           { id:'report_room', x:85, y:80, w:240, h:230, label:'File Report' },
           { id:'evidence_intake', x:360, y:80, w:280, h:230, label:'Submit Evidence' },
@@ -1481,10 +1481,26 @@
 
     getCurrentHotspot() {
       const b = this.playerBody.getBounds();
+      const p = { x: this.playerBody.x, y: this.playerBody.y };
+
+      let nearest = null;
+      let nearestDist = Infinity;
+
       for (const h of this.hotspots) {
-        if (Phaser.Geom.Rectangle.Overlaps(new Phaser.Geom.Rectangle(h.x,h.y,h.w,h.h), b)) return h;
+        const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
+        if (Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return h;
+
+        const cx = h.x + h.w / 2;
+        const cy = h.y + h.h / 2;
+        const d = Phaser.Math.Distance.Between(p.x, p.y, cx, cy);
+        const reach = h.reach || 120;
+        if (d < reach && d < nearestDist) {
+          nearest = h;
+          nearestDist = d;
+        }
       }
-      return null;
+
+      return nearest;
     }
 
     handleInteract() {
