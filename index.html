@@ -1276,7 +1276,7 @@
       if (floorId === 'floor1') {
         return [
           { id:'station_exit_main', x:610, y:845, w:380, h:150, label:'Exit to Central Street' },
-          { id:'station_elevator', x:700, y:700, w:210, h:145, label:'Elevator' },
+          { id:'station_elevator_floor1_disabled', x:700, y:700, w:210, h:145, label:'Elevator unavailable — use stairs' },
           { id:'stairs_to_floor2', x:650, y:65, w:300, h:155, label:'Stairs to Floor 2' },
           { id:'station_phone', x:410, y:500, w:120, h:120, label:'Use Station Phone' },
           { id:'report_room', x:85, y:80, w:240, h:230, label:'File Report' },
@@ -1287,7 +1287,7 @@
 
       if (floorId === 'floor2') {
         return [
-          { id:'station_elevator', x:665, y:55, w:270, h:205, label:'Elevator' },
+          { id:'station_elevator', x:700, y:20, w:460, h:360, label:'Elevator' },
           { id:'stairs_to_floor1', x:640, y:760, w:320, h:220, label:'Stairs Down to Floor 1' },
           { id:'chief_office', x:1000, y:120, w:360, h:265, label:'Chief / Command Offices' },
           { id:'detective_bullpen', x:480, y:385, w:520, h:330, label:'Detective Offices' }
@@ -1296,7 +1296,7 @@
 
       if (floorId === 'b1') {
         return [
-          { id:'station_elevator', x:665, y:45, w:270, h:210, label:'Elevator' },
+          { id:'station_elevator', x:640, y:20, w:360, h:300, label:'Elevator' },
           { id:'records_evidence', x:60, y:150, w:430, h:690, label:'Records / Evidence Room' },
           { id:'task_force_room', x:520, y:170, w:520, h:670, label:"Malcolm's Task Force Room — Empty" },
           { id:'utility_room', x:1080, y:150, w:430, h:690, label:'Storage / Utility Room' }
@@ -1305,7 +1305,7 @@
 
       if (floorId === 'motorPool') {
         return [
-          { id:'station_elevator', x:690, y:760, w:230, h:185, label:'Elevator' },
+          { id:'station_elevator', x:640, y:700, w:360, h:280, label:'Elevator' },
           { id:'repair_bays', x:460, y:95, w:660, h:360, label:'Repair Bays' },
           { id:'motor_pool_office', x:55, y:575, w:450, h:310, label:'Motor Pool Office' }
         ];
@@ -1622,10 +1622,32 @@
       }
     }
 
+    isNearStationElevator() {
+      if (this.floorId === 'floor1') return false;
+
+      const elevator = (this.hotspots || []).find(h => h.id === 'station_elevator');
+      if (!elevator || !this.playerBody) return false;
+
+      const p = { x: this.playerBody.x, y: this.playerBody.y };
+      const r = new Phaser.Geom.Rectangle(elevator.x, elevator.y, elevator.w, elevator.h);
+      if (Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return true;
+      if (Phaser.Geom.Rectangle.Overlaps(r, this.playerBody.getBounds())) return true;
+
+      const cx = elevator.x + elevator.w / 2;
+      const cy = elevator.y + elevator.h / 2;
+      return Phaser.Math.Distance.Between(p.x, p.y, cx, cy) < 230;
+    }
+
     handleInteract() {
       if (this.floorMenuOpen) return;
 
       const h = this.currentHotspot || this.getCurrentHotspot();
+
+      if ((!h || h.id !== 'station_elevator') && this.isNearStationElevator()) {
+        this.showFloorPrompt();
+        return;
+      }
+
       if (!h) return;
 
       if (h.id === 'station_exit_main') {
@@ -1638,7 +1660,16 @@
       }
 
       if (h.id === 'station_elevator') {
+        if (this.floorId === 'floor1') {
+          this.promptText.setText('Use the stairs from Floor 1.');
+          return;
+        }
         this.showFloorPrompt();
+        return;
+      }
+
+      if (h.id === 'station_elevator_floor1_disabled') {
+        this.promptText.setText('Use the stairs from Floor 1.');
         return;
       }
 
@@ -1680,15 +1711,15 @@
       if (this.floorMenu) this.floorMenu.destroy(true);
 
       const c = this.add.container(VIEW_W / 2, VIEW_H / 2).setScrollFactor(0).setDepth(3000);
-      const bg = this.add.rectangle(0, 0, 520, 300, 0x02060a, 0.92).setStrokeStyle(2, COLORS.cyan, 0.9);
-      const title = this.add.text(0, -120, 'ELEVATOR', {
+      const bg = this.add.rectangle(0, 0, 560, 340, 0x02060a, 0.92).setStrokeStyle(2, COLORS.cyan, 0.9);
+      const title = this.add.text(0, -145, 'ELEVATOR', {
         fontFamily: 'Courier New',
         fontSize: '24px',
         color: '#f4d28a',
         stroke: '#000',
         strokeThickness: 4
       }).setOrigin(0.5);
-      const help = this.add.text(0, 118, 'Keyboard: 2 / B / 3   |   Tap a floor   |   ESC closes', {
+      const help = this.add.text(0, 145, 'Keyboard: 1 / 2 / B / 3   |   Tap a floor   |   ESC closes', {
         fontFamily: 'Courier New',
         fontSize: '13px',
         color: '#86e7ff',
@@ -1712,9 +1743,10 @@
         c.add([box, tx]);
       };
 
-      addOption(-55, '2 — OFFICES / CHIEF OFFICE', 'floor2');
-      addOption(5, 'B1 — RECORDS / EVIDENCE', 'b1');
-      addOption(65, 'B3 — MOTOR POOL', 'motorPool');
+      addOption(-84, '1 — MAIN STATION', 'floor1');
+      addOption(-28, '2 — OFFICES / CHIEF OFFICE', 'floor2');
+      addOption(28, 'B1 — RECORDS / EVIDENCE', 'b1');
+      addOption(84, 'B3 — MOTOR POOL', 'motorPool');
 
       this.floorMenu = c;
       this.registerStationUi(c);
@@ -1730,12 +1762,17 @@
         return;
       }
 
+      if (key === '1') {
+        this.changeStationFloor('floor1', 'elevator', 'Elevator: Floor 1 main station.');
+        return;
+      }
+
       if (key === '2') {
         this.changeStationFloor('floor2', 'elevator', 'Elevator: Floor 2 offices.');
         return;
       }
 
-      if (key === '1' || key === 'b') {
+      if (key === 'b') {
         this.changeStationFloor('b1', 'elevator', 'Elevator: B1 records / evidence.');
         return;
       }
