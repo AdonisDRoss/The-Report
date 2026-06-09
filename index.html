@@ -251,7 +251,7 @@
       spawns: {
         default: { x: 800, y: 825, facing: 'N' },
         elevator: { x: 800, y: 725, facing: 'N' },
-        stairsFromFloor2: { x: 760, y: 255, facing: 'S' }
+        stairsFromFloor2: { x: 760, y: 170, facing: 'S' }
       }
     },
     floor2: {
@@ -264,7 +264,7 @@
       spawns: {
         default: { x: 800, y: 250, facing: 'S' },
         elevator: { x: 800, y: 250, facing: 'S' },
-        stairsFromFloor1: { x: 760, y: 700, facing: 'N' }
+        stairsFromFloor1: { x: 760, y: 820, facing: 'N' }
       }
     },
     b1: {
@@ -1000,7 +1000,7 @@
     }
 
     checkAutoTransitions() {
-      if (this.transitionLocked || this.floorMenuOpen || this.transitionCooldown > 0) return;
+      if (this.transitionLocked || this.floorMenuOpen) return;
 
       const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
       if (!h) return;
@@ -1143,7 +1143,6 @@
       this.uiObjects = [];
       this.floorMenuOpen = false;
       this.transitionLocked = false;
-      this.transitionCooldown = this.entryData.fromAutoTransition ? 900 : 250;
 
       this.add.image(0, 0, this.floorData.baseKey)
         .setOrigin(0, 0)
@@ -1213,7 +1212,10 @@
 
       this.createMobileControls();
       this.setupStationUiCamera();
-      this.time.delayedCall(80, () => this.refreshStationUiObjects());
+      // Keep title theme alive after scene transition. On iOS this also retries after the user tap.
+      this.time.delayedCall(150, () => startTheme(this));
+      this.input.once('pointerdown', () => startTheme(this));
+
 
       if (this.entryData.message) this.promptText.setText(this.entryData.message);
     }
@@ -1244,17 +1246,6 @@
       const uiSet = new Set(uiObjects);
       const worldObjects = this.children.list.filter(obj => !uiSet.has(obj));
       this.uiCamera.ignore(worldObjects);
-    }
-
-    refreshStationUiObjects() {
-      const uiObjects = (this.uiObjects || []).filter(Boolean);
-      for (const obj of uiObjects) {
-        if (obj.setVisible) obj.setVisible(true);
-        if (obj.setScrollFactor) obj.setScrollFactor(0);
-        if (obj.setDepth && obj.depth < 2000) obj.setDepth(2600);
-      }
-
-      if (this.cameras?.main) this.cameras.main.ignore(uiObjects);
     }
 
     makeHotspotsForFloor(floorId) {
@@ -1513,9 +1504,7 @@
       return { vx: vx / len, vy: vy / len };
     }
 
-    update(time, delta) {
-      if (this.transitionCooldown > 0) this.transitionCooldown -= delta || 16;
-
+    update() {
       if (this.floorMenuOpen) {
         if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
         this.updatePlayerVisual(false);
@@ -1562,6 +1551,49 @@
       }
 
       return nearest;
+    }
+
+    getStrictHotspot(ids = []) {
+      const b = this.playerBody.getBounds();
+      const p = { x: this.playerBody.x, y: this.playerBody.y };
+
+      for (const h of this.hotspots) {
+        if (ids.length && !ids.includes(h.id)) continue;
+
+        const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
+        if (Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return h;
+      }
+
+      return null;
+    }
+
+    checkAutoTransitions() {
+      if (this.transitionLocked || this.floorMenuOpen) return;
+
+      const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
+      if (!h) return;
+
+      this.transitionLocked = true;
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+
+      if (h.id === 'station_exit_main') {
+        this.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: { x: 552, y: 690 },
+          message: 'Exited Raven Hook Police Station.'
+        });
+        return;
+      }
+
+      if (h.id === 'stairs_to_floor2') {
+        this.changeStationFloor('floor2', 'stairsFromFloor1', 'Came up the stairs to Floor 2.');
+        return;
+      }
+
+      if (h.id === 'stairs_to_floor1') {
+        this.changeStationFloor('floor1', 'stairsFromFloor2', 'Came down the stairs to Floor 1.');
+        return;
+      }
     }
 
     handleInteract() {
@@ -1703,8 +1735,7 @@
       this.scene.start('PoliceStationScene', {
         floor: floorId,
         spawn,
-        message,
-        fromAutoTransition: spawnKey && spawnKey.startsWith('stairs')
+        message
       });
     }
   }
