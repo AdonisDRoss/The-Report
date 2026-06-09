@@ -249,9 +249,9 @@
       propsKey: POLICE_STATION_ASSETS.props.key,
       propsPath: POLICE_STATION_ASSETS.props.path,
       spawns: {
-        default: { x: 800, y: 825, facing: 'N' },
-        elevator: { x: 800, y: 725, facing: 'N' },
-        stairsFromFloor2: { x: 760, y: 170, facing: 'S' }
+        default: { x: 800, y: 735, facing: 'N' },
+        elevator: { x: 800, y: 700, facing: 'N' },
+        stairsFromFloor2: { x: 760, y: 255, facing: 'S' }
       }
     },
     floor2: {
@@ -264,7 +264,7 @@
       spawns: {
         default: { x: 800, y: 250, facing: 'S' },
         elevator: { x: 800, y: 250, facing: 'S' },
-        stairsFromFloor1: { x: 760, y: 820, facing: 'N' }
+        stairsFromFloor1: { x: 760, y: 700, facing: 'N' }
       }
     },
     b1: {
@@ -1000,7 +1000,7 @@
     }
 
     checkAutoTransitions() {
-      if (this.transitionLocked || this.floorMenuOpen) return;
+      if (this.transitionLocked || this.floorMenuOpen || this.transitionCooldown > 0) return;
 
       const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
       if (!h) return;
@@ -1009,7 +1009,11 @@
       if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
 
       if (h.id === 'station_exit_main') {
-        this.promptText.setText('Walk through the front door to exit.');
+        this.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: { x: 552, y: 690 },
+          message: 'Exited Raven Hook Police Station.'
+        });
         return;
       }
 
@@ -1143,6 +1147,7 @@
       this.uiObjects = [];
       this.floorMenuOpen = false;
       this.transitionLocked = false;
+      this.transitionCooldown = this.entryData.fromAutoTransition ? 900 : 350;
 
       this.add.image(0, 0, this.floorData.baseKey)
         .setOrigin(0, 0)
@@ -1504,7 +1509,9 @@
       return { vx: vx / len, vy: vy / len };
     }
 
-    update() {
+    update(time, delta) {
+      if (this.transitionCooldown > 0) this.transitionCooldown -= delta || 16;
+
       if (this.floorMenuOpen) {
         if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
         this.updatePlayerVisual(false);
@@ -1735,7 +1742,8 @@
       this.scene.start('PoliceStationScene', {
         floor: floorId,
         spawn,
-        message
+        message,
+        fromAutoTransition: spawnKey && spawnKey.startsWith('stairs')
       });
     }
   }
