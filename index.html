@@ -28,6 +28,7 @@
 
   // BUILD_NOTE_LOCKED_CONTROLS_ROOFS_ZOOM: roof depth + enterable buildings + UI camera locked controls + close zoom.
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
+  // STATION_WEST_FLIP_RIGHT_003: east-facing station walk now reuses west row with flipX to avoid backward right-walk.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -1313,7 +1314,7 @@
 
     frameForFacing() {
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
-        const rowByFacing = { S: 0, SW: 2, W: 2, NW: 2, N: 1, NE: 3, E: 3, SE: 3 };
+        const rowByFacing = { S: 0, SW: 2, W: 2, NW: 2, N: 1, NE: 2, E: 2, SE: 2 };
         return (rowByFacing[this.playerFacing] ?? 0) * MALCOLM_STATION_ASSET.cols;
       }
 
@@ -1324,7 +1325,7 @@
 
     animForFacing() {
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
-        const nameByFacing = { S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' };
+        const nameByFacing = { S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'west', E:'west', SE:'west' };
         return `station_malcolm_walk_${nameByFacing[this.playerFacing] || 'south'}`;
       }
 
@@ -1338,6 +1339,8 @@
       const y = this.playerBody.y;
       if (this.playerSprite) {
         this.playerSprite.setPosition(x, y);
+        const useFlippedWest = this.textures.exists(MALCOLM_STATION_ASSET.key) && ['E','NE','SE'].includes(this.playerFacing);
+        this.playerSprite.setFlipX(useFlippedWest);
         if (moving) {
           const key = this.animForFacing();
           if (this.playerSprite.anims.currentAnim?.key !== key || !this.playerSprite.anims.isPlaying) {
