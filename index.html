@@ -385,7 +385,7 @@
       this.cameras.main.roundPixels = true;
       this.cameras.main.startFollow(this.player, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(0.85); // station interior zoom-out: shows more room on mobile
+      this.cameras.main.setZoom(CAMERA.playerZoom);
       this.lazyLoadGameAssets();
     }
 
@@ -1090,6 +1090,27 @@
       this.input.keyboard.on('keydown-A', () => this.handleInteract());
       this.createMobileControls();
       this.setupStationUiCamera();
+    }
+
+
+    setupStationUiCamera() {
+      if (this.uiCamera) return;
+
+      const uiObjects = (this.uiObjects || []).filter(Boolean);
+
+      this.uiCamera = this.cameras.add(0, 0, VIEW_W, VIEW_H)
+        .setScroll(0, 0)
+        .setZoom(1)
+        .setName('StationUICamera');
+
+      this.uiCamera.roundPixels = true;
+
+      // Keep the mobile controls/HUD fixed on-screen while the station camera follows Malcolm.
+      this.cameras.main.ignore(uiObjects);
+
+      const uiSet = new Set(uiObjects);
+      const worldObjects = this.children.list.filter(obj => !uiSet.has(obj));
+      this.uiCamera.ignore(worldObjects);
     }
 
     addCollisionRects() {
