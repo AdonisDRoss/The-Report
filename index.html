@@ -1006,6 +1006,7 @@
       // Station control lock: fixed UI camera + manual screen-coordinate mobile buttons.
       this.stationW = 1600;
       this.stationH = 1000;
+      this.stationPlayerScale = 0.78; // chair-reference scale lock
       this.physics.world.setBounds(0, 0, this.stationW, this.stationH);
       this.cameras.main.setBounds(0, 0, this.stationW, this.stationH);
       this.cameras.main.setBackgroundColor('#05070b');
@@ -1053,7 +1054,7 @@
 
       const startX = 800;
       const startY = 825;
-      this.playerBody = this.add.rectangle(startX, startY, 22, 28, COLORS.blue, 0.0).setDepth(30);
+      this.playerBody = this.add.rectangle(startX, startY, 28, 38, COLORS.blue, 0.0).setDepth(30);
       this.physics.add.existing(this.playerBody);
       this.playerBody.body.setCollideWorldBounds(true);
       this.physics.add.collider(this.playerBody, this.walls);
@@ -1064,7 +1065,7 @@
         this.createPlayerAnims();
         this.playerSprite = this.add.sprite(startX, startY, PLAYER_ASSET.key, this.frameForFacing())
           .setOrigin(0.5, PLAYER_ASSET.originY)
-          .setScale(PLAYER_ASSET.scale)
+          .setScale(this.stationPlayerScale)
           .setDepth(31);
       } else {
         this.playerFallback = this.add.rectangle(startX, startY, 22, 28, COLORS.blue, 1).setDepth(31);
@@ -1072,7 +1073,7 @@
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(0.68); // locked station interior zoom-out
+      this.cameras.main.setZoom(0.68); // locked station room zoom
 
       this.promptBg = this.add.rectangle(VIEW_W / 2, VIEW_H - 38, 760, 42, 0x02060a, 0.72)
         .setScrollFactor(0)
@@ -1156,7 +1157,7 @@
         // Visuals are fixed. Real input is handled manually by screen coordinates below,
         // which is more reliable on iPhone/Safari with multiple cameras.
         if (this.uiObjects) this.uiObjects.push(c, bg, tx);
-        this.controlZones.push({ x, y, key, radius: radius + 16 });
+        this.controlZones.push({ x, y, key, radius: radius + 26 });
         return c;
       };
 
@@ -1291,7 +1292,7 @@
     update() {
       const d = this.inputDir();
       const moving = Math.abs(d.vx) > 0.01 || Math.abs(d.vy) > 0.01;
-      this.playerBody.body.setVelocity(d.vx * 220, d.vy * 220);
+      this.playerBody.body.setVelocity(d.vx * 240, d.vy * 240);
 
       if (moving) {
         const angle = Phaser.Math.RadToDeg(Math.atan2(d.vy, d.vx));
