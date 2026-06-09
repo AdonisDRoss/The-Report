@@ -1719,7 +1719,7 @@
         stroke: '#000',
         strokeThickness: 4
       }).setOrigin(0.5);
-      const help = this.add.text(0, 145, 'Keyboard: 1 / 2 / B / 3   |   Tap a floor   |   ESC closes', {
+      const help = this.add.text(0, 145, 'Mobile: Y=1 A=2 B=B1 X=B3   |   SEL/STA closes', {
         fontFamily: 'Courier New',
         fontSize: '13px',
         color: '#86e7ff',
@@ -1757,6 +1757,11 @@
       if (!this.floorMenuOpen) return;
       const key = String(event.key || '').toLowerCase();
 
+      if (['a','x','y'].includes(key)) {
+        this.handleFloorPromptButton(key);
+        return;
+      }
+
       if (key === 'escape') {
         this.closeFloorPrompt();
         return;
@@ -1781,6 +1786,39 @@
         this.changeStationFloor('motorPool', 'elevator', 'Elevator: B3 motor pool.');
         return;
       }
+    }
+
+    handleFloorPromptButton(buttonKey) {
+      if (!this.floorMenuOpen) return false;
+
+      const key = String(buttonKey || '').toLowerCase();
+
+      if (key === 'y' || key === '1') {
+        this.changeStationFloor('floor1', 'elevator', 'Elevator: Floor 1 main station.');
+        return true;
+      }
+
+      if (key === 'a' || key === '2') {
+        this.changeStationFloor('floor2', 'elevator', 'Elevator: Floor 2 offices.');
+        return true;
+      }
+
+      if (key === 'b') {
+        this.changeStationFloor('b1', 'elevator', 'Elevator: B1 records / evidence.');
+        return true;
+      }
+
+      if (key === 'x' || key === '3') {
+        this.changeStationFloor('motorPool', 'elevator', 'Elevator: B3 motor pool.');
+        return true;
+      }
+
+      if (key === 'sel' || key === 'sta' || key === 'escape') {
+        this.closeFloorPrompt();
+        return true;
+      }
+
+      return false;
     }
 
     closeFloorPrompt() {
@@ -2019,6 +2057,10 @@
     fireAction(key) {
       const target = this.getTargetScene();
       if (!target) return;
+
+      if (target.scene?.key === 'PoliceStationScene' && target.floorMenuOpen && typeof target.handleFloorPromptButton === 'function') {
+        if (target.handleFloorPromptButton(key)) return;
+      }
 
       if (key === 'a') {
         if (typeof target.handleInteract === 'function') {
