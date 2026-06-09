@@ -1180,6 +1180,7 @@
         .setVisible(true);
 
       this.hotspots = this.makeHotspotsForFloor(this.floorId);
+      this.drawElevatorCallButton();
 
       this.walls = this.physics.add.staticGroup();
       this.addCollisionRects();
@@ -1288,6 +1289,7 @@
       if (floorId === 'floor2') {
         return [
           { id:'station_elevator', x:700, y:20, w:460, h:360, label:'Elevator' },
+          { id:'elevator_call_button', x:760, y:95, w:120, h:150, label:'Elevator Call Button' },
           { id:'stairs_to_floor1', x:640, y:760, w:320, h:220, label:'Stairs Down to Floor 1' },
           { id:'chief_office', x:1000, y:120, w:360, h:265, label:'Chief / Command Offices' },
           { id:'detective_bullpen', x:480, y:385, w:520, h:330, label:'Detective Offices' }
@@ -1297,6 +1299,7 @@
       if (floorId === 'b1') {
         return [
           { id:'station_elevator', x:640, y:20, w:360, h:300, label:'Elevator' },
+          { id:'elevator_call_button', x:870, y:90, w:120, h:150, label:'Elevator Call Button' },
           { id:'records_evidence', x:60, y:150, w:430, h:690, label:'Records / Evidence Room' },
           { id:'task_force_room', x:520, y:170, w:520, h:670, label:"Malcolm's Task Force Room — Empty" },
           { id:'utility_room', x:1080, y:150, w:430, h:690, label:'Storage / Utility Room' }
@@ -1306,6 +1309,7 @@
       if (floorId === 'motorPool') {
         return [
           { id:'station_elevator', x:640, y:700, w:360, h:280, label:'Elevator' },
+          { id:'elevator_call_button', x:880, y:760, w:120, h:150, label:'Elevator Call Button' },
           { id:'repair_bays', x:460, y:95, w:660, h:360, label:'Repair Bays' },
           { id:'motor_pool_office', x:55, y:575, w:450, h:310, label:'Motor Pool Office' }
         ];
@@ -1552,12 +1556,22 @@
 
       const spot = this.getCurrentHotspot();
       this.currentHotspot = spot;
-      this.promptText.setText(spot ? `A/E: ${spot.label}` : `${this.floorData.title} | A/E interact`);
+      this.promptText.setText(spot ? `A: ${spot.label}` : `${this.floorData.title} | A interact`);
     }
 
     getCurrentHotspot() {
       const b = this.playerBody.getBounds();
       const p = { x: this.playerBody.x, y: this.playerBody.y };
+
+      const button = (this.hotspots || []).find(h => h.id === 'elevator_call_button');
+      if (button && this.floorId !== 'floor1') {
+        const bx = button.x + button.w / 2;
+        const by = button.y + button.h / 2;
+        const br = new Phaser.Geom.Rectangle(button.x, button.y, button.w, button.h);
+        if (Phaser.Geom.Rectangle.Overlaps(br, b) || Phaser.Geom.Rectangle.Contains(br, p.x, p.y) || Phaser.Math.Distance.Between(p.x, p.y, bx, by) < 170) {
+          return button;
+        }
+      }
 
       let nearest = null;
       let nearestDist = Infinity;
@@ -1625,10 +1639,22 @@
     isNearStationElevator() {
       if (this.floorId === 'floor1') return false;
 
+      const p = { x: this.playerBody.x, y: this.playerBody.y };
+
+      const button = (this.hotspots || []).find(h => h.id === 'elevator_call_button');
+      if (button) {
+        const bx = button.x + button.w / 2;
+        const by = button.y + button.h / 2;
+        const br = new Phaser.Geom.Rectangle(button.x, button.y, button.w, button.h);
+
+        if (Phaser.Geom.Rectangle.Contains(br, p.x, p.y)) return true;
+        if (Phaser.Geom.Rectangle.Overlaps(br, this.playerBody.getBounds())) return true;
+        if (Phaser.Math.Distance.Between(p.x, p.y, bx, by) < 170) return true;
+      }
+
       const elevator = (this.hotspots || []).find(h => h.id === 'station_elevator');
       if (!elevator || !this.playerBody) return false;
 
-      const p = { x: this.playerBody.x, y: this.playerBody.y };
       const r = new Phaser.Geom.Rectangle(elevator.x, elevator.y, elevator.w, elevator.h);
       if (Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return true;
       if (Phaser.Geom.Rectangle.Overlaps(r, this.playerBody.getBounds())) return true;
@@ -1659,7 +1685,7 @@
         return;
       }
 
-      if (h.id === 'station_elevator') {
+      if (h.id === 'station_elevator' || h.id === 'elevator_call_button') {
         if (this.floorId === 'floor1') {
           this.promptText.setText('Use the stairs from Floor 1.');
           return;
@@ -1724,78 +1750,23 @@
       const currentIndex = this.floorMenuOptions.findIndex(o => o.floorId === this.floorId);
       this.floorMenuIndex = currentIndex >= 0 ? currentIndex : 0;
 
-      if (this.floorMenu) this.floorMenu.destroy(true);
-
-      const c = this.add.container(VIEW_W / 2, VIEW_H / 2).setScrollFactor(0).setDepth(5200);
-      const bg = this.add.rectangle(0, 0, 560, 330, 0x02060a, 0.94).setStrokeStyle(3, COLORS.cyan, 0.95);
-      const title = this.add.text(0, -138, 'ELEVATOR — SELECT FLOOR', {
-        fontFamily: 'Courier New',
-        fontSize: '22px',
-        color: '#f4d28a',
-        stroke: '#000',
-        strokeThickness: 4
-      }).setOrigin(0.5);
-
-      const help = this.add.text(0, 135, 'D-PAD ▲▼ highlight  |  A confirm  |  B cancel', {
-        fontFamily: 'Courier New',
-        fontSize: '13px',
-        color: '#86e7ff',
-        stroke: '#000',
-        strokeThickness: 3
-      }).setOrigin(0.5);
-
-      c.add([bg, title, help]);
-
-      this.floorMenuRows = [];
-      const yStart = -78;
-      const gap = 50;
-
-      for (let i = 0; i < this.floorMenuOptions.length; i++) {
-        const y = yStart + i * gap;
-        const rowBg = this.add.rectangle(0, y, 440, 42, 0x111827, 0.92).setStrokeStyle(2, 0x4b5563, 0.8);
-        const cursor = this.add.text(-205, y - 10, '▶', {
-          fontFamily: 'Courier New',
-          fontSize: '18px',
-          color: '#ffdf59',
-          stroke: '#000',
-          strokeThickness: 3
-        }).setOrigin(0.5);
-        const tx = this.add.text(0, y - 10, this.floorMenuOptions[i].label, {
-          fontFamily: 'Courier New',
-          fontSize: '16px',
-          color: '#ffffff',
-          stroke: '#000',
-          strokeThickness: 3
-        }).setOrigin(0.5);
-
-        rowBg.setInteractive({ useHandCursor: true });
-        rowBg.on('pointerdown', () => {
-          this.floorMenuIndex = i;
-          this.updateFloorMenuSelection();
-          this.confirmFloorMenuSelection();
-        });
-
-        c.add([rowBg, cursor, tx]);
-        this.floorMenuRows.push({ rowBg, cursor, tx });
+      if (this.floorMenu) {
+        this.floorMenu.destroy(true);
+        this.floorMenu = null;
       }
 
-      this.floorMenu = c;
-      this.registerStationUi(c);
-      this.cameras.main.ignore(c);
-      this.updateFloorMenuSelection();
+      const controls = this.scene.get('MobileControlsScene');
+      if (controls && typeof controls.openElevatorMenu === 'function') {
+        controls.openElevatorMenu(this);
+      } else {
+        this.promptText.setText('Elevator menu ready: D-pad up/down, A confirm, B cancel.');
+      }
     }
 
     updateFloorMenuSelection() {
-      if (!this.floorMenuRows) return;
-
-      for (let i = 0; i < this.floorMenuRows.length; i++) {
-        const selected = i === this.floorMenuIndex;
-        const row = this.floorMenuRows[i];
-
-        row.cursor.setVisible(selected);
-        row.rowBg.setFillStyle(selected ? 0x263241 : 0x111827, selected ? 0.98 : 0.92);
-        row.rowBg.setStrokeStyle(2, selected ? COLORS.amber : 0x4b5563, selected ? 1 : 0.8);
-        row.tx.setColor(selected ? '#ffdf59' : '#ffffff');
+      const controls = this.scene.get('MobileControlsScene');
+      if (controls && typeof controls.refreshElevatorMenu === 'function') {
+        controls.refreshElevatorMenu();
       }
     }
 
@@ -1878,6 +1849,12 @@
         this.floorMenu.destroy(true);
         this.floorMenu = null;
       }
+
+      const controls = this.scene.get('MobileControlsScene');
+      if (controls && typeof controls.closeElevatorMenu === 'function') {
+        controls.closeElevatorMenu();
+      }
+
       this.promptText?.setText(this.floorData.title);
     }
 
@@ -2084,6 +2061,99 @@
       this.input.on('pointerup', (pointer) => this.releasePointer(pointer));
       this.input.on('pointerupoutside', (pointer) => this.releasePointer(pointer));
       this.events.on('shutdown', () => resetMobileInputState());
+    }
+
+    openElevatorMenu(targetScene) {
+      this.elevatorMenuTarget = targetScene;
+      this.renderElevatorMenu();
+    }
+
+    closeElevatorMenu() {
+      if (this.elevatorMenu) {
+        this.elevatorMenu.destroy(true);
+        this.elevatorMenu = null;
+      }
+      this.elevatorMenuTarget = null;
+    }
+
+    refreshElevatorMenu() {
+      if (!this.elevatorMenuTarget?.floorMenuOpen) {
+        this.closeElevatorMenu();
+        return;
+      }
+
+      if (!this.elevatorMenu) {
+        this.renderElevatorMenu();
+        return;
+      }
+
+      const rows = this.elevatorMenuRows || [];
+      const index = this.elevatorMenuTarget.floorMenuIndex || 0;
+
+      for (let i = 0; i < rows.length; i++) {
+        const selected = i === index;
+        rows[i].cursor.setVisible(selected);
+        rows[i].bg.setFillStyle(selected ? 0x263241 : 0x111827, selected ? 0.98 : 0.94);
+        rows[i].bg.setStrokeStyle(2, selected ? COLORS.amber : 0x4b5563, selected ? 1 : 0.8);
+        rows[i].label.setColor(selected ? '#ffdf59' : '#ffffff');
+      }
+    }
+
+    renderElevatorMenu() {
+      this.closeElevatorMenu();
+
+      const target = this.elevatorMenuTarget;
+      if (!target?.floorMenuOpen) return;
+
+      const c = this.add.container(VIEW_W / 2, VIEW_H / 2).setDepth(7000);
+      const bg = this.add.rectangle(0, 0, 560, 330, 0x02060a, 0.96).setStrokeStyle(3, COLORS.cyan, 0.95);
+      const title = this.add.text(0, -138, 'ELEVATOR — SELECT FLOOR', {
+        fontFamily: 'Courier New',
+        fontSize: '22px',
+        color: '#f4d28a',
+        stroke: '#000',
+        strokeThickness: 4
+      }).setOrigin(0.5);
+
+      const help = this.add.text(0, 135, 'D-PAD ▲▼ highlight  |  A confirm  |  B cancel', {
+        fontFamily: 'Courier New',
+        fontSize: '13px',
+        color: '#86e7ff',
+        stroke: '#000',
+        strokeThickness: 3
+      }).setOrigin(0.5);
+
+      c.add([bg, title, help]);
+
+      this.elevatorMenuRows = [];
+      const options = target.floorMenuOptions || [];
+      const yStart = -78;
+
+      for (let i = 0; i < options.length; i++) {
+        const y = yStart + i * 50;
+        const rowBg = this.add.rectangle(0, y, 440, 42, 0x111827, 0.94).setStrokeStyle(2, 0x4b5563, 0.8);
+        const cursor = this.add.text(-205, y - 10, '▶', {
+          fontFamily: 'Courier New',
+          fontSize: '18px',
+          color: '#ffdf59',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+
+        const label = this.add.text(0, y - 10, options[i].label, {
+          fontFamily: 'Courier New',
+          fontSize: '16px',
+          color: '#ffffff',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+
+        c.add([rowBg, cursor, label]);
+        this.elevatorMenuRows.push({ bg: rowBg, cursor, label });
+      }
+
+      this.elevatorMenu = c;
+      this.refreshElevatorMenu();
     }
 
     setControl(key, value) {
