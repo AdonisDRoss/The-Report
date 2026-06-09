@@ -28,12 +28,7 @@
 
   // BUILD_NOTE_LOCKED_CONTROLS_ROOFS_ZOOM: roof depth + enterable buildings + UI camera locked controls + close zoom.
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
-  // STATION_LEFT_FLIP_RIGHT_004: left-facing station walk now uses right/east row with flipX.
-  // STATION_PROPS_RESTORED_PLAYER_115: restored station prop overlay and reduced Malcolm scale to 1.15.
-  // STATION_CLEAN_PROPS_PLAYER_085_007: white removed from prop overlay; Malcolm scale reduced to 0.85; exit enlarged.
-  // STATION_VISIBLE_PROPS_AUTO_EXIT_006: procedural station props visible even if overlay image is blank; bottom door auto-exits.
-  // STATION_PROP_PIECES_PATH_011: loads raw prop pieces sheet from assets/interiors/police_station/props.
-  // FULL_STATION_PIECE_ASSETS_READY_013: loads station base, raw prop sheet, places individual crop pieces, and supports in/out station.
+  // STATION_OVERLAY_GIT_PROPS_PATH_014: station props layer now uses existing Git props-folder overlay path.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -182,7 +177,7 @@
     path: 'assets/characters/main_detective/malcolm_station_new_4dir_12x4_96x128.png',
     frameWidth: 96,
     frameHeight: 128,
-    scale: 0.85,
+    scale: 1.45,
     originY: 0.90,
     cols: 12
   };
@@ -237,90 +232,13 @@
     },
     props: {
       key: 'police_station_floor1_props',
-      path: 'assets/interiors/police_station/police_station_floor1_props.png'
+      path: 'assets/interiors/police_station/props/police_station_prop_pieces_sheet_raw.png'
     },
     propSheet: {
       key: 'police_station_props_sheet',
       path: 'assets/interiors/police_station/police_station_props_sheet.png'
     }
   };
-
-  const POLICE_STATION_PROP_PIECES_ASSET = {
-    key: 'police_station_prop_pieces_sheet_raw',
-    path: 'assets/interiors/police_station/props/police_station_prop_pieces_sheet_raw.png'
-  };
-
-  const POLICE_STATION_PROP_FRAMES = {
-    leftDesk:        { x:145, y:120, w:170, h:190 },
-    officeDeskA:     { x:380, y:150, w:140, h:135 },
-    officeDeskB:     { x:535, y:150, w:140, h:135 },
-    officeDeskC:     { x:380, y:300, w:140, h:140 },
-    officeDeskD:     { x:535, y:300, w:140, h:140 },
-    rightAdminDesk:  { x:1340, y:135, w:170, h:155 },
-    receptionDesk:   { x:555, y:460, w:285, h:175 },
-    waterCooler:     { x:480, y:535, w:70, h:95 },
-    trashCan:        { x:135, y:235, w:38, h:48 },
-    waitingBench:    { x:480, y:785, w:125, h:50 },
-    noticeBoard:     { x:625, y:790, w:70, h:70 },
-    bullpenCabinets: { x:375, y:70, w:285, h:55 },
-    stairs:          { x:700, y:105, w:95, h:205 },
-    cells:           { x:950, y:105, w:365, h:200 },
-    bookingCounter:  { x:990, y:315, w:255, h:80 },
-    recordsStack:    { x:115, y:610, w:105, h:250 },
-    lowerDesk:       { x:220, y:715, w:170, h:170 },
-    meetingTable:    { x:850, y:660, w:190, h:220 },
-    lockerBank:      { x:1045, y:645, w:155, h:80 },
-    utilityShelf:    { x:1230, y:610, w:95, h:90 },
-    tires:           { x:1310, y:650, w:70, h:95 },
-    toolChest:       { x:1260, y:795, w:95, h:80 },
-    mopBucket:       { x:1380, y:750, w:55, h:115 },
-    coatRack:        { x:1140, y:750, w:65, h:115 }
-  };
-
-  const POLICE_STATION_PROP_PLACEMENTS = [
-    // Top-left rooms
-    { frame:'leftDesk', x:180, y:190, scale:0.62, label:'left admin desk' },
-    { frame:'leftDesk', x:180, y:430, scale:0.58, label:'left report desk' },
-
-    // Bullpen
-    { frame:'bullpenCabinets', x:520, y:85, scale:0.70, label:'bullpen cabinets' },
-    { frame:'officeDeskA', x:470, y:205, scale:0.72, label:'bullpen desk 1' },
-    { frame:'officeDeskB', x:620, y:205, scale:0.72, label:'bullpen desk 2' },
-    { frame:'officeDeskC', x:470, y:350, scale:0.72, label:'bullpen desk 3' },
-    { frame:'officeDeskD', x:620, y:350, scale:0.72, label:'bullpen desk 4' },
-    { frame:'stairs', x:750, y:210, scale:0.86, label:'stairs' },
-
-    // Holding / booking
-    { frame:'cells', x:1120, y:210, scale:0.78, label:'holding cells' },
-    { frame:'bookingCounter', x:1110, y:390, scale:0.78, label:'booking counter' },
-
-    // Right admin office
-    { frame:'rightAdminDesk', x:1440, y:225, scale:0.72, label:'right admin desk' },
-
-    // Front desk / lobby
-    { frame:'receptionDesk', x:690, y:610, scale:0.92, label:'front desk' },
-    { frame:'waterCooler', x:520, y:615, scale:0.70, label:'water cooler' },
-    { frame:'trashCan', x:558, y:635, scale:0.70, label:'trash can' },
-    { frame:'waitingBench', x:585, y:790, scale:0.72, label:'waiting bench left' },
-    { frame:'waitingBench', x:745, y:790, scale:0.72, label:'waiting bench right' },
-    { frame:'noticeBoard', x:690, y:765, scale:0.70, label:'notice board' },
-
-    // Lower-left rooms
-    { frame:'recordsStack', x:130, y:740, scale:0.70, label:'records stack' },
-    { frame:'lowerDesk', x:290, y:790, scale:0.70, label:'lower-left office desk' },
-
-    // Lower-right rooms
-    { frame:'meetingTable', x:930, y:805, scale:0.70, label:'meeting table' },
-    { frame:'lockerBank', x:1148, y:690, scale:0.78, label:'lockers' },
-    { frame:'utilityShelf', x:1350, y:690, scale:0.78, label:'utility shelf' },
-    { frame:'tires', x:1435, y:735, scale:0.72, label:'tires' },
-    { frame:'toolChest', x:1365, y:850, scale:0.72, label:'tool chest' },
-    { frame:'mopBucket', x:1495, y:835, scale:0.72, label:'mop bucket' },
-    { frame:'coatRack', x:1250, y:800, scale:0.72, label:'coat rack' }
-  ];
-
-
-
 
 
   let THEME_MUSIC = null;
@@ -583,12 +501,6 @@
     }
 
     enterBuilding(zone) {
-      if (zone.id === 'precinct_front') {
-        if (this.player?.body) this.player.body.setVelocity(0, 0);
-        this.scene.start('PoliceStationScene', { fromStreet: true });
-        return;
-      }
-
       const info = BUILDING_ENTRIES[zone.id];
       if (!info) {
         this.message = `${zone.label || 'Door'} is locked for now.`;
@@ -1020,21 +932,6 @@
     }
     updateCivilians() { for(const c of this.civilians){ if(!c.nodeTarget||dist(c,c.nodeTarget)<12) c.nodeTarget=new Phaser.Math.Vector2(clamp(c.x+Phaser.Math.Between(-150,150),80,WORLD_W-80),clamp(c.y+Phaser.Math.Between(-150,150),80,WORLD_H-80)); this.physics.moveTo(c,c.nodeTarget.x,c.nodeTarget.y,45); } }
     updateClosestZone() { const actor=this.inCar?this.car:this.player; this.closestZone=null; for(const z of INTERACTION_ZONES){ if(overlap(z,actor)){ this.closestZone=z; break; } } }
-
-    exitStation() {
-      if (this._exitingStation) return;
-      this._exitingStation = true;
-
-      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
-
-      this.scene.start('GameScene', {
-        fromStationExit: true,
-        spawn: { x: 552, y: 690 },
-        message: 'Exited Raven Hook Police Station.'
-      });
-    }
-
-
     handleInteract() {
       if(this.inCar){
         this.inCar=false;
@@ -1107,7 +1004,6 @@
       this.load.image(POLICE_STATION_ASSETS.base.key, A(POLICE_STATION_ASSETS.base.path));
       this.load.image(POLICE_STATION_ASSETS.props.key, A(POLICE_STATION_ASSETS.props.path));
       this.load.image(POLICE_STATION_ASSETS.propSheet.key, A(POLICE_STATION_ASSETS.propSheet.path));
-      this.load.image(POLICE_STATION_PROP_PIECES_ASSET.key, A(POLICE_STATION_PROP_PIECES_ASSET.path));
       this.load.spritesheet(MALCOLM_STATION_ASSET.key, A(MALCOLM_STATION_ASSET.path), {
         frameWidth: MALCOLM_STATION_ASSET.frameWidth,
         frameHeight: MALCOLM_STATION_ASSET.frameHeight
@@ -1155,19 +1051,15 @@
         .setOrigin(0, 0)
         .setDisplaySize(this.stationW, this.stationH)
         .setDepth(8)
-        .setVisible(false); // individual prop pieces placed below // cleaned station prop overlay restored // station props restored // blank overlay; use separate prop sheet for future placed sprites
-
-      this.createStationPropPieceFrames();
-      this.placeStationPropPieces();
+        .setVisible(true); // blank overlay; use separate prop sheet for future placed sprites
 
       // Bottom-middle station door circled in the user's screenshot.
       this.exitZone = {
         id: 'station_exit_main',
-        // Bigger bottom-door exit trigger for mobile.
-        x: 540,
-        y: 800,
-        w: 560,
-        h: 195,
+        x: 720,
+        y: 895,
+        w: 175,
+        h: 95,
         label: 'Exit to Central Street'
       };
 
@@ -1185,7 +1077,7 @@
 
       const startX = 800;
       const startY = 825;
-      this.playerBody = this.add.rectangle(startX, startY, 26, 40, COLORS.blue, 0.0).setDepth(30);
+      this.playerBody = this.add.rectangle(startX, startY, 42, 64, COLORS.blue, 0.0).setDepth(30);
       this.physics.add.existing(this.playerBody);
       this.playerBody.body.setCollideWorldBounds(true);
       this.physics.add.collider(this.playerBody, this.walls);
@@ -1205,7 +1097,7 @@
           .setScale(1.45)
           .setDepth(31);
       } else {
-        this.playerFallback = this.add.rectangle(startX, startY, 26, 40, COLORS.blue, 1).setDepth(31);
+        this.playerFallback = this.add.rectangle(startX, startY, 42, 64, COLORS.blue, 1).setDepth(31);
       }
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
@@ -1226,130 +1118,8 @@
       this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
       this.input.keyboard.on('keydown-A', () => this.handleInteract());
       this.input.keyboard.on('keydown-O', () => { if (this.stationPropsLayer) this.stationPropsLayer.setVisible(!this.stationPropsLayer.visible); });
-      this.input.keyboard.on('keydown-K', () => this.toggleStationPlacedPropPieces());
-
       this.createMobileControls();
       this.setupStationUiCamera();
-    }
-
-
-
-    drawStationVisibleProps() {
-      // Procedural furniture/prop layer. This stays visible even if the PNG overlay is blank or cached.
-      if (this.stationVisibleProps) return;
-
-      this.stationVisibleProps = this.add.container(0, 0).setDepth(9);
-
-      const addRect = (x, y, w, h, color, stroke=0x0b0d10, alpha=1) => {
-        const obj = this.add.rectangle(x + w / 2, y + h / 2, w, h, color, alpha)
-          .setStrokeStyle(2, stroke, 0.65);
-        this.stationVisibleProps.add(obj);
-        return obj;
-      };
-
-      const addEllipse = (x, y, w, h, color, stroke=0x0b0d10, alpha=1) => {
-        const obj = this.add.ellipse(x + w / 2, y + h / 2, w, h, color, alpha)
-          .setStrokeStyle(2, stroke, 0.65);
-        this.stationVisibleProps.add(obj);
-        return obj;
-      };
-
-      const addCircle = (x, y, r, color, stroke=0x0b0d10, alpha=1) => {
-        const obj = this.add.circle(x, y, r, color, alpha)
-          .setStrokeStyle(2, stroke, 0.65);
-        this.stationVisibleProps.add(obj);
-        return obj;
-      };
-
-      const wood = 0x5a3821;
-      const darkWood = 0x332016;
-      const metal = 0x3f4b4f;
-      const paper = 0xd8c7a3;
-      const chair = 0x151b22;
-      const lamp = 0xf0b65a;
-      const green = 0x233d2b;
-
-      // Report/evidence rooms.
-      addRect(65, 70, 185, 74, wood);
-      addRect(270, 70, 44, 110, metal);
-      addRect(70, 160, 110, 24, darkWood);
-      addCircle(100, 92, 10, lamp);
-      addRect(132, 82, 36, 22, paper);
-      addRect(185, 82, 42, 26, paper);
-      addEllipse(140, 58, 54, 28, chair);
-
-      addRect(70, 615, 170, 74, wood);
-      addRect(250, 612, 54, 118, metal);
-      addRect(58, 730, 250, 45, metal);
-      addRect(80, 790, 210, 45, 0x4a3d31);
-      addEllipse(150, 708, 54, 30, chair);
-      addCircle(78, 704, 11, lamp);
-
-      // Bullpen desks.
-      const desks = [
-        [390, 145], [560, 145], [390, 305], [560, 305]
-      ];
-      for (const [x, y] of desks) {
-        addRect(x, y, 126, 66, wood);
-        addEllipse(x + 40, y - 24, 54, 30, chair);
-        addRect(x + 15, y + 14, 30, 20, paper);
-        addRect(x + 65, y + 12, 28, 26, 0x1b2228);
-        addCircle(x + 105, y + 18, 9, lamp);
-      }
-      addRect(365, 70, 200, 42, metal);
-      addRect(585, 70, 55, 42, 0x6c5634);
-      addCircle(675, 72, 18, green);
-      addRect(700, 65, 110, 54, 0x6b5b3d);
-
-      // Front desk / lobby.
-      addRect(455, 535, 295, 92, 0x684321);
-      addRect(465, 615, 265, 42, 0x2f3435);
-      addEllipse(583, 515, 62, 34, chair);
-      addRect(515, 560, 70, 34, paper);
-      addRect(607, 555, 45, 44, 0x1b2228);
-      addCircle(494, 553, 12, lamp);
-      addRect(365, 535, 48, 92, 0x5d6f78);
-      addCircle(390, 500, 22, 0x6ea6bf);
-      addRect(590, 780, 120, 35, 0x6a4123);
-      addRect(710, 778, 95, 45, 0x736a4e);
-
-      // Booking / holding area.
-      addRect(970, 335, 340, 65, 0x3e4545);
-      addRect(1005, 365, 120, 35, paper);
-      addRect(1140, 362, 62, 34, 0x1b2228);
-      for (let i = 0; i < 4; i++) {
-        addRect(1040 + i * 80, 125, 58, 145, 0x384033);
-        addRect(1055 + i * 80, 178, 28, 35, 0x8c8f82);
-        addEllipse(1069 + i * 80, 245, 25, 15, 0x6e6f68);
-      }
-
-      // Locker / break room.
-      for (let i = 0; i < 6; i++) addRect(1045 + i * 42, 670, 38, 98, 0x26333b);
-      addRect(1045, 790, 265, 34, 0x674622);
-      addRect(1320, 665, 50, 58, 0x7e7e72);
-      addRect(1385, 660, 85, 32, 0x5e3e1e);
-      addCircle(1390, 735, 10, 0x171717);
-
-      // Utility / evidence clutter.
-      addRect(1330, 585, 88, 75, 0x3c454b);
-      addRect(1450, 585, 75, 40, 0x6f5128);
-      addRect(1350, 705, 110, 110, 0x2a2e32);
-      addCircle(1485, 812, 22, 0x1c1c1c);
-      addRect(1515, 755, 30, 105, 0x46413a);
-      addRect(1432, 820, 38, 32, 0xd1a12f);
-      addCircle(1405, 848, 12, 0xe36d2e);
-      addCircle(1455, 865, 12, 0xe36d2e);
-
-      // Lobby small props.
-      addRect(160, 455, 160, 32, 0x654523);
-      addRect(180, 785, 145, 34, 0x654523);
-      addRect(365, 845, 140, 42, 0x22272c);
-      addCircle(340, 855, 14, green);
-
-      // Give the restored props a subtle shadow so they read on mobile.
-      this.stationVisibleProps.each((obj) => {
-        if (obj.setAlpha) obj.setAlpha(0.94);
-      });
     }
 
 
@@ -1522,8 +1292,8 @@
         const rows = [
           ['south', 0],
           ['north', 1],
-          // Use the right/east row for both side directions.
-          // Left/west is the right/east row flipped horizontally.
+          // Uploaded Malcolm station sheet: row 2 = left/west, row 3 = right/east.
+          ['west', 2],
           ['east', 3]
         ];
 
@@ -1544,7 +1314,7 @@
 
     frameForFacing() {
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
-        const rowByFacing = { S: 0, SW: 3, W: 3, NW: 3, N: 1, NE: 3, E: 3, SE: 3 };
+        const rowByFacing = { S: 0, SW: 2, W: 2, NW: 2, N: 1, NE: 3, E: 3, SE: 3 };
         return (rowByFacing[this.playerFacing] ?? 0) * MALCOLM_STATION_ASSET.cols;
       }
 
@@ -1555,7 +1325,7 @@
 
     animForFacing() {
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
-        const nameByFacing = { S:'south', SW:'east', W:'east', NW:'east', N:'north', NE:'east', E:'east', SE:'east' };
+        const nameByFacing = { S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' };
         return `station_malcolm_walk_${nameByFacing[this.playerFacing] || 'south'}`;
       }
 
@@ -1569,12 +1339,6 @@
       const y = this.playerBody.y;
       if (this.playerSprite) {
         this.playerSprite.setPosition(x, y);
-
-        // New Malcolm station sheet fix:
-        // walk LEFT uses the walk RIGHT animation flipped horizontally.
-        const flipLeftFromRight = this.textures.exists(MALCOLM_STATION_ASSET.key) && ['W','NW','SW'].includes(this.playerFacing);
-        this.playerSprite.setFlipX(flipLeftFromRight);
-
         if (moving) {
           const key = this.animForFacing();
           if (this.playerSprite.anims.currentAnim?.key !== key || !this.playerSprite.anims.isPlaying) {
@@ -1611,12 +1375,6 @@
 
       this.updatePlayerVisual(moving);
 
-      // Walk through the bottom-middle door to exit. This fixes missed A/B presses on mobile.
-      if (this.playerBody.y > 860 && this.playerBody.x > 540 && this.playerBody.x < 1100) {
-        this.exitStation();
-        return;
-      }
-
       const spot = this.getCurrentHotspot();
       this.currentHotspot = spot;
       this.promptText.setText(spot ? `A/E: ${spot.label}` : 'Police Station Floor 1 | Bottom middle door exits to street');
@@ -1630,27 +1388,16 @@
       return null;
     }
 
-
-    exitStation() {
-      if (this._exitingStation) return;
-      this._exitingStation = true;
-
-      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
-
-      this.scene.start('GameScene', {
-        fromStationExit: true,
-        spawn: { x: 552, y: 690 },
-        message: 'Exited Raven Hook Police Station.'
-      });
-    }
-
-
     handleInteract() {
       const h = this.currentHotspot || this.getCurrentHotspot();
       if (!h) return;
 
       if (h.id === 'station_exit_main') {
-        this.exitStation();
+        this.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: { x: 552, y: 690 },
+          message: 'Exited Raven Hook Police Station.'
+        });
         return;
       }
 
