@@ -1216,6 +1216,12 @@
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
       this.cameras.main.setZoom(0.68);
+      this.cameras.main.centerOn(startX, startY);
+      this.time.delayedCall(80, () => {
+        if (!this.playerBody) return;
+        this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
+        this.cameras.main.centerOn(this.playerBody.x, this.playerBody.y);
+      });
 
       this.promptBg = this.add.rectangle(VIEW_W / 2, VIEW_H - 38, 760, 42, 0x02060a, 0.72)
         .setScrollFactor(0)
@@ -1235,7 +1241,7 @@
       this.input.keyboard.on('keydown-O', () => { if (this.stationPropsLayer) this.stationPropsLayer.setVisible(!this.stationPropsLayer.visible); });
       this.input.keyboard.on('keydown', (event) => this.handleFloorPromptKey(event));
 
-      launchGlobalMobileControls(this);
+      this.createMobileControls();
       this.setupStationUiCamera();
       // Keep title theme alive after scene transition. On iOS this also retries after the user tap.
       this.time.delayedCall(150, () => startTheme(this));
@@ -1438,6 +1444,15 @@
       this.activePointerControls.set(pointer.id, hits);
 
       if (!fireAction) return;
+
+      if (this.floorMenuOpen) {
+        if (hits.includes('up')) this.handleFloorPromptButton('up');
+        if (hits.includes('down')) this.handleFloorPromptButton('down');
+        if (hits.includes('a')) this.handleFloorPromptButton('a');
+        if (hits.includes('b')) this.handleFloorPromptButton('b');
+        if (hits.includes('sel') || hits.includes('sta')) this.handleFloorPromptButton('b');
+        return;
+      }
 
       if (hits.includes('a')) this.handleInteract();
       if (hits.includes('b')) this.handleInteract();
@@ -1750,23 +1765,77 @@
       const currentIndex = this.floorMenuOptions.findIndex(o => o.floorId === this.floorId);
       this.floorMenuIndex = currentIndex >= 0 ? currentIndex : 0;
 
-      if (this.floorMenu) {
-        this.floorMenu.destroy(true);
-        this.floorMenu = null;
+      if (this.floorMenu) this.floorMenu.destroy(true);
+
+      const c = this.add.container(VIEW_W / 2, VIEW_H / 2).setScrollFactor(0).setDepth(5200);
+      const bg = this.add.rectangle(0, 0, 560, 330, 0x02060a, 0.96).setStrokeStyle(3, COLORS.cyan, 0.95);
+      const title = this.add.text(0, -138, 'ELEVATOR — SELECT FLOOR', {
+        fontFamily: 'Courier New',
+        fontSize: '22px',
+        color: '#f4d28a',
+        stroke: '#000',
+        strokeThickness: 4
+      }).setOrigin(0.5);
+
+      const help = this.add.text(0, 135, 'D-PAD ▲▼ highlight  |  A confirm  |  B cancel', {
+        fontFamily: 'Courier New',
+        fontSize: '13px',
+        color: '#86e7ff',
+        stroke: '#000',
+        strokeThickness: 3
+      }).setOrigin(0.5);
+
+      c.add([bg, title, help]);
+      this.floorMenuRows = [];
+
+      const yStart = -78;
+      for (let i = 0; i < this.floorMenuOptions.length; i++) {
+        const y = yStart + i * 50;
+        const rowBg = this.add.rectangle(0, y, 440, 42, 0x111827, 0.94).setStrokeStyle(2, 0x4b5563, 0.8);
+        const cursor = this.add.text(-205, y - 10, '▶', {
+          fontFamily: 'Courier New',
+          fontSize: '18px',
+          color: '#ffdf59',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+        const label = this.add.text(0, y - 10, this.floorMenuOptions[i].label, {
+          fontFamily: 'Courier New',
+          fontSize: '16px',
+          color: '#ffffff',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+
+        rowBg.setInteractive({ useHandCursor: true });
+        rowBg.on('pointerdown', () => {
+          this.floorMenuIndex = i;
+          this.updateFloorMenuSelection();
+          this.confirmFloorMenuSelection();
+        });
+
+        c.add([rowBg, cursor, label]);
+        this.floorMenuRows.push({ bg: rowBg, cursor, label });
       }
 
-      const controls = this.scene.get('MobileControlsScene');
-      if (controls && typeof controls.openElevatorMenu === 'function') {
-        controls.openElevatorMenu(this);
-      } else {
-        this.promptText.setText('Elevator menu ready: D-pad up/down, A confirm, B cancel.');
-      }
+      this.floorMenu = c;
+      this.registerStationUi(c);
+      this.cameras.main.ignore(c);
+      this.updateFloorMenuSelection();
     }
 
     updateFloorMenuSelection() {
-      const controls = this.scene.get('MobileControlsScene');
-      if (controls && typeof controls.refreshElevatorMenu === 'function') {
-        controls.refreshElevatorMenu();
+      if (!this.floorMenuRows) return;
+
+      const index = this.floorMenuIndex || 0;
+      for (let i = 0; i < this.floorMenuRows.length; i++) {
+        const selected = i === index;
+        const row = this.floorMenuRows[i];
+
+        row.cursor.setVisible(selected);
+        row.bg.setFillStyle(selected ? 0x263241 : 0x111827, selected ? 0.98 : 0.94);
+        row.bg.setStrokeStyle(2, selected ? COLORS.amber : 0x4b5563, selected ? 1 : 0.8);
+        row.label.setColor(selected ? '#ffdf59' : '#ffffff');
       }
     }
 
@@ -1849,12 +1918,7 @@
         this.floorMenu.destroy(true);
         this.floorMenu = null;
       }
-
-      const controls = this.scene.get('MobileControlsScene');
-      if (controls && typeof controls.closeElevatorMenu === 'function') {
-        controls.closeElevatorMenu();
-      }
-
+      this.floorMenuRows = null;
       this.promptText?.setText(this.floorData.title);
     }
 
