@@ -1003,6 +1003,7 @@
     }
 
     create() {
+      // Station control lock: fixed UI camera + manual screen-coordinate mobile buttons.
       this.stationW = 1600;
       this.stationH = 1000;
       this.physics.world.setBounds(0, 0, this.stationW, this.stationH);
@@ -1063,7 +1064,7 @@
         this.createPlayerAnims();
         this.playerSprite = this.add.sprite(startX, startY, PLAYER_ASSET.key, this.frameForFacing())
           .setOrigin(0.5, PLAYER_ASSET.originY)
-          .setScale(0.46)
+          .setScale(PLAYER_ASSET.scale)
           .setDepth(31);
       } else {
         this.playerFallback = this.add.rectangle(startX, startY, 22, 28, COLORS.blue, 1).setDepth(31);
@@ -1071,7 +1072,7 @@
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(0.85); // station interior zoom-out: shows more room on mobile
+      this.cameras.main.setZoom(0.68); // locked station interior zoom-out
 
       this.promptBg = this.add.rectangle(VIEW_W / 2, VIEW_H - 38, 760, 42, 0x02060a, 0.72)
         .setScrollFactor(0)
@@ -1079,14 +1080,13 @@
       this.promptText = makeText(this, VIEW_W / 2, VIEW_H - 47, 'Raven Hook Police Station Floor 1', 15, '#f4d28a', true)
         .setOrigin(0.5)
         .setDepth(2001);
-      this.infoText = makeText(this, 18, 18, 'POLICE STATION FLOOR 1 | A/E interact | Bottom middle door exits to street', 14, '#86e7ff', true)
+      this.infoText = makeText(this, 18, 18, 'POLICE STATION FLOOR 1 | A/B interact | Bottom middle door exits to street', 14, '#86e7ff', true)
         .setDepth(2001);
       this.uiObjects.push(this.promptBg, this.promptText, this.infoText);
 
       this.input.keyboard.on('keydown-E', () => this.handleInteract());
       this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
       this.input.keyboard.on('keydown-A', () => this.handleInteract());
-      this.input.once('pointerdown', () => startTheme(this));
       this.createMobileControls();
       this.setupStationUiCamera();
     }
@@ -1130,24 +1130,107 @@
     }
 
     createMobileControls() {
-      const addBtn = (x,y,label,prop,color=0x111827, radius=28, font='18px') => {
-        const c=this.add.container(x,y).setScrollFactor(0).setDepth(2500);
-        const bg=this.add.circle(0,0,radius,color,0.78).setStrokeStyle(2,0xffffff,0.5);
-        const tx=this.add.text(0,-8,label,{fontFamily:'Courier New',fontSize:font,color:'#fff'}).setOrigin(0.5);
-        c.add([bg,tx]); c.setSize(radius*2+12,radius*2+12).setInteractive();
-        c.on('pointerdown',()=>{ this.mobile[prop]=true; if(prop==='a') this.handleInteract(); });
-        c.on('pointerup',()=>this.mobile[prop]=false);
-        c.on('pointerout',()=>this.mobile[prop]=false);
-        if (this.uiObjects) this.uiObjects.push(c);
+      this.input.addPointer(5);
+      this.input.mouse?.disableContextMenu();
+
+      this.mobile = {
+        up:false, down:false, left:false, right:false,
+        a:false, b:false, x:false, y:false, sel:false, sta:false
+      };
+      this.controlZones = [];
+      this.activePointerControls = new Map();
+
+      const addBtn = (x, y, label, key, color=0x111827, radius=30, font='18px') => {
+        const c = this.add.container(x, y).setScrollFactor(0).setDepth(2600);
+        const bg = this.add.circle(0, 0, radius, color, 0.82).setStrokeStyle(2, 0xffffff, 0.65);
+        const tx = this.add.text(0, -8, label, {
+          fontFamily: 'Courier New',
+          fontSize: font,
+          color: '#fff',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+
+        c.add([bg, tx]);
+
+        // Visuals are fixed. Real input is handled manually by screen coordinates below,
+        // which is more reliable on iPhone/Safari with multiple cameras.
+        if (this.uiObjects) this.uiObjects.push(c, bg, tx);
+        this.controlZones.push({ x, y, key, radius: radius + 16 });
         return c;
       };
 
-      const baseX=92, baseY=VIEW_H-178;
-      addBtn(92, baseY-72, '▲', 'up');
-      addBtn(92, baseY+72, '▼', 'down');
-      addBtn(24, baseY, '◀', 'left');
-      addBtn(160, baseY, '▶', 'right');
-      addBtn(VIEW_W-90, VIEW_H-245, 'A', 'a', 0x1f4d2f);
+      // Raised mobile layout so Safari's bottom bar does not cover buttons.
+      const dX = 96;
+      const dY = VIEW_H - 170;
+
+      addBtn(dX, dY - 76, '▲', 'up');
+      addBtn(dX, dY + 76, '▼', 'down');
+      addBtn(dX - 72, dY, '◀', 'left');
+      addBtn(dX + 72, dY, '▶', 'right');
+
+      const bX = VIEW_W - 96;
+      const bY = VIEW_H - 258;
+
+      addBtn(bX, bY, 'A', 'a', 0x1f4d2f, 32);
+      addBtn(bX - 72, bY + 52, 'B', 'b', 0x4d1f1f, 32);
+      addBtn(bX, bY + 104, 'X', 'x', 0x1f314d, 32);
+      addBtn(bX + 62, bY + 52, 'Y', 'y', 0x4d3b1f, 32);
+
+      addBtn(VIEW_W - 230, VIEW_H - 326, 'SEL', 'sel', 0x263241, 25, '12px');
+      addBtn(VIEW_W - 160, VIEW_H - 326, 'STA', 'sta', 0x263241, 25, '12px');
+
+      this.input.on('pointerdown', (pointer) => this.handleStationPointerDown(pointer));
+      this.input.on('pointermove', (pointer) => {
+        if (!pointer.isDown) return;
+        this.clearStationPointer(pointer);
+        this.handleStationPointerDown(pointer, false);
+      });
+      this.input.on('pointerup', (pointer) => this.clearStationPointer(pointer));
+      this.input.on('pointerupoutside', (pointer) => this.clearStationPointer(pointer));
+    }
+
+    handleStationPointerDown(pointer, fireAction = true) {
+      startTheme(this);
+
+      const hits = [];
+      for (const z of this.controlZones || []) {
+        const dx = pointer.x - z.x;
+        const dy = pointer.y - z.y;
+        if (Math.hypot(dx, dy) <= z.radius) {
+          hits.push(z.key);
+          break;
+        }
+      }
+
+      if (!hits.length) return;
+
+      for (const key of hits) this.mobile[key] = true;
+      this.activePointerControls.set(pointer.id, hits);
+
+      if (!fireAction) return;
+
+      if (hits.includes('a')) this.handleInteract();
+      if (hits.includes('b')) this.handleInteract();
+      if (hits.includes('x')) {
+        this.promptText?.setText('X: station systems placeholder.');
+      }
+      if (hits.includes('y')) {
+        this.promptText?.setText('Y: report/evidence shortcut placeholder.');
+      }
+      if (hits.includes('sel')) {
+        this.promptText?.setText('SEL: station debug placeholder.');
+      }
+      if (hits.includes('sta')) {
+        this.promptText?.setText('STA: pause placeholder.');
+      }
+    }
+
+    clearStationPointer(pointer) {
+      const keys = this.activePointerControls?.get(pointer.id);
+      if (!keys) return;
+      for (const key of keys) this.mobile[key] = false;
+      this.activePointerControls.delete(pointer.id);
     }
 
     createPlayerAnims() {
