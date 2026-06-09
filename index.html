@@ -29,6 +29,7 @@
   // BUILD_NOTE_LOCKED_CONTROLS_ROOFS_ZOOM: roof depth + enterable buildings + UI camera locked controls + close zoom.
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
   // STATION_LEFT_FLIP_RIGHT_004: left-facing station walk now uses right/east row with flipX.
+  // STATION_PROPS_RESTORED_PLAYER_115: restored station prop overlay and reduced Malcolm scale to 1.15.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -177,7 +178,7 @@
     path: 'assets/characters/main_detective/malcolm_station_new_4dir_12x4_96x128.png',
     frameWidth: 96,
     frameHeight: 128,
-    scale: 1.45,
+    scale: 1.15,
     originY: 0.90,
     cols: 12
   };
@@ -1051,7 +1052,7 @@
         .setOrigin(0, 0)
         .setDisplaySize(this.stationW, this.stationH)
         .setDepth(8)
-        .setVisible(false); // blank overlay; use separate prop sheet for future placed sprites
+        .setVisible(true); // station props restored // blank overlay; use separate prop sheet for future placed sprites
 
       // Bottom-middle station door circled in the user's screenshot.
       this.exitZone = {
@@ -1077,7 +1078,7 @@
 
       const startX = 800;
       const startY = 825;
-      this.playerBody = this.add.rectangle(startX, startY, 42, 64, COLORS.blue, 0.0).setDepth(30);
+      this.playerBody = this.add.rectangle(startX, startY, 34, 52, COLORS.blue, 0.0).setDepth(30);
       this.physics.add.existing(this.playerBody);
       this.playerBody.body.setCollideWorldBounds(true);
       this.physics.add.collider(this.playerBody, this.walls);
@@ -1097,7 +1098,7 @@
           .setScale(1.45)
           .setDepth(31);
       } else {
-        this.playerFallback = this.add.rectangle(startX, startY, 42, 64, COLORS.blue, 1).setDepth(31);
+        this.playerFallback = this.add.rectangle(startX, startY, 34, 52, COLORS.blue, 1).setDepth(31);
       }
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
