@@ -251,7 +251,7 @@
       spawns: {
         default: { x: 800, y: 825, facing: 'N' },
         elevator: { x: 800, y: 725, facing: 'N' },
-        stairsFromFloor2: { x: 760, y: 170, facing: 'S' }
+        stairsFromFloor2: { x: 760, y: 255, facing: 'S' }
       }
     },
     floor2: {
@@ -264,7 +264,7 @@
       spawns: {
         default: { x: 800, y: 250, facing: 'S' },
         elevator: { x: 800, y: 250, facing: 'S' },
-        stairsFromFloor1: { x: 760, y: 820, facing: 'N' }
+        stairsFromFloor1: { x: 760, y: 700, facing: 'N' }
       }
     },
     b1: {
@@ -985,6 +985,45 @@
     }
     updateCivilians() { for(const c of this.civilians){ if(!c.nodeTarget||dist(c,c.nodeTarget)<12) c.nodeTarget=new Phaser.Math.Vector2(clamp(c.x+Phaser.Math.Between(-150,150),80,WORLD_W-80),clamp(c.y+Phaser.Math.Between(-150,150),80,WORLD_H-80)); this.physics.moveTo(c,c.nodeTarget.x,c.nodeTarget.y,45); } }
     updateClosestZone() { const actor=this.inCar?this.car:this.player; this.closestZone=null; for(const z of INTERACTION_ZONES){ if(overlap(z,actor)){ this.closestZone=z; break; } } }
+    getStrictHotspot(ids = []) {
+      const b = this.playerBody.getBounds();
+      const p = { x: this.playerBody.x, y: this.playerBody.y };
+
+      for (const h of this.hotspots) {
+        if (ids.length && !ids.includes(h.id)) continue;
+
+        const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
+        if (Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return h;
+      }
+
+      return null;
+    }
+
+    checkAutoTransitions() {
+      if (this.transitionLocked || this.floorMenuOpen || this.transitionCooldown > 0) return;
+
+      const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
+      if (!h) return;
+
+      this.transitionLocked = true;
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+
+      if (h.id === 'station_exit_main') {
+        this.promptText.setText('Walk through the front door to exit.');
+        return;
+      }
+
+      if (h.id === 'stairs_to_floor2') {
+        this.changeStationFloor('floor2', 'stairsFromFloor1', 'Came up the stairs to Floor 2.');
+        return;
+      }
+
+      if (h.id === 'stairs_to_floor1') {
+        this.changeStationFloor('floor1', 'stairsFromFloor2', 'Came down the stairs to Floor 1.');
+        return;
+      }
+    }
+
     handleInteract() {
       if(this.inCar){
         this.inCar=false;
@@ -1103,6 +1142,8 @@
       this.mobile = { up:false, down:false, left:false, right:false, a:false };
       this.uiObjects = [];
       this.floorMenuOpen = false;
+      this.transitionLocked = false;
+      this.transitionCooldown = this.entryData.fromAutoTransition ? 900 : 250;
 
       this.add.image(0, 0, this.floorData.baseKey)
         .setOrigin(0, 0)
@@ -1172,6 +1213,7 @@
 
       this.createMobileControls();
       this.setupStationUiCamera();
+      this.time.delayedCall(80, () => this.refreshStationUiObjects());
 
       if (this.entryData.message) this.promptText.setText(this.entryData.message);
     }
@@ -1204,12 +1246,23 @@
       this.uiCamera.ignore(worldObjects);
     }
 
+    refreshStationUiObjects() {
+      const uiObjects = (this.uiObjects || []).filter(Boolean);
+      for (const obj of uiObjects) {
+        if (obj.setVisible) obj.setVisible(true);
+        if (obj.setScrollFactor) obj.setScrollFactor(0);
+        if (obj.setDepth && obj.depth < 2000) obj.setDepth(2600);
+      }
+
+      if (this.cameras?.main) this.cameras.main.ignore(uiObjects);
+    }
+
     makeHotspotsForFloor(floorId) {
       if (floorId === 'floor1') {
         return [
-          { id:'station_exit_main', x:610, y:760, w:380, h:235, label:'Exit to Central Street' },
+          { id:'station_exit_main', x:610, y:845, w:380, h:150, label:'Exit to Central Street' },
           { id:'station_elevator', x:700, y:700, w:210, h:145, label:'Elevator' },
-          { id:'stairs_to_floor2', x:610, y:70, w:360, h:380, label:'Stairs to Floor 2' },
+          { id:'stairs_to_floor2', x:650, y:65, w:300, h:155, label:'Stairs to Floor 2' },
           { id:'station_phone', x:410, y:500, w:120, h:120, label:'Use Station Phone' },
           { id:'report_room', x:85, y:80, w:240, h:230, label:'File Report' },
           { id:'evidence_intake', x:360, y:80, w:280, h:230, label:'Submit Evidence' },
@@ -1220,7 +1273,7 @@
       if (floorId === 'floor2') {
         return [
           { id:'station_elevator', x:665, y:55, w:270, h:205, label:'Elevator' },
-          { id:'stairs_to_floor1', x:650, y:770, w:260, h:180, label:'Stairs Down to Floor 1' },
+          { id:'stairs_to_floor1', x:640, y:760, w:320, h:220, label:'Stairs Down to Floor 1' },
           { id:'chief_office', x:1000, y:120, w:360, h:265, label:'Chief / Command Offices' },
           { id:'detective_bullpen', x:480, y:385, w:520, h:330, label:'Detective Offices' }
         ];
@@ -1389,7 +1442,7 @@
         const rows = [
           ['south', 0],
           ['north', 1],
-          ['west', 2],
+          ['west', 3],
           ['east', 3]
         ];
 
@@ -1409,7 +1462,7 @@
 
     frameForFacing() {
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
-        const rowByFacing = { S: 0, SW: 2, W: 2, NW: 2, N: 1, NE: 3, E: 3, SE: 3 };
+        const rowByFacing = { S: 0, SW: 3, W: 3, NW: 3, N: 1, NE: 3, E: 3, SE: 3 };
         return (rowByFacing[this.playerFacing] ?? 0) * MALCOLM_STATION_ASSET.cols;
       }
 
@@ -1419,7 +1472,7 @@
 
     animForFacing() {
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
-        const nameByFacing = { S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' };
+        const nameByFacing = { S:'south', SW:'east', W:'east', NW:'east', N:'north', NE:'east', E:'east', SE:'east' };
         return `station_malcolm_walk_${nameByFacing[this.playerFacing] || 'south'}`;
       }
 
@@ -1430,8 +1483,12 @@
     updatePlayerVisual(moving) {
       const x = this.playerBody.x;
       const y = this.playerBody.y;
+      const mirrorLeft = ['W', 'SW', 'NW'].includes(this.playerFacing);
+
       if (this.playerSprite) {
         this.playerSprite.setPosition(x, y);
+        this.playerSprite.setFlipX(mirrorLeft);
+
         if (moving) {
           const key = this.animForFacing();
           if (this.playerSprite.anims.currentAnim?.key !== key || !this.playerSprite.anims.isPlaying) {
@@ -1456,7 +1513,9 @@
       return { vx: vx / len, vy: vy / len };
     }
 
-    update() {
+    update(time, delta) {
+      if (this.transitionCooldown > 0) this.transitionCooldown -= delta || 16;
+
       if (this.floorMenuOpen) {
         if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
         this.updatePlayerVisual(false);
@@ -1473,6 +1532,8 @@
       }
 
       this.updatePlayerVisual(moving);
+
+      this.checkAutoTransitions();
 
       const spot = this.getCurrentHotspot();
       this.currentHotspot = spot;
@@ -1523,13 +1584,8 @@
         return;
       }
 
-      if (h.id === 'stairs_to_floor2') {
-        this.changeStationFloor('floor2', 'stairsFromFloor1', 'Came up the stairs to Floor 2.');
-        return;
-      }
-
-      if (h.id === 'stairs_to_floor1') {
-        this.changeStationFloor('floor1', 'stairsFromFloor2', 'Came down the stairs to Floor 1.');
+      if (h.id === 'stairs_to_floor2' || h.id === 'stairs_to_floor1') {
+        this.promptText.setText('Walk onto the stairs to change floors.');
         return;
       }
 
@@ -1647,7 +1703,8 @@
       this.scene.start('PoliceStationScene', {
         floor: floorId,
         spawn,
-        message
+        message,
+        fromAutoTransition: spawnKey && spawnKey.startsWith('stairs')
       });
     }
   }
