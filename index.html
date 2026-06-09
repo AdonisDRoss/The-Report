@@ -32,6 +32,7 @@
   // STATION_PROPS_RESTORED_PLAYER_115: restored station prop overlay and reduced Malcolm scale to 1.15.
   // STATION_CLEAN_PROPS_PLAYER_085_007: white removed from prop overlay; Malcolm scale reduced to 0.85; exit enlarged.
   // STATION_VISIBLE_PROPS_AUTO_EXIT_006: procedural station props visible even if overlay image is blank; bottom door auto-exits.
+  // STATION_PROP_PIECES_PATH_011: loads raw prop pieces sheet from assets/interiors/police_station/props.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -241,6 +242,11 @@
       key: 'police_station_props_sheet',
       path: 'assets/interiors/police_station/police_station_props_sheet.png'
     }
+  };
+
+  const POLICE_STATION_PROP_PIECES_ASSET = {
+    key: 'police_station_prop_pieces_sheet_raw',
+    path: 'assets/interiors/police_station/props/police_station_prop_pieces_sheet_raw.png'
   };
 
 
@@ -1022,6 +1028,7 @@
       this.load.image(POLICE_STATION_ASSETS.base.key, A(POLICE_STATION_ASSETS.base.path));
       this.load.image(POLICE_STATION_ASSETS.props.key, A(POLICE_STATION_ASSETS.props.path));
       this.load.image(POLICE_STATION_ASSETS.propSheet.key, A(POLICE_STATION_ASSETS.propSheet.path));
+      this.load.image(POLICE_STATION_PROP_PIECES_ASSET.key, A(POLICE_STATION_PROP_PIECES_ASSET.path));
       this.load.spritesheet(MALCOLM_STATION_ASSET.key, A(MALCOLM_STATION_ASSET.path), {
         frameWidth: MALCOLM_STATION_ASSET.frameWidth,
         frameHeight: MALCOLM_STATION_ASSET.frameHeight
@@ -1139,6 +1146,26 @@
       this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
       this.input.keyboard.on('keydown-A', () => this.handleInteract());
       this.input.keyboard.on('keydown-O', () => { if (this.stationPropsLayer) this.stationPropsLayer.setVisible(!this.stationPropsLayer.visible); });
+
+      // K toggles the raw prop-pieces sheet preview. It loads from the Git path below:
+      // assets/interiors/police_station/props/police_station_prop_pieces_sheet_raw.png
+      this.stationPropPiecesPreview = null;
+      this.input.keyboard.on('keydown-K', () => {
+        if (!this.textures.exists(POLICE_STATION_PROP_PIECES_ASSET.key)) {
+          this.promptText?.setText('Prop pieces sheet not loaded.');
+          return;
+        }
+        if (!this.stationPropPiecesPreview) {
+          this.stationPropPiecesPreview = this.add.image(800, 500, POLICE_STATION_PROP_PIECES_ASSET.key)
+            .setOrigin(0.5)
+            .setScale(0.35)
+            .setDepth(80)
+            .setAlpha(0.95)
+            .setVisible(false);
+        }
+        this.stationPropPiecesPreview.setVisible(!this.stationPropPiecesPreview.visible);
+        this.promptText?.setText(this.stationPropPiecesPreview.visible ? 'K: prop pieces preview ON' : 'K: prop pieces preview OFF');
+      });
       this.createMobileControls();
       this.setupStationUiCamera();
     }
