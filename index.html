@@ -240,6 +240,59 @@
     }
   };
 
+  const POLICE_STATION_LEVEL_ASSETS = {
+    floor1: {
+      id: 'floor1',
+      title: 'FLOOR 1 — MAIN STATION',
+      baseKey: POLICE_STATION_ASSETS.base.key,
+      basePath: POLICE_STATION_ASSETS.base.path,
+      propsKey: POLICE_STATION_ASSETS.props.key,
+      propsPath: POLICE_STATION_ASSETS.props.path,
+      spawns: {
+        default: { x: 800, y: 825, facing: 'N' },
+        elevator: { x: 800, y: 725, facing: 'N' },
+        stairsFromFloor2: { x: 760, y: 170, facing: 'S' }
+      }
+    },
+    floor2: {
+      id: 'floor2',
+      title: 'FLOOR 2 — OFFICES / CHIEF',
+      baseKey: 'police_station_floor2_base',
+      basePath: 'assets/interiors/police_station/floor2/police_station_floor2_base.png',
+      propsKey: 'police_station_floor2_props_overlay',
+      propsPath: 'assets/interiors/police_station/floor2/police_station_floor2_props_overlay.png',
+      spawns: {
+        default: { x: 800, y: 250, facing: 'S' },
+        elevator: { x: 800, y: 250, facing: 'S' },
+        stairsFromFloor1: { x: 760, y: 820, facing: 'N' }
+      }
+    },
+    b1: {
+      id: 'b1',
+      title: 'B1 — RECORDS / EVIDENCE',
+      baseKey: 'police_station_b1_base',
+      basePath: 'assets/interiors/police_station/b1/police_station_b1_base.png',
+      propsKey: 'police_station_b1_props_overlay',
+      propsPath: 'assets/interiors/police_station/b1/police_station_b1_props_overlay.png',
+      spawns: {
+        default: { x: 800, y: 245, facing: 'S' },
+        elevator: { x: 800, y: 245, facing: 'S' }
+      }
+    },
+    motorPool: {
+      id: 'motorPool',
+      title: 'B3 — MOTOR POOL',
+      baseKey: 'police_station_motor_pool_base',
+      basePath: 'assets/interiors/police_station/motor_pool/police_station_motor_pool_base.png',
+      propsKey: 'police_station_motor_pool_props_overlay',
+      propsPath: 'assets/interiors/police_station/motor_pool/police_station_motor_pool_props_overlay.png',
+      spawns: {
+        default: { x: 800, y: 790, facing: 'N' },
+        elevator: { x: 800, y: 790, facing: 'N' }
+      }
+    }
+  };
+
 
   let THEME_MUSIC = null;
 
@@ -999,15 +1052,21 @@
 
   class PoliceStationScene extends Phaser.Scene {
     constructor() { super('PoliceStationScene'); }
+    init(data) { this.entryData = data || {}; }
 
     preload() {
-      this.load.image(POLICE_STATION_ASSETS.base.key, A(POLICE_STATION_ASSETS.base.path));
-      this.load.image(POLICE_STATION_ASSETS.props.key, A(POLICE_STATION_ASSETS.props.path));
+      for (const level of Object.values(POLICE_STATION_LEVEL_ASSETS)) {
+        this.load.image(level.baseKey, A(level.basePath));
+        this.load.image(level.propsKey, A(level.propsPath));
+      }
+
       this.load.image(POLICE_STATION_ASSETS.propSheet.key, A(POLICE_STATION_ASSETS.propSheet.path));
+
       this.load.spritesheet(MALCOLM_STATION_ASSET.key, A(MALCOLM_STATION_ASSET.path), {
         frameWidth: MALCOLM_STATION_ASSET.frameWidth,
         frameHeight: MALCOLM_STATION_ASSET.frameHeight
       });
+
       this.load.spritesheet(PLAYER_ASSET.key, A(PLAYER_ASSET.path), {
         frameWidth: PLAYER_ASSET.frameWidth,
         frameHeight: PLAYER_ASSET.frameHeight
@@ -1025,10 +1084,12 @@
     }
 
     create() {
-      // Station control lock: fixed UI camera + manual screen-coordinate mobile buttons.
       this.stationW = 1600;
       this.stationH = 1000;
-      this.stationPlayerScale = MALCOLM_STATION_ASSET.scale; // new 96x128 station Malcolm sheet scale
+      this.stationPlayerScale = MALCOLM_STATION_ASSET.scale;
+      this.floorId = POLICE_STATION_LEVEL_ASSETS[this.entryData.floor] ? this.entryData.floor : 'floor1';
+      this.floorData = POLICE_STATION_LEVEL_ASSETS[this.floorId];
+
       this.physics.world.setBounds(0, 0, this.stationW, this.stationH);
       this.cameras.main.setBounds(0, 0, this.stationW, this.stationH);
       this.cameras.main.setBackgroundColor('#05070b');
@@ -1041,49 +1102,36 @@
 
       this.mobile = { up:false, down:false, left:false, right:false, a:false };
       this.uiObjects = [];
+      this.floorMenuOpen = false;
 
-      this.add.image(0, 0, POLICE_STATION_ASSETS.base.key)
+      this.add.image(0, 0, this.floorData.baseKey)
         .setOrigin(0, 0)
         .setDisplaySize(this.stationW, this.stationH)
         .setDepth(0);
 
-      this.stationPropsLayer = this.add.image(0, 0, POLICE_STATION_ASSETS.props.key)
+      this.stationPropsLayer = this.add.image(0, 0, this.floorData.propsKey)
         .setOrigin(0, 0)
         .setDisplaySize(this.stationW, this.stationH)
         .setDepth(8)
-        .setVisible(true); // blank overlay; use separate prop sheet for future placed sprites
+        .setVisible(true);
 
-      // Bottom-middle station door circled in the user's screenshot.
-      this.exitZone = {
-        id: 'station_exit_main',
-        x: 720,
-        y: 895,
-        w: 175,
-        h: 95,
-        label: 'Exit to Central Street'
-      };
-
-      this.hotspots = [
-        this.exitZone,
-        { id:'station_phone', x:410, y:500, w:120, h:120, label:'Use Station Phone' },
-        { id:'report_room', x:85, y:80, w:240, h:230, label:'File Report' },
-        { id:'evidence_intake', x:360, y:80, w:280, h:230, label:'Submit Evidence' },
-        { id:'stairs_floor_2', x:700, y:70, w:120, h:265, label:'Stairs to Floor 2 - Locked' },
-        { id:'holding_cells', x:995, y:80, w:365, h:260, label:'Check Holding Cells' }
-      ];
+      this.hotspots = this.makeHotspotsForFloor(this.floorId);
 
       this.walls = this.physics.add.staticGroup();
       this.addCollisionRects();
 
-      const startX = 800;
-      const startY = 825;
+      const spawn = this.entryData.spawn || this.floorData.spawns.default;
+      const startX = spawn.x;
+      const startY = spawn.y;
+
       this.playerBody = this.add.rectangle(startX, startY, 42, 64, COLORS.blue, 0.0).setDepth(30);
       this.physics.add.existing(this.playerBody);
       this.playerBody.body.setCollideWorldBounds(true);
       this.physics.add.collider(this.playerBody, this.walls);
 
-      this.playerFacing = 'S';
+      this.playerFacing = spawn.facing || 'S';
       this.playerSprite = null;
+
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
         this.createPlayerAnims();
         this.playerSprite = this.add.sprite(startX, startY, MALCOLM_STATION_ASSET.key, this.frameForFacing())
@@ -1102,26 +1150,41 @@
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(0.68); // locked station room zoom
+      this.cameras.main.setZoom(0.68);
 
       this.promptBg = this.add.rectangle(VIEW_W / 2, VIEW_H - 38, 760, 42, 0x02060a, 0.72)
         .setScrollFactor(0)
         .setDepth(2000);
-      this.promptText = makeText(this, VIEW_W / 2, VIEW_H - 47, 'Raven Hook Police Station Floor 1', 15, '#f4d28a', true)
+      this.promptText = makeText(this, VIEW_W / 2, VIEW_H - 47, this.floorData.title, 15, '#f4d28a', true)
         .setOrigin(0.5)
         .setDepth(2001);
-      this.infoText = makeText(this, 18, 18, 'POLICE STATION FLOOR 1 | A/B interact | Bottom middle door exits to street', 14, '#86e7ff', true)
+      this.infoText = makeText(this, 18, 18, `${this.floorData.title} | A/E interact | Elevator opens floor prompt`, 14, '#86e7ff', true)
         .setDepth(2001);
-      this.uiObjects.push(this.promptBg, this.promptText, this.infoText);
+      this.registerStationUi(this.promptBg);
+      this.registerStationUi(this.promptText);
+      this.registerStationUi(this.infoText);
 
       this.input.keyboard.on('keydown-E', () => this.handleInteract());
       this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
       this.input.keyboard.on('keydown-A', () => this.handleInteract());
       this.input.keyboard.on('keydown-O', () => { if (this.stationPropsLayer) this.stationPropsLayer.setVisible(!this.stationPropsLayer.visible); });
+      this.input.keyboard.on('keydown', (event) => this.handleFloorPromptKey(event));
+
       this.createMobileControls();
       this.setupStationUiCamera();
+
+      if (this.entryData.message) this.promptText.setText(this.entryData.message);
     }
 
+    registerStationUi(obj) {
+      if (!obj) return obj;
+      if (!this.uiObjects) this.uiObjects = [];
+      if (!this.uiObjects.includes(obj)) this.uiObjects.push(obj);
+      if (obj.setScrollFactor) obj.setScrollFactor(0);
+      if (obj.setDepth && obj.depth < 2000) obj.setDepth(2000);
+      if (this.cameras?.main) this.cameras.main.ignore(obj);
+      return obj;
+    }
 
     setupStationUiCamera() {
       if (this.uiCamera) return;
@@ -1134,8 +1197,6 @@
         .setName('StationUICamera');
 
       this.uiCamera.roundPixels = true;
-
-      // Keep the mobile controls/HUD fixed on-screen while the station camera follows Malcolm.
       this.cameras.main.ignore(uiObjects);
 
       const uiSet = new Set(uiObjects);
@@ -1143,36 +1204,81 @@
       this.uiCamera.ignore(worldObjects);
     }
 
+    makeHotspotsForFloor(floorId) {
+      if (floorId === 'floor1') {
+        return [
+          { id:'station_exit_main', x:720, y:895, w:175, h:95, label:'Exit to Central Street' },
+          { id:'station_elevator', x:700, y:700, w:210, h:145, label:'Elevator' },
+          { id:'stairs_to_floor2', x:690, y:55, w:180, h:275, label:'Stairs to Floor 2' },
+          { id:'station_phone', x:410, y:500, w:120, h:120, label:'Use Station Phone' },
+          { id:'report_room', x:85, y:80, w:240, h:230, label:'File Report' },
+          { id:'evidence_intake', x:360, y:80, w:280, h:230, label:'Submit Evidence' },
+          { id:'holding_cells', x:995, y:80, w:365, h:260, label:'Check Holding Cells' }
+        ];
+      }
+
+      if (floorId === 'floor2') {
+        return [
+          { id:'station_elevator', x:665, y:55, w:270, h:205, label:'Elevator' },
+          { id:'stairs_to_floor1', x:650, y:770, w:260, h:180, label:'Stairs Down to Floor 1' },
+          { id:'chief_office', x:1000, y:120, w:360, h:265, label:'Chief / Command Offices' },
+          { id:'detective_bullpen', x:480, y:385, w:520, h:330, label:'Detective Offices' }
+        ];
+      }
+
+      if (floorId === 'b1') {
+        return [
+          { id:'station_elevator', x:665, y:45, w:270, h:210, label:'Elevator' },
+          { id:'records_evidence', x:60, y:150, w:430, h:690, label:'Records / Evidence Room' },
+          { id:'task_force_room', x:520, y:170, w:520, h:670, label:"Malcolm's Task Force Room — Empty" },
+          { id:'utility_room', x:1080, y:150, w:430, h:690, label:'Storage / Utility Room' }
+        ];
+      }
+
+      if (floorId === 'motorPool') {
+        return [
+          { id:'station_elevator', x:690, y:760, w:230, h:185, label:'Elevator' },
+          { id:'repair_bays', x:460, y:95, w:660, h:360, label:'Repair Bays' },
+          { id:'motor_pool_office', x:55, y:575, w:450, h:310, label:'Motor Pool Office' }
+        ];
+      }
+
+      return [];
+    }
+
     addCollisionRects() {
       const rects = [
-        // Keep collision light for first pass. We want to test navigation before tightening it.
         { x:0, y:0, w:1600, h:28 },
         { x:0, y:972, w:1600, h:28 },
         { x:0, y:0, w:28, h:1000 },
-        { x:1572, y:0, w:28, h:1000 },
-
-        // Front desk / counter
-        { x:390, y:505, w:300, h:140 },
-
-        // Large bullpen desk clusters
-        { x:330, y:140, w:330, h:290 },
-
-        // Holding cells and bars area
-        { x:995, y:60, w:355, h:245 },
-
-        // Booking counter
-        { x:980, y:350, w:310, h:95 },
-
-        // Locker room fixtures
-        { x:1040, y:700, w:300, h:130 },
-
-        // Garage/utility clutter
-        { x:1330, y:600, w:220, h:300 },
-
-        // Report/evidence fixed furniture
-        { x:50, y:40, w:280, h:250 },
-        { x:55, y:595, w:300, h:285 }
+        { x:1572, y:0, w:28, h:1000 }
       ];
+
+      if (this.floorId === 'floor1') {
+        rects.push(
+          { x:390, y:505, w:300, h:140 },
+          { x:330, y:140, w:330, h:290 },
+          { x:995, y:60, w:355, h:245 },
+          { x:980, y:350, w:310, h:95 },
+          { x:1040, y:700, w:300, h:130 },
+          { x:1330, y:600, w:220, h:300 },
+          { x:50, y:40, w:280, h:250 },
+          { x:55, y:595, w:300, h:285 }
+        );
+      }
+
+      if (this.floorId === 'b1') {
+        rects.push(
+          { x:495, y:120, w:32, h:735 },
+          { x:1040, y:120, w:32, h:735 }
+        );
+      }
+
+      if (this.floorId === 'motorPool') {
+        rects.push(
+          { x:70, y:565, w:430, h:320 }
+        );
+      }
 
       for (const r of rects) {
         const block = this.add.rectangle(r.x + r.w / 2, r.y + r.h / 2, r.w, r.h, 0xff0000, 0);
@@ -1205,14 +1311,13 @@
 
         c.add([bg, tx]);
 
-        // Visuals are fixed. Real input is handled manually by screen coordinates below,
-        // which is more reliable on iPhone/Safari with multiple cameras.
-        if (this.uiObjects) this.uiObjects.push(c, bg, tx);
+        this.registerStationUi(c);
+        this.registerStationUi(bg);
+        this.registerStationUi(tx);
         this.controlZones.push({ x, y, key, radius: radius + 26 });
         return c;
       };
 
-      // Raised mobile layout so Safari's bottom bar does not cover buttons.
       const dX = 96;
       const dY = VIEW_H - 170;
 
@@ -1264,18 +1369,10 @@
 
       if (hits.includes('a')) this.handleInteract();
       if (hits.includes('b')) this.handleInteract();
-      if (hits.includes('x')) {
-        this.promptText?.setText('X: station systems placeholder.');
-      }
-      if (hits.includes('y')) {
-        this.promptText?.setText('Y: report/evidence shortcut placeholder.');
-      }
-      if (hits.includes('sel')) {
-        this.promptText?.setText('SEL: station debug placeholder.');
-      }
-      if (hits.includes('sta')) {
-        this.promptText?.setText('STA: pause placeholder.');
-      }
+      if (hits.includes('x')) this.promptText?.setText('X: station systems placeholder.');
+      if (hits.includes('y')) this.promptText?.setText('Y: report/evidence shortcut placeholder.');
+      if (hits.includes('sel')) this.promptText?.setText('SEL: station debug placeholder.');
+      if (hits.includes('sta')) this.promptText?.setText('STA: pause placeholder.');
     }
 
     clearStationPointer(pointer) {
@@ -1292,7 +1389,6 @@
         const rows = [
           ['south', 0],
           ['north', 1],
-          // Uploaded Malcolm station sheet: row 2 = left/west, row 3 = right/east.
           ['west', 2],
           ['east', 3]
         ];
@@ -1311,7 +1407,6 @@
       }
     }
 
-
     frameForFacing() {
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
         const rowByFacing = { S: 0, SW: 2, W: 2, NW: 2, N: 1, NE: 3, E: 3, SE: 3 };
@@ -1322,7 +1417,6 @@
       return (rowByFacing[this.playerFacing] || 0) * 6;
     }
 
-
     animForFacing() {
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
         const nameByFacing = { S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' };
@@ -1332,7 +1426,6 @@
       const nameByFacing = { S:'south', SW:'southwest', W:'west', NW:'northwest', N:'north', NE:'northeast', E:'east', SE:'southeast' };
       return `station_detective_walk_${nameByFacing[this.playerFacing] || 'south'}`;
     }
-
 
     updatePlayerVisual(moving) {
       const x = this.playerBody.x;
@@ -1364,6 +1457,12 @@
     }
 
     update() {
+      if (this.floorMenuOpen) {
+        if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+        this.updatePlayerVisual(false);
+        return;
+      }
+
       const d = this.inputDir();
       const moving = Math.abs(d.vx) > 0.01 || Math.abs(d.vy) > 0.01;
       this.playerBody.body.setVelocity(d.vx * 240, d.vy * 240);
@@ -1377,7 +1476,7 @@
 
       const spot = this.getCurrentHotspot();
       this.currentHotspot = spot;
-      this.promptText.setText(spot ? `A/E: ${spot.label}` : 'Police Station Floor 1 | Bottom middle door exits to street');
+      this.promptText.setText(spot ? `A/E: ${spot.label}` : `${this.floorData.title} | A/E interact`);
     }
 
     getCurrentHotspot() {
@@ -1389,6 +1488,8 @@
     }
 
     handleInteract() {
+      if (this.floorMenuOpen) return;
+
       const h = this.currentHotspot || this.getCurrentHotspot();
       if (!h) return;
 
@@ -1398,6 +1499,21 @@
           spawn: { x: 552, y: 690 },
           message: 'Exited Raven Hook Police Station.'
         });
+        return;
+      }
+
+      if (h.id === 'station_elevator') {
+        this.showFloorPrompt();
+        return;
+      }
+
+      if (h.id === 'stairs_to_floor2') {
+        this.changeStationFloor('floor2', 'stairsFromFloor1', 'Came up the stairs to Floor 2.');
+        return;
+      }
+
+      if (h.id === 'stairs_to_floor1') {
+        this.changeStationFloor('floor1', 'stairsFromFloor2', 'Came down the stairs to Floor 1.');
         return;
       }
 
@@ -1416,17 +1532,110 @@
         return;
       }
 
-      if (h.id === 'stairs_floor_2') {
-        this.promptText.setText('Floor 2 is locked until the station expansion update.');
-        return;
-      }
-
       if (h.id === 'holding_cells') {
         this.promptText.setText('Holding cells ready. Arrested suspects will appear here.');
         return;
       }
+
+      if (h.id === 'task_force_room') {
+        this.promptText.setText("Malcolm's task force room is empty for now.");
+        return;
+      }
+
+      this.promptText.setText(h.label || this.floorData.title);
+    }
+
+    showFloorPrompt() {
+      this.floorMenuOpen = true;
+      if (this.floorMenu) this.floorMenu.destroy(true);
+
+      const c = this.add.container(VIEW_W / 2, VIEW_H / 2).setScrollFactor(0).setDepth(3000);
+      const bg = this.add.rectangle(0, 0, 520, 300, 0x02060a, 0.92).setStrokeStyle(2, COLORS.cyan, 0.9);
+      const title = this.add.text(0, -120, 'ELEVATOR', {
+        fontFamily: 'Courier New',
+        fontSize: '24px',
+        color: '#f4d28a',
+        stroke: '#000',
+        strokeThickness: 4
+      }).setOrigin(0.5);
+      const help = this.add.text(0, 118, 'Keyboard: 2 / B / 3   |   Tap a floor   |   ESC closes', {
+        fontFamily: 'Courier New',
+        fontSize: '13px',
+        color: '#86e7ff',
+        stroke: '#000',
+        strokeThickness: 3
+      }).setOrigin(0.5);
+
+      c.add([bg, title, help]);
+
+      const addOption = (y, label, floorId) => {
+        const box = this.add.rectangle(0, y, 420, 48, 0x111827, 0.95).setStrokeStyle(2, COLORS.amber, 0.85);
+        const tx = this.add.text(0, y - 10, label, {
+          fontFamily: 'Courier New',
+          fontSize: '17px',
+          color: '#ffffff',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+        box.setInteractive({ useHandCursor: true });
+        box.on('pointerdown', () => this.changeStationFloor(floorId, 'elevator', `Elevator: ${label}`));
+        c.add([box, tx]);
+      };
+
+      addOption(-55, '2 — OFFICES / CHIEF OFFICE', 'floor2');
+      addOption(5, 'B1 — RECORDS / EVIDENCE', 'b1');
+      addOption(65, 'B3 — MOTOR POOL', 'motorPool');
+
+      this.floorMenu = c;
+      this.registerStationUi(c);
+      this.cameras.main.ignore(c);
+    }
+
+    handleFloorPromptKey(event) {
+      if (!this.floorMenuOpen) return;
+      const key = String(event.key || '').toLowerCase();
+
+      if (key === 'escape') {
+        this.closeFloorPrompt();
+        return;
+      }
+
+      if (key === '2') {
+        this.changeStationFloor('floor2', 'elevator', 'Elevator: Floor 2 offices.');
+        return;
+      }
+
+      if (key === '1' || key === 'b') {
+        this.changeStationFloor('b1', 'elevator', 'Elevator: B1 records / evidence.');
+        return;
+      }
+
+      if (key === '3') {
+        this.changeStationFloor('motorPool', 'elevator', 'Elevator: B3 motor pool.');
+        return;
+      }
+    }
+
+    closeFloorPrompt() {
+      this.floorMenuOpen = false;
+      if (this.floorMenu) {
+        this.floorMenu.destroy(true);
+        this.floorMenu = null;
+      }
+      this.promptText?.setText(this.floorData.title);
+    }
+
+    changeStationFloor(floorId, spawnKey = 'elevator', message = '') {
+      const next = POLICE_STATION_LEVEL_ASSETS[floorId] || POLICE_STATION_LEVEL_ASSETS.floor1;
+      const spawn = next.spawns[spawnKey] || next.spawns.default;
+      this.scene.start('PoliceStationScene', {
+        floor: floorId,
+        spawn,
+        message
+      });
     }
   }
+
 
 
   class InteriorScene extends Phaser.Scene {
