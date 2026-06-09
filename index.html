@@ -27,6 +27,7 @@
   window.addEventListener('contextmenu', (e) => e.preventDefault());
 
   // BUILD_NOTE_LOCKED_CONTROLS_ROOFS_ZOOM: roof depth + enterable buildings + UI camera locked controls + close zoom.
+  // STATION_SHEET_DIRECTION_FIX_001: swapped Malcolm station east/west rows for 96x128 sheet.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -990,12 +991,7 @@
     handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
     tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
     updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
-    redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
-  }
-
-
-
-  class PoliceStationScene extends Phaser.Scene {
+    redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCclass PoliceStationScene extends Phaser.Scene {
     constructor() { super('PoliceStationScene'); }
 
     preload() {
@@ -1290,8 +1286,10 @@
         const rows = [
           ['south', 0],
           ['north', 1],
-          ['east', 2],
-          ['west', 3]
+          // Sheet row 2 visually faces LEFT/WEST.
+          // Sheet row 3 visually faces RIGHT/EAST.
+          ['west', 2],
+          ['east', 3]
         ];
 
         for (const [name, row] of rows) {
@@ -1311,7 +1309,7 @@
 
     frameForFacing() {
       if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
-        const rowByFacing = { S: 0, SW: 3, W: 3, NW: 3, N: 1, NE: 2, E: 2, SE: 2 };
+        const rowByFacing = { S: 0, SW: 2, W: 2, NW: 2, N: 1, NE: 3, E: 3, SE: 3 };
         return (rowByFacing[this.playerFacing] ?? 0) * MALCOLM_STATION_ASSET.cols;
       }
 
@@ -1420,6 +1418,13 @@
 
       if (h.id === 'holding_cells') {
         this.promptText.setText('Holding cells ready. Arrested suspects will appear here.');
+        return;
+      }
+    }
+  }
+
+
+  ding cells ready. Arrested suspects will appear here.');
         return;
       }
     }
