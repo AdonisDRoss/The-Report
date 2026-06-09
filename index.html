@@ -1006,7 +1006,7 @@
       // Station control lock: fixed UI camera + manual screen-coordinate mobile buttons.
       this.stationW = 1600;
       this.stationH = 1000;
-      this.stationPlayerScale = 0.78; // chair-reference scale lock
+      this.stationPlayerScale = 1.08; // chair-reference scale lock: larger station Malcolm
       this.physics.world.setBounds(0, 0, this.stationW, this.stationH);
       this.cameras.main.setBounds(0, 0, this.stationW, this.stationH);
       this.cameras.main.setBackgroundColor('#05070b');
@@ -1025,10 +1025,11 @@
         .setDisplaySize(this.stationW, this.stationH)
         .setDepth(0);
 
-      this.add.image(0, 0, POLICE_STATION_ASSETS.props.key)
+      this.stationPropsLayer = this.add.image(0, 0, POLICE_STATION_ASSETS.props.key)
         .setOrigin(0, 0)
         .setDisplaySize(this.stationW, this.stationH)
-        .setDepth(8);
+        .setDepth(8)
+        .setVisible(false); // prop overlay disabled until we rebuild it cleanly
 
       // Bottom-middle station door circled in the user's screenshot.
       this.exitZone = {
@@ -1054,7 +1055,7 @@
 
       const startX = 800;
       const startY = 825;
-      this.playerBody = this.add.rectangle(startX, startY, 28, 38, COLORS.blue, 0.0).setDepth(30);
+      this.playerBody = this.add.rectangle(startX, startY, 34, 46, COLORS.blue, 0.0).setDepth(30);
       this.physics.add.existing(this.playerBody);
       this.playerBody.body.setCollideWorldBounds(true);
       this.physics.add.collider(this.playerBody, this.walls);
@@ -1088,6 +1089,7 @@
       this.input.keyboard.on('keydown-E', () => this.handleInteract());
       this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
       this.input.keyboard.on('keydown-A', () => this.handleInteract());
+      this.input.keyboard.on('keydown-O', () => { if (this.stationPropsLayer) this.stationPropsLayer.setVisible(!this.stationPropsLayer.visible); });
       this.createMobileControls();
       this.setupStationUiCamera();
     }
