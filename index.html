@@ -30,6 +30,7 @@
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
   // STATION_LEFT_FLIP_RIGHT_004: left-facing station walk now uses right/east row with flipX.
   // STATION_PROPS_RESTORED_PLAYER_115: restored station prop overlay and reduced Malcolm scale to 1.15.
+  // STATION_CLEAN_PROPS_PLAYER_085_007: white removed from prop overlay; Malcolm scale reduced to 0.85; exit enlarged.
   // STATION_VISIBLE_PROPS_AUTO_EXIT_006: procedural station props visible even if overlay image is blank; bottom door auto-exits.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
@@ -179,7 +180,7 @@
     path: 'assets/characters/main_detective/malcolm_station_new_4dir_12x4_96x128.png',
     frameWidth: 96,
     frameHeight: 128,
-    scale: 1.15,
+    scale: 0.85,
     originY: 0.90,
     cols: 12
   };
@@ -1068,18 +1069,18 @@
         .setOrigin(0, 0)
         .setDisplaySize(this.stationW, this.stationH)
         .setDepth(8)
-        .setVisible(true); // station props restored // blank overlay; use separate prop sheet for future placed sprites
+        .setVisible(true); // cleaned station prop overlay restored // station props restored // blank overlay; use separate prop sheet for future placed sprites
 
-      this.drawStationVisibleProps();
+      // Cleaned PNG prop overlay is used now; procedural props disabled to avoid duplicates.
 
       // Bottom-middle station door circled in the user's screenshot.
       this.exitZone = {
         id: 'station_exit_main',
-        // Bigger exit area so Malcolm can leave reliably on mobile.
-        x: 610,
-        y: 815,
-        w: 420,
-        h: 180,
+        // Bigger bottom-door exit trigger for mobile.
+        x: 540,
+        y: 800,
+        w: 560,
+        h: 195,
         label: 'Exit to Central Street'
       };
 
@@ -1097,7 +1098,7 @@
 
       const startX = 800;
       const startY = 825;
-      this.playerBody = this.add.rectangle(startX, startY, 34, 52, COLORS.blue, 0.0).setDepth(30);
+      this.playerBody = this.add.rectangle(startX, startY, 26, 40, COLORS.blue, 0.0).setDepth(30);
       this.physics.add.existing(this.playerBody);
       this.playerBody.body.setCollideWorldBounds(true);
       this.physics.add.collider(this.playerBody, this.walls);
@@ -1117,7 +1118,7 @@
           .setScale(1.45)
           .setDepth(31);
       } else {
-        this.playerFallback = this.add.rectangle(startX, startY, 34, 52, COLORS.blue, 1).setDepth(31);
+        this.playerFallback = this.add.rectangle(startX, startY, 26, 40, COLORS.blue, 1).setDepth(31);
       }
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
@@ -1522,7 +1523,7 @@
       this.updatePlayerVisual(moving);
 
       // Walk through the bottom-middle door to exit. This fixes missed A/B presses on mobile.
-      if (this.playerBody.y > 910 && this.playerBody.x > 610 && this.playerBody.x < 1030) {
+      if (this.playerBody.y > 860 && this.playerBody.x > 540 && this.playerBody.x < 1100) {
         this.exitStation();
         return;
       }
