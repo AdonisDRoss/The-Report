@@ -33,6 +33,7 @@
   // ELEVATOR_FLOOR2_ACTUAL_DOOR_FIX: Floor 2 elevator hotspot covers the actual visible elevator cab/door area.
   // ELEVATOR_HARD_TRANSITION_FIX: Floor 2 elevator alcove uses a wide hotspot plus shared enterElevatorRoom().
   // ELEVATOR_REBUILT_FROM_GIT_FIX: PoliceStationScene elevator uses direct door zone transition before the visible elevator door.
+  // ELEVATOR_NO_FLOOR1_AUTOWARP_FIX: auto elevator transition only runs on Floor 2 so Floor 1 spawn cannot immediately warp.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -1621,9 +1622,9 @@
         return { x:700, y:35, w:360, h:345 };
       }
 
-      if (this.floorId === 'floor1') return { x:690, y:680, w:230, h:185 };
-      if (this.floorId === 'b1') return { x:655, y:35, w:290, h:230 };
-      if (this.floorId === 'motorPool') return { x:680, y:735, w:260, h:220 };
+      // Do not auto-warp on Floor 1/B1/Motor Pool.
+      // Their elevator spawns sit near the elevator, so auto-warp would loop immediately.
+      // Those floors still enter the elevator with A/E through handleInteract().
       return null;
     }
 
