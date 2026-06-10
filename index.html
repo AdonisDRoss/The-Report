@@ -31,6 +31,7 @@
   // STATION_OVERLAY_GIT_PROPS_PATH_014: station props layer now uses existing Git props-folder overlay path.
   // ELEVATOR_HOTSPOT_FLOOR2_RIGHT_FIX: Floor 2 elevator walk-in hotspot moved to the visible right-side elevator door.
   // ELEVATOR_FLOOR2_ACTUAL_DOOR_FIX: Floor 2 elevator hotspot covers the actual visible elevator cab/door area.
+  // ELEVATOR_HARD_TRANSITION_FIX: Floor 2 elevator alcove uses a wide hotspot plus shared enterElevatorRoom().
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -1050,14 +1051,7 @@
       }
 
       if (h.id === 'station_elevator') {
-        this.promptText?.setText('Entering elevator...');
-        this.cameras.main.fadeOut(140, 0, 0, 0);
-        this.time.delayedCall(150, () => {
-          this.scene.start('ElevatorRoomScene', {
-            fromFloor: this.floorId,
-            message: 'Entered elevator.'
-          });
-        });
+        this.enterElevatorRoom();
         return;
       }
 
@@ -1313,7 +1307,7 @@
 
       if (floorId === 'floor2') {
         return [
-          { id:'station_elevator', x:700, y:40, w:360, h:285, label:'Elevator' },
+          { id:'station_elevator', x:650, y:0, w:520, h:380, reach:260, label:'Elevator' },
           { id:'stairs_to_floor1', x:640, y:760, w:320, h:220, label:'Stairs Down to Floor 1' },
           { id:'chief_office', x:1000, y:120, w:360, h:265, label:'Chief / Command Offices' },
           { id:'detective_bullpen', x:480, y:385, w:520, h:330, label:'Detective Offices' }
@@ -1664,14 +1658,7 @@
       }
 
       if (h.id === 'station_elevator') {
-        if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
-        this.cameras.main.fadeOut(140, 0, 0, 0);
-        this.time.delayedCall(150, () => {
-          this.scene.start('ElevatorRoomScene', {
-            fromFloor: this.floorId,
-            message: 'Entered elevator.'
-          });
-        });
+        this.enterElevatorRoom();
         return;
       }
 
