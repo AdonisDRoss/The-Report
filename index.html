@@ -63,6 +63,25 @@
     case: { active: false, complete: false, suspectArrested: false, evidenceCollected: false, evidenceInTrunk: false, witnessStatement: false, reportFiled: false }
   };
 
+
+  const MOBILE_INPUT_STATE = {
+    up:false, down:false, left:false, right:false,
+    a:false, b:false, x:false, y:false, sel:false, sta:false,
+    analogX:0, analogY:0, useStick:true
+  };
+
+  function resetMobileInputState() {
+    for (const key of ['up','down','left','right','a','b','x','y','sel','sta']) MOBILE_INPUT_STATE[key] = false;
+    MOBILE_INPUT_STATE.analogX = 0;
+    MOBILE_INPUT_STATE.analogY = 0;
+  }
+
+  function launchGlobalMobileControls(scene) {
+    if (!scene || !scene.scene) return;
+    if (!scene.scene.isActive('MobileControlsScene')) scene.scene.launch('MobileControlsScene');
+    scene.scene.bringToTop('MobileControlsScene');
+  }
+
   const COLLISION_RECTS = [
     { id: 'precinct', x: 285, y: 155, w: 565, h: 430, type: 'building' },
     { id: 'garage', x: 725, y: 145, w: 210, h: 315, type: 'building' },
@@ -249,9 +268,9 @@
       propsKey: POLICE_STATION_ASSETS.props.key,
       propsPath: POLICE_STATION_ASSETS.props.path,
       spawns: {
-        default: { x: 800, y: 825, facing: 'N' },
-        elevator: { x: 800, y: 725, facing: 'N' },
-        stairsFromFloor2: { x: 760, y: 170, facing: 'S' }
+        default: { x: 800, y: 735, facing: 'N' },
+        elevator: { x: 800, y: 700, facing: 'N' },
+        stairsFromFloor2: { x: 760, y: 255, facing: 'S' }
       }
     },
     floor2: {
@@ -264,7 +283,7 @@
       spawns: {
         default: { x: 800, y: 250, facing: 'S' },
         elevator: { x: 800, y: 250, facing: 'S' },
-        stairsFromFloor1: { x: 760, y: 820, facing: 'N' }
+        stairsFromFloor1: { x: 760, y: 700, facing: 'N' }
       }
     },
     b1: {
@@ -442,7 +461,7 @@
       this.cameras.main.setBackgroundColor('#070b10');
 
       this.keys = this.input.keyboard.addKeys({ up:'W', down:'S', left:'A', right:'D', arrowUp:'UP', arrowDown:'DOWN', arrowLeft:'LEFT', arrowRight:'RIGHT', interact:'E', arrest:'SPACE', trunk:'T', report:'R' });
-      this.mobile = { up:false, down:false, left:false, right:false, a:false, b:false, x:false, y:false, analogX:0, analogY:0, useStick:true };
+      this.mobile = MOBILE_INPUT_STATE;
       this.inCar = false; this.shiftMinutes = 8 * 60; this.playerInventory = [];
       this.message = 'Loaded mobile-safe. Optional car art will stream in after gameplay starts.';
       this.objective = "Reach Benny's Market and trigger the shoplifting case.";
@@ -451,7 +470,7 @@
       this.debug = { collision:false, interaction:false, spawns:false };
       this.debugGraphics = this.add.graphics().setDepth(1100);
 
-      this.drawGround(); this.drawBuildings(); this.createCollision(); this.createEntities(); this.applyEntrySpawn(); this.createHUD(); this.createMobileControls(); this.setupUiCamera(); this.bindKeys();
+      this.drawGround(); this.drawBuildings(); this.createCollision(); this.createEntities(); this.applyEntrySpawn(); this.createHUD(); launchGlobalMobileControls(this); this.setupUiCamera(); this.bindKeys();
       this.cameras.main.roundPixels = true;
       this.cameras.main.startFollow(this.player, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
@@ -1000,7 +1019,7 @@
     }
 
     checkAutoTransitions() {
-      if (this.transitionLocked || this.floorMenuOpen) return;
+      if (this.transitionLocked || this.floorMenuOpen || this.transitionCooldown > 0) return;
 
       const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
       if (!h) return;
@@ -1009,7 +1028,11 @@
       if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
 
       if (h.id === 'station_exit_main') {
-        this.promptText.setText('Walk through the front door to exit.');
+        this.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: { x: 552, y: 690 },
+          message: 'Exited Raven Hook Police Station.'
+        });
         return;
       }
 
@@ -1139,10 +1162,11 @@
         interact: 'E', enter: 'ENTER'
       });
 
-      this.mobile = { up:false, down:false, left:false, right:false, a:false };
+      this.mobile = MOBILE_INPUT_STATE;
       this.uiObjects = [];
       this.floorMenuOpen = false;
       this.transitionLocked = false;
+      this.transitionCooldown = this.entryData.fromAutoTransition ? 900 : 350;
 
       this.add.image(0, 0, this.floorData.baseKey)
         .setOrigin(0, 0)
@@ -1210,8 +1234,12 @@
       this.input.keyboard.on('keydown-O', () => { if (this.stationPropsLayer) this.stationPropsLayer.setVisible(!this.stationPropsLayer.visible); });
       this.input.keyboard.on('keydown', (event) => this.handleFloorPromptKey(event));
 
-      this.createMobileControls();
+      launchGlobalMobileControls(this);
       this.setupStationUiCamera();
+      // Keep title theme alive after scene transition. On iOS this also retries after the user tap.
+      this.time.delayedCall(150, () => startTheme(this));
+      this.input.once('pointerdown', () => startTheme(this));
+
 
       if (this.entryData.message) this.promptText.setText(this.entryData.message);
     }
@@ -1500,7 +1528,9 @@
       return { vx: vx / len, vy: vy / len };
     }
 
-    update() {
+    update(time, delta) {
+      if (this.transitionCooldown > 0) this.transitionCooldown -= delta || 16;
+
       if (this.floorMenuOpen) {
         if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
         this.updatePlayerVisual(false);
@@ -1547,6 +1577,49 @@
       }
 
       return nearest;
+    }
+
+    getStrictHotspot(ids = []) {
+      const b = this.playerBody.getBounds();
+      const p = { x: this.playerBody.x, y: this.playerBody.y };
+
+      for (const h of this.hotspots) {
+        if (ids.length && !ids.includes(h.id)) continue;
+
+        const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
+        if (Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return h;
+      }
+
+      return null;
+    }
+
+    checkAutoTransitions() {
+      if (this.transitionLocked || this.floorMenuOpen) return;
+
+      const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
+      if (!h) return;
+
+      this.transitionLocked = true;
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+
+      if (h.id === 'station_exit_main') {
+        this.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: { x: 552, y: 690 },
+          message: 'Exited Raven Hook Police Station.'
+        });
+        return;
+      }
+
+      if (h.id === 'stairs_to_floor2') {
+        this.changeStationFloor('floor2', 'stairsFromFloor1', 'Came up the stairs to Floor 2.');
+        return;
+      }
+
+      if (h.id === 'stairs_to_floor1') {
+        this.changeStationFloor('floor1', 'stairsFromFloor2', 'Came down the stairs to Floor 1.');
+        return;
+      }
     }
 
     handleInteract() {
@@ -1688,7 +1761,8 @@
       this.scene.start('PoliceStationScene', {
         floor: floorId,
         spawn,
-        message
+        message,
+        fromAutoTransition: spawnKey && spawnKey.startsWith('stairs')
       });
     }
   }
@@ -1826,7 +1900,132 @@
     create(){ this.cameras.main.setBackgroundColor('#101018'); const g=this.add.graphics(); g.fillStyle(0xe0d0a5,1).fillRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); g.lineStyle(4,0x2b2117,1).strokeRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); const items=[["Correct location: Benny's Market",GAME.case.active],["Correct crime: Shoplifting",GAME.case.active],["Suspect arrested: Eddie Cross",GAME.case.suspectArrested],["Evidence collected: stolen cigarettes",GAME.case.evidenceCollected],["Evidence stored in trunk",GAME.case.evidenceInTrunk],["Witness statement: Marlene Pike",GAME.case.witnessStatement]]; let score=0; for(const i of items) if(i[1]) score+=100; if(score>=500&&!GAME.case.reportFiled){ GAME.xp+=score; GAME.case.complete=true; GAME.case.reportFiled=true; GAME.day+=1; } makeText(this,VIEW_W/2,74,'RAVEN HOOK POLICE DEPARTMENT',24,'#2b2117').setOrigin(0.5); makeText(this,VIEW_W/2,110,"INCIDENT REPORT — BENNY'S MARKET SHOPLIFTING",18,'#2b2117').setOrigin(0.5); let y=160; for(const [label,ok] of items){ makeText(this,160,y,`${ok?'✓':'✗'} ${label}`,18,ok?'#134f24':'#7a1c1c'); y+=38; } makeText(this,160,y+10,`REPORT SCORE: ${score} / 600`,22,'#2b2117'); makeText(this,160,y+50,score>=500?'Report accepted. Day advanced. XP awarded.':'Report incomplete. Return to the field and finish the case.',18,score>=500?'#134f24':'#7a1c1c'); makeText(this,VIEW_W/2,VIEW_H-78,'PRESS ENTER / TAP TO RETURN',18,'#2b2117').setOrigin(0.5); this.input.keyboard.once('keydown-ENTER',()=>this.scene.start('PoliceStationScene')); this.input.once('pointerdown',()=>this.scene.start('PoliceStationScene')); }
   }
 
-  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, GameScene, InteriorScene, ReportScene] });
+
+  class MobileControlsScene extends Phaser.Scene {
+    constructor() { super('MobileControlsScene'); }
+
+    create() {
+      this.input.addPointer(5);
+      this.input.mouse?.disableContextMenu();
+      this.activePointerControls = new Map();
+      this.drawControls();
+    }
+
+    drawControls() {
+      this.children.removeAll(true);
+
+      const addBtn = (x, y, label, key, color = 0x111827, radius = 30, font = '18px') => {
+        const c = this.add.container(x, y).setScrollFactor(0).setDepth(5000);
+        const bg = this.add.circle(0, 0, radius, color, 0.82).setStrokeStyle(2, 0xffffff, 0.65);
+        const tx = this.add.text(0, -8, label, {
+          fontFamily: 'Courier New',
+          fontSize: font,
+          color: '#fff',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+
+        c.add([bg, tx]);
+        c.setSize(radius * 2 + 18, radius * 2 + 18);
+        c.setInteractive(new Phaser.Geom.Circle(0, 0, radius + 18), Phaser.Geom.Circle.Contains);
+        c.on('pointerdown', (pointer) => {
+          this.setControl(key, true);
+          this.activePointerControls.set(pointer.id, [key]);
+          this.fireAction(key);
+        });
+        c.on('pointerup', (pointer) => this.releasePointer(pointer));
+        c.on('pointerout', (pointer) => this.releasePointer(pointer));
+        return c;
+      };
+
+      const dX = 96;
+      const dY = VIEW_H - 170;
+      addBtn(dX, dY - 76, '▲', 'up');
+      addBtn(dX, dY + 76, '▼', 'down');
+      addBtn(dX - 72, dY, '◀', 'left');
+      addBtn(dX + 72, dY, '▶', 'right');
+
+      const bX = VIEW_W - 96;
+      const bY = VIEW_H - 258;
+      addBtn(bX, bY, 'A', 'a', 0x1f4d2f, 32);
+      addBtn(bX - 72, bY + 52, 'B', 'b', 0x4d1f1f, 32);
+      addBtn(bX, bY + 104, 'X', 'x', 0x1f314d, 32);
+      addBtn(bX + 62, bY + 52, 'Y', 'y', 0x4d3b1f, 32);
+
+      addBtn(VIEW_W - 230, VIEW_H - 326, 'SEL', 'sel', 0x263241, 25, '12px');
+      addBtn(VIEW_W - 160, VIEW_H - 326, 'STA', 'sta', 0x263241, 25, '12px');
+
+      this.input.on('pointerup', (pointer) => this.releasePointer(pointer));
+      this.input.on('pointerupoutside', (pointer) => this.releasePointer(pointer));
+      this.events.on('shutdown', () => resetMobileInputState());
+    }
+
+    setControl(key, value) {
+      if (key in MOBILE_INPUT_STATE) MOBILE_INPUT_STATE[key] = value;
+    }
+
+    releasePointer(pointer) {
+      const keys = this.activePointerControls.get(pointer.id);
+      if (!keys) return;
+      for (const key of keys) this.setControl(key, false);
+      this.activePointerControls.delete(pointer.id);
+    }
+
+    getTargetScene() {
+      for (const key of ['PoliceStationScene', 'GameScene', 'InteriorScene', 'ReportScene']) {
+        const scene = this.scene.get(key);
+        if (scene?.scene?.isActive()) return scene;
+      }
+      return null;
+    }
+
+    fireAction(key) {
+      const target = this.getTargetScene();
+      if (!target) return;
+
+      if (key === 'a') {
+        if (typeof target.handleInteract === 'function') {
+          target.handleInteract();
+          return;
+        }
+        if (target.scene?.key === 'InteriorScene') {
+          target.scene.start('GameScene', {
+            fromStationExit: true,
+            spawn: target.dataIn?.returnSpawn || { x: 550, y: 675 },
+            message: `Exited ${target.dataIn?.title || 'building'}.`
+          });
+          return;
+        }
+        if (target.scene?.key === 'ReportScene') {
+          target.scene.start('PoliceStationScene');
+          return;
+        }
+      }
+
+      if (key === 'b') {
+        if (typeof target.tryArrest === 'function') target.tryArrest();
+        else if (typeof target.handleInteract === 'function') target.handleInteract();
+        return;
+      }
+
+      if (key === 'x') {
+        if (typeof target.handleTrunk === 'function') target.handleTrunk();
+        else if (target.promptText?.setText) target.promptText.setText('X: station systems placeholder.');
+        return;
+      }
+
+      if (key === 'y') {
+        if (typeof target.tryReport === 'function') target.tryReport();
+        else if (target.promptText?.setText) target.promptText.setText('Y: report/evidence shortcut placeholder.');
+        return;
+      }
+
+      if (key === 'sel' && target.promptText?.setText) target.promptText.setText('SEL: station debug placeholder.');
+      if (key === 'sta' && target.promptText?.setText) target.promptText.setText('STA: pause placeholder.');
+    }
+  }
+
+  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
 </script>
 </body>
