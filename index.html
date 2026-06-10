@@ -259,6 +259,17 @@
     }
   };
 
+
+  const ELEVATOR_ROOM_ASSET = {
+    key: 'elevator_room_base',
+    path: 'assets/interiors/police_station/elevator/elevator_room_base.png',
+    width: 1448,
+    height: 1086,
+    spawn: { x: 724, y: 610, facing: 'N' },
+    panelHotspot: { id: 'elevator_panel', x: 830, y: 230, w: 170, h: 165, label: 'Use Elevator Panel' },
+    doorHotspot: { id: 'elevator_door_exit', x: 540, y: 175, w: 380, h: 180, label: 'Exit Elevator' }
+  };
+
   const POLICE_STATION_LEVEL_ASSETS = {
     floor1: {
       id: 'floor1',
@@ -1242,6 +1253,7 @@
 
 
       if (this.entryData.message) this.promptText.setText(this.entryData.message);
+      if (this.entryData.fromElevatorRoom) this.cameras.main.fadeIn(180, 0, 0, 0);
     }
 
     registerStationUi(obj) {
@@ -1638,7 +1650,14 @@
       }
 
       if (h.id === 'station_elevator') {
-        this.showFloorPrompt();
+        if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+        this.cameras.main.fadeOut(140, 0, 0, 0);
+        this.time.delayedCall(150, () => {
+          this.scene.start('ElevatorRoomScene', {
+            fromFloor: this.floorId,
+            message: 'Entered elevator.'
+          });
+        });
         return;
       }
 
@@ -1768,6 +1787,430 @@
   }
 
 
+
+
+  class ElevatorRoomScene extends Phaser.Scene {
+    constructor() { super('ElevatorRoomScene'); }
+    init(data) { this.entryData = data || {}; }
+
+    preload() {
+      this.load.image(ELEVATOR_ROOM_ASSET.key, A(ELEVATOR_ROOM_ASSET.path));
+
+      if (!this.textures.exists(MALCOLM_STATION_ASSET.key)) {
+        this.load.spritesheet(MALCOLM_STATION_ASSET.key, A(MALCOLM_STATION_ASSET.path), {
+          frameWidth: MALCOLM_STATION_ASSET.frameWidth,
+          frameHeight: MALCOLM_STATION_ASSET.frameHeight
+        });
+      }
+
+      if (!this.cache.audio.exists(THEME_ASSET.key)) {
+        this.load.audio(THEME_ASSET.key, A(THEME_ASSET.path));
+      }
+    }
+
+    create() {
+      this.roomW = ELEVATOR_ROOM_ASSET.width;
+      this.roomH = ELEVATOR_ROOM_ASSET.height;
+      this.fromFloor = POLICE_STATION_LEVEL_ASSETS[this.entryData.fromFloor] ? this.entryData.fromFloor : 'floor1';
+      this.mobile = MOBILE_INPUT_STATE;
+      this.floorMenuOpen = false;
+      this.floorMenuSelection = 0;
+      this.prevMenuInput = { up:false, down:false, a:false, b:false };
+      this.uiObjects = [];
+
+      this.physics.world.setBounds(0, 0, this.roomW, this.roomH);
+      this.cameras.main.setBounds(0, 0, this.roomW, this.roomH);
+      this.cameras.main.setBackgroundColor('#05070b');
+
+      this.add.image(0, 0, ELEVATOR_ROOM_ASSET.key)
+        .setOrigin(0, 0)
+        .setDisplaySize(this.roomW, this.roomH)
+        .setDepth(0);
+
+      const spawn = ELEVATOR_ROOM_ASSET.spawn;
+      this.playerBody = this.add.rectangle(spawn.x, spawn.y, 42, 64, COLORS.blue, 0).setDepth(30);
+      this.physics.add.existing(this.playerBody);
+      this.playerBody.body.setCollideWorldBounds(true);
+
+      this.playerFacing = spawn.facing || 'N';
+      this.playerSprite = null;
+      this.createPlayerAnims();
+
+      if (this.textures.exists(MALCOLM_STATION_ASSET.key)) {
+        this.playerSprite = this.add.sprite(spawn.x, spawn.y, MALCOLM_STATION_ASSET.key, this.frameForFacing())
+          .setOrigin(0.5, MALCOLM_STATION_ASSET.originY)
+          .setScale(MALCOLM_STATION_ASSET.scale)
+          .setDepth(31);
+      } else {
+        this.playerFallback = this.add.rectangle(spawn.x, spawn.y, 42, 64, COLORS.blue, 1).setDepth(31);
+      }
+
+      this.hotspots = [ELEVATOR_ROOM_ASSET.panelHotspot, ELEVATOR_ROOM_ASSET.doorHotspot];
+
+      this.keys = this.input.keyboard.addKeys({
+        up: 'W', down: 'S', left: 'A', right: 'D',
+        arrowUp: 'UP', arrowDown: 'DOWN', arrowLeft: 'LEFT', arrowRight: 'RIGHT',
+        interact: 'E', enter: 'ENTER'
+      });
+
+      this.promptBg = this.add.rectangle(VIEW_W / 2, VIEW_H - 38, 760, 42, 0x02060a, 0.72)
+        .setScrollFactor(0)
+        .setDepth(2000);
+      this.promptText = makeText(this, VIEW_W / 2, VIEW_H - 47, this.entryData.message || 'Elevator — walk to the wall panel', 15, '#f4d28a', true)
+        .setOrigin(0.5)
+        .setDepth(2001);
+      this.infoText = makeText(this, 18, 18, 'ELEVATOR | A/E use panel | Door exits back to current floor', 14, '#86e7ff', true)
+        .setDepth(2001);
+
+      this.registerElevatorUi(this.promptBg);
+      this.registerElevatorUi(this.promptText);
+      this.registerElevatorUi(this.infoText);
+
+      this.input.keyboard.on('keydown-E', () => this.handleInteract());
+      this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
+      this.input.keyboard.on('keydown-A', () => this.handleInteract());
+      this.input.keyboard.on('keydown', (event) => this.handleFloorPromptKey(event));
+
+      launchGlobalMobileControls(this);
+      this.time.delayedCall(100, () => startTheme(this));
+      this.input.once('pointerdown', () => startTheme(this));
+
+      this.cameras.main.roundPixels = true;
+      this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
+      this.cameras.main.setDeadzone(42, 32);
+      this.cameras.main.setZoom(0.78);
+      this.cameras.main.fadeIn(180, 0, 0, 0);
+    }
+
+    registerElevatorUi(obj) {
+      if (!obj) return obj;
+      if (!this.uiObjects) this.uiObjects = [];
+      if (!this.uiObjects.includes(obj)) this.uiObjects.push(obj);
+      if (obj.setScrollFactor) obj.setScrollFactor(0);
+      if (obj.setDepth && obj.depth < 2000) obj.setDepth(2000);
+      if (this.cameras?.main) this.cameras.main.ignore(obj);
+      return obj;
+    }
+
+    createPlayerAnims() {
+      if (this.anims.exists('station_malcolm_walk_south')) return;
+      if (!this.textures.exists(MALCOLM_STATION_ASSET.key)) return;
+
+      const rows = [
+        ['south', 0],
+        ['north', 1],
+        ['west', 3],
+        ['east', 3]
+      ];
+
+      for (const [name, row] of rows) {
+        this.anims.create({
+          key: `station_malcolm_walk_${name}`,
+          frames: this.anims.generateFrameNumbers(MALCOLM_STATION_ASSET.key, {
+            start: row * MALCOLM_STATION_ASSET.cols,
+            end: row * MALCOLM_STATION_ASSET.cols + MALCOLM_STATION_ASSET.cols - 1
+          }),
+          frameRate: 10,
+          repeat: -1
+        });
+      }
+    }
+
+    frameForFacing() {
+      const rowByFacing = { S: 0, SW: 0, SE: 0, N: 1, NW: 1, NE: 1, W: 3, E: 3 };
+      const row = rowByFacing[this.playerFacing] ?? 0;
+      return row * MALCOLM_STATION_ASSET.cols;
+    }
+
+    animForFacing() {
+      if (this.playerFacing === 'N' || this.playerFacing === 'NW' || this.playerFacing === 'NE') return 'station_malcolm_walk_north';
+      if (this.playerFacing === 'W' || this.playerFacing === 'SW') return 'station_malcolm_walk_west';
+      if (this.playerFacing === 'E' || this.playerFacing === 'SE') return 'station_malcolm_walk_east';
+      return 'station_malcolm_walk_south';
+    }
+
+    updatePlayerVisual(moving = false) {
+      const x = this.playerBody.x;
+      const y = this.playerBody.y;
+
+      if (this.playerSprite) {
+        this.playerSprite.setPosition(x, y);
+        if (this.playerFacing === 'W' || this.playerFacing === 'SW' || this.playerFacing === 'NW') this.playerSprite.setFlipX(true);
+        else this.playerSprite.setFlipX(false);
+
+        if (moving) this.playerSprite.play(this.animForFacing(), true);
+        else {
+          this.playerSprite.anims.stop();
+          this.playerSprite.setFrame(this.frameForFacing());
+        }
+      }
+
+      if (this.playerFallback) this.playerFallback.setPosition(x, y);
+    }
+
+    inputDir() {
+      const left = this.keys.left.isDown || this.keys.arrowLeft.isDown || this.mobile.left;
+      const right = this.keys.right.isDown || this.keys.arrowRight.isDown || this.mobile.right;
+      const up = this.keys.up.isDown || this.keys.arrowUp.isDown || this.mobile.up;
+      const down = this.keys.down.isDown || this.keys.arrowDown.isDown || this.mobile.down;
+
+      let vx = 0;
+      let vy = 0;
+      if (left) vx -= 1;
+      if (right) vx += 1;
+      if (up) vy -= 1;
+      if (down) vy += 1;
+
+      const len = Math.hypot(vx, vy) || 1;
+      return { vx: vx / len, vy: vy / len };
+    }
+
+    update(time, delta) {
+      if (this.floorMenuOpen) {
+        if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+        this.updatePlayerVisual(false);
+        this.handleMenuMobileInput();
+        return;
+      }
+
+      const d = this.inputDir();
+      const moving = Math.abs(d.vx) > 0.01 || Math.abs(d.vy) > 0.01;
+      this.playerBody.body.setVelocity(d.vx * 230, d.vy * 230);
+
+      if (moving) {
+        const angle = Phaser.Math.RadToDeg(Math.atan2(d.vy, d.vx));
+        this.playerFacing = ['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8];
+      }
+
+      this.updatePlayerVisual(moving);
+
+      const spot = this.getCurrentHotspot();
+      this.currentHotspot = spot;
+      this.promptText.setText(spot ? `A/E: ${spot.label}` : 'Elevator — walk to the wall panel');
+    }
+
+    getCurrentHotspot() {
+      const b = this.playerBody.getBounds();
+      const p = { x: this.playerBody.x, y: this.playerBody.y };
+
+      let nearest = null;
+      let nearestDist = Infinity;
+
+      for (const h of this.hotspots) {
+        const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
+        if (Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return h;
+
+        const cx = h.x + h.w / 2;
+        const cy = h.y + h.h / 2;
+        const d = Phaser.Math.Distance.Between(p.x, p.y, cx, cy);
+        const reach = h.reach || 120;
+        if (d < reach && d < nearestDist) {
+          nearest = h;
+          nearestDist = d;
+        }
+      }
+
+      return nearest;
+    }
+
+    handleInteract() {
+      if (this.floorMenuOpen) {
+        this.confirmFloorSelection();
+        return;
+      }
+
+      const h = this.currentHotspot || this.getCurrentHotspot();
+      if (!h) return;
+
+      if (h.id === 'elevator_panel') {
+        this.showFloorPrompt();
+        return;
+      }
+
+      if (h.id === 'elevator_door_exit') {
+        this.exitBackToStation();
+        return;
+      }
+    }
+
+    tryArrest() {
+      if (this.floorMenuOpen) {
+        this.closeFloorPrompt();
+        return;
+      }
+      this.exitBackToStation();
+    }
+
+    showFloorPrompt() {
+      this.floorMenuOpen = true;
+      this.floorMenuSelection = 0;
+      if (this.floorMenu) this.floorMenu.destroy(true);
+
+      this.floorOptions = [
+        { label: '1 — MAIN STATION', floorId: 'floor1' },
+        { label: '2 — OFFICES / CHIEF OFFICE', floorId: 'floor2' },
+        { label: 'B1 — RECORDS / EVIDENCE', floorId: 'b1' },
+        { label: 'B3 — MOTOR POOL', floorId: 'motorPool' }
+      ];
+
+      const c = this.add.container(VIEW_W / 2, VIEW_H / 2).setScrollFactor(0).setDepth(3000);
+      const bg = this.add.rectangle(0, 0, 560, 360, 0x02060a, 0.94).setStrokeStyle(2, COLORS.cyan, 0.9);
+      const title = this.add.text(0, -150, 'ELEVATOR PANEL', {
+        fontFamily: 'Courier New',
+        fontSize: '24px',
+        color: '#f4d28a',
+        stroke: '#000',
+        strokeThickness: 4
+      }).setOrigin(0.5);
+      const help = this.add.text(0, 150, 'D-PAD/WASD: select  |  A/E: confirm  |  B/ESC: cancel', {
+        fontFamily: 'Courier New',
+        fontSize: '13px',
+        color: '#86e7ff',
+        stroke: '#000',
+        strokeThickness: 3
+      }).setOrigin(0.5);
+
+      c.add([bg, title, help]);
+      this.floorMenuRows = [];
+
+      this.floorOptions.forEach((option, index) => {
+        const y = -90 + index * 52;
+        const box = this.add.rectangle(0, y, 440, 44, 0x111827, 0.95).setStrokeStyle(2, COLORS.amber, 0.85);
+        const tx = this.add.text(0, y - 10, option.label, {
+          fontFamily: 'Courier New',
+          fontSize: '17px',
+          color: '#ffffff',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+
+        box.setInteractive({ useHandCursor: true });
+        box.on('pointerdown', () => {
+          this.floorMenuSelection = index;
+          this.confirmFloorSelection();
+        });
+
+        c.add([box, tx]);
+        this.floorMenuRows.push({ box, tx });
+      });
+
+      this.floorMenu = c;
+      this.registerElevatorUi(c);
+      this.cameras.main.ignore(c);
+      this.refreshFloorMenuHighlight();
+    }
+
+    refreshFloorMenuHighlight() {
+      if (!this.floorMenuRows) return;
+      this.floorMenuRows.forEach((row, index) => {
+        const selected = index === this.floorMenuSelection;
+        row.box.setFillStyle(selected ? 0x2d3748 : 0x111827, 0.96);
+        row.box.setStrokeStyle(2, selected ? COLORS.neonPink : COLORS.amber, 0.95);
+        row.tx.setColor(selected ? '#f4d28a' : '#ffffff');
+      });
+    }
+
+    moveFloorMenuSelection(delta) {
+      if (!this.floorOptions?.length) return;
+      this.floorMenuSelection = (this.floorMenuSelection + delta + this.floorOptions.length) % this.floorOptions.length;
+      this.refreshFloorMenuHighlight();
+    }
+
+    handleMenuMobileInput() {
+      const state = {
+        up: !!this.mobile.up,
+        down: !!this.mobile.down,
+        a: !!this.mobile.a,
+        b: !!this.mobile.b
+      };
+
+      if (state.up && !this.prevMenuInput.up) this.moveFloorMenuSelection(-1);
+      if (state.down && !this.prevMenuInput.down) this.moveFloorMenuSelection(1);
+      if (state.a && !this.prevMenuInput.a) this.confirmFloorSelection();
+      if (state.b && !this.prevMenuInput.b) this.closeFloorPrompt();
+
+      this.prevMenuInput = state;
+    }
+
+    handleFloorPromptKey(event) {
+      if (!this.floorMenuOpen) return;
+      const key = String(event.key || '').toLowerCase();
+
+      if (key === 'escape') {
+        this.closeFloorPrompt();
+        return;
+      }
+
+      if (key === 'arrowup' || key === 'w') {
+        this.moveFloorMenuSelection(-1);
+        return;
+      }
+
+      if (key === 'arrowdown' || key === 's') {
+        this.moveFloorMenuSelection(1);
+        return;
+      }
+
+      if (key === 'enter' || key === 'e' || key === 'a') {
+        this.confirmFloorSelection();
+        return;
+      }
+
+      if (key === '1') this.goToFloor('floor1', 'Elevator: Main station.');
+      if (key === '2') this.goToFloor('floor2', 'Elevator: Floor 2 offices.');
+      if (key === 'b') this.goToFloor('b1', 'Elevator: B1 records / evidence.');
+      if (key === '3') this.goToFloor('motorPool', 'Elevator: B3 motor pool.');
+    }
+
+    confirmFloorSelection() {
+      const option = this.floorOptions?.[this.floorMenuSelection];
+      if (!option) return;
+      this.goToFloor(option.floorId, `Elevator: ${option.label}`);
+    }
+
+    closeFloorPrompt() {
+      this.floorMenuOpen = false;
+      if (this.floorMenu) {
+        this.floorMenu.destroy(true);
+        this.floorMenu = null;
+      }
+      this.promptText?.setText('Elevator — walk to the wall panel');
+    }
+
+    goToFloor(floorId, message = '') {
+      const next = POLICE_STATION_LEVEL_ASSETS[floorId] || POLICE_STATION_LEVEL_ASSETS.floor1;
+      const spawn = next.spawns.elevator || next.spawns.default;
+
+      if (this.floorMenuOpen) this.closeFloorPrompt();
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+
+      this.cameras.main.fadeOut(190, 0, 0, 0);
+      this.time.delayedCall(205, () => {
+        this.scene.start('PoliceStationScene', {
+          floor: floorId,
+          spawn,
+          message,
+          fromElevatorRoom: true
+        });
+      });
+    }
+
+    exitBackToStation() {
+      const current = POLICE_STATION_LEVEL_ASSETS[this.fromFloor] || POLICE_STATION_LEVEL_ASSETS.floor1;
+      const spawn = current.spawns.elevator || current.spawns.default;
+
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+      this.cameras.main.fadeOut(150, 0, 0, 0);
+      this.time.delayedCall(165, () => {
+        this.scene.start('PoliceStationScene', {
+          floor: this.fromFloor,
+          spawn,
+          message: 'Exited elevator.',
+          fromElevatorRoom: true
+        });
+      });
+    }
+  }
 
   class InteriorScene extends Phaser.Scene {
     constructor(){ super('InteriorScene'); }
@@ -1972,7 +2415,7 @@
     }
 
     getTargetScene() {
-      for (const key of ['PoliceStationScene', 'GameScene', 'InteriorScene', 'ReportScene']) {
+      for (const key of ['ElevatorRoomScene', 'PoliceStationScene', 'GameScene', 'InteriorScene', 'ReportScene']) {
         const scene = this.scene.get(key);
         if (scene?.scene?.isActive()) return scene;
       }
@@ -2025,7 +2468,7 @@
     }
   }
 
-  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
+  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
 </script>
 </body>
