@@ -32,6 +32,7 @@
   // ELEVATOR_HOTSPOT_FLOOR2_RIGHT_FIX: Floor 2 elevator walk-in hotspot moved to the visible right-side elevator door.
   // ELEVATOR_FLOOR2_ACTUAL_DOOR_FIX: Floor 2 elevator hotspot covers the actual visible elevator cab/door area.
   // ELEVATOR_HARD_TRANSITION_FIX: Floor 2 elevator alcove uses a wide hotspot plus shared enterElevatorRoom().
+  // ELEVATOR_REBUILT_FROM_GIT_FIX: PoliceStationScene elevator uses direct door zone transition before the visible elevator door.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -1307,7 +1308,7 @@
 
       if (floorId === 'floor2') {
         return [
-          { id:'station_elevator', x:650, y:0, w:520, h:380, reach:260, label:'Elevator' },
+          { id:'station_elevator', x:700, y:35, w:360, h:345, reach:220, label:'Elevator' },
           { id:'stairs_to_floor1', x:640, y:760, w:320, h:220, label:'Stairs Down to Floor 1' },
           { id:'chief_office', x:1000, y:120, w:360, h:265, label:'Chief / Command Offices' },
           { id:'detective_bullpen', x:480, y:385, w:520, h:330, label:'Detective Offices' }
@@ -1568,6 +1569,7 @@
 
       this.updatePlayerVisual(moving);
 
+      if (this.checkElevatorDoorTransition()) return;
       this.checkAutoTransitions();
 
       const spot = this.getCurrentHotspot();
@@ -1613,8 +1615,49 @@
       return null;
     }
 
-    checkAutoTransitions() {
+    getElevatorDoorZone() {
+      if (this.floorId === 'floor2') {
+        // Directly in front of the visible elevator door/cab on Floor 2.
+        return { x:700, y:35, w:360, h:345 };
+      }
+
+      if (this.floorId === 'floor1') return { x:690, y:680, w:230, h:185 };
+      if (this.floorId === 'b1') return { x:655, y:35, w:290, h:230 };
+      if (this.floorId === 'motorPool') return { x:680, y:735, w:260, h:220 };
+      return null;
+    }
+
+    playerInRectZone(zone) {
+      if (!zone || !this.playerBody) return false;
+      const b = this.playerBody.getBounds();
+      const p = { x: this.playerBody.x, y: this.playerBody.y };
+      const r = new Phaser.Geom.Rectangle(zone.x, zone.y, zone.w, zone.h);
+      return Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, p.x, p.y);
+    }
+
+    checkElevatorDoorTransition() {
+      if (this.transitionLocked || this.floorMenuOpen || this.transitionCooldown > 0) return false;
+      if (!this.playerInRectZone(this.getElevatorDoorZone())) return false;
+      this.enterElevatorRoom();
+      return true;
+    }
+
+    enterElevatorRoom() {
       if (this.transitionLocked || this.floorMenuOpen) return;
+      this.transitionLocked = true;
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+      this.promptText?.setText('Entering elevator...');
+      this.cameras.main.fadeOut(140, 0, 0, 0);
+      this.time.delayedCall(150, () => {
+        this.scene.start('ElevatorRoomScene', {
+          fromFloor: this.floorId,
+          message: 'Entered elevator.'
+        });
+      });
+    }
+
+    checkAutoTransitions() {
+      if (this.transitionLocked || this.floorMenuOpen || this.transitionCooldown > 0) return;
 
       const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
       if (!h) return;
@@ -1646,7 +1689,10 @@
       if (this.floorMenuOpen) return;
 
       const h = this.currentHotspot || this.getCurrentHotspot();
-      if (!h) return;
+      if (!h) {
+        if (this.playerInRectZone(this.getElevatorDoorZone())) this.enterElevatorRoom();
+        return;
+      }
 
       if (h.id === 'station_exit_main') {
         this.scene.start('GameScene', {
