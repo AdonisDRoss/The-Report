@@ -34,6 +34,9 @@
   // ELEVATOR_HARD_TRANSITION_FIX: Floor 2 elevator alcove uses a wide hotspot plus shared enterElevatorRoom().
   // ELEVATOR_REBUILT_FROM_GIT_FIX: PoliceStationScene elevator uses direct door zone transition before the visible elevator door.
   // ELEVATOR_NO_FLOOR1_AUTOWARP_FIX: auto elevator transition only runs on Floor 2 so Floor 1 spawn cannot immediately warp.
+  // RAMOS_ACTUAL_SHEETS_COMPANION_PATCH: Ramos uses supplied walk/talk/shoot sheets, follows Malcolm, enters car, talks, and can be relieved at station.
+  // PAUSE_MENU_MUSIC_SAVE_LOAD_PATCH: restores music asset packaging and adds pause menu with music volume/on-off/save/load/quit.
+  // MALCOLM_SHOOT_X_Y_TALK_FORCED_MUSIC_PATCH: X/F make Malcolm shoot, Y talks to Ramos, title screen forces music enabled.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -65,7 +68,14 @@
       fuel: 76, damage: 0, trunk: [],
       visualState: { trunkOpen: false, driverDoorOpen: false, hoodOpen: false, lightsOn: true, smokeFire: false, destroyed: false }
     },
-    case: { active: false, complete: false, suspectArrested: false, evidenceCollected: false, evidenceInTrunk: false, witnessStatement: false, reportFiled: false }
+    case: { active: false, complete: false, suspectArrested: false, evidenceCollected: false, evidenceInTrunk: false, witnessStatement: false, reportFiled: false },
+    ramos: {
+      introduced: false,
+      onDuty: true,
+      dismissed: false,
+      inCar: false,
+      smallTalkIndex: 0
+    }
   };
 
 
@@ -207,6 +217,78 @@
   };
 
 
+  const MALCOLM_SHOOT_ASSET = {
+    key: 'malcolm_shoot_sheet',
+    path: 'assets/characters/main_detective/malcolm_shoot_6x4_128.png',
+    frameWidth: 128,
+    frameHeight: 128,
+    scale: 0.64,
+    stationScale: 0.72,
+    originY: 0.84,
+    cols: 6
+  };
+
+
+
+  const RAMOS_WALK_ASSET = {
+    key: 'ramos_walk_sheet',
+    path: 'assets/characters/npcs/partners/ramos/ramos_walk_8x4_128.png',
+    frameWidth: 128,
+    frameHeight: 128,
+    scale: 0.62,
+    originY: 0.84,
+    cols: 8
+  };
+
+  const RAMOS_TALK_ASSET = {
+    key: 'ramos_talk_sheet',
+    path: 'assets/characters/npcs/partners/ramos/ramos_talk_6x4_128.png',
+    frameWidth: 128,
+    frameHeight: 128,
+    scale: 0.62,
+    originY: 0.84,
+    cols: 6
+  };
+
+  const RAMOS_SHOOT_ASSET = {
+    key: 'ramos_shoot_sheet',
+    path: 'assets/characters/npcs/partners/ramos/ramos_shoot_6x4_128.png',
+    frameWidth: 128,
+    frameHeight: 128,
+    scale: 0.62,
+    originY: 0.84,
+    cols: 6
+  };
+
+  const RAMOS_SMALL_TALK_LINES = [
+    "Ramos: Detective King? Elena Ramos. Captain says I’m your new partner.",
+    "Ramos: I’ll follow your lead, but I’m not here to stand around.",
+    "Ramos: You always work this quiet, Malcolm?",
+    "Ramos: My first week in Major Crimes and the whole city already feels like a file cabinet on fire.",
+    "Ramos: You grew up around here, or did Raven Hook just claim you like everybody else?",
+    "Ramos: I checked the morning board. Benny’s Market has more calls than they admit.",
+    "Ramos: You trust dispatch, or do you listen for what they don’t say?",
+    "Ramos: My old academy instructor said never chase a story faster than the evidence.",
+    "Ramos: Your car smells like coffee, rain, and old case folders.",
+    "Ramos: I can talk to witnesses while you search the scene.",
+    "Ramos: If somebody runs, I’ll cover the door.",
+    "Ramos: People look different when they’re lying to a badge.",
+    "Ramos: You ever get used to the way this city watches back?",
+    "Ramos: I heard you solved the Harlan dock case without firing a shot.",
+    "Ramos: That true, or precinct gossip?",
+    "Ramos: I’m trying to learn how you read a room before anybody talks.",
+    "Ramos: The old cops keep telling me to keep my head down. I’m not good at that.",
+    "Ramos: If you want me quiet, say so. If you want me sharp, I’m already there.",
+    "Ramos: I’ll ride passenger. You drive.",
+    "Ramos: Something about those receipts feels staged.",
+    "Ramos: My father used to say every city has a pulse. Raven Hook sounds like a warning.",
+    "Ramos: You ever think about leaving this place?",
+    "Ramos: I’m watching your six.",
+    "Ramos: We should talk to the clerk before the story changes.",
+    "Ramos: The streets are too calm. That usually means everyone heard something before us.",
+    "Ramos: I’m ready, Malcolm."
+  ];
+
   const EDDIE_CROSS_ASSET = {
     key: 'eddie_cross',
     path: 'assets/characters/npcs/eddie_cross/eddie_cross_movement_8dir_96x96.png',
@@ -330,6 +412,33 @@
 
 
   let THEME_MUSIC = null;
+  const SAVE_KEY = 'the_report_raven_hook_save_v1';
+  const MUSIC_SETTINGS_KEY = 'the_report_music_settings_v1';
+  const MUSIC_SETTINGS = (() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(MUSIC_SETTINGS_KEY) || '{}');
+      return {
+        enabled: saved.enabled !== false,
+        volume: Number.isFinite(saved.volume) ? Phaser.Math.Clamp(saved.volume, 0, 1) : THEME_ASSET.volume
+      };
+    } catch (e) {
+      return { enabled: true, volume: THEME_ASSET.volume };
+    }
+  })();
+
+  function persistMusicSettings() {
+    try {
+      localStorage.setItem(MUSIC_SETTINGS_KEY, JSON.stringify(MUSIC_SETTINGS));
+    } catch (e) {}
+  }
+
+  function applyMusicSettings() {
+    THEME_ASSET.volume = Phaser.Math.Clamp(MUSIC_SETTINGS.volume, 0, 1);
+    if (THEME_MUSIC) {
+      THEME_MUSIC.setVolume(THEME_ASSET.volume);
+      if (!MUSIC_SETTINGS.enabled && THEME_MUSIC.isPlaying) THEME_MUSIC.pause();
+    }
+  }
 
   function startTheme(scene) {
     if (!scene || !scene.sound || !scene.cache.audio.exists(THEME_ASSET.key)) return null;
@@ -337,12 +446,14 @@
     if (!THEME_MUSIC) {
       THEME_MUSIC = scene.sound.add(THEME_ASSET.key, {
         loop: true,
-        volume: THEME_ASSET.volume
+        volume: MUSIC_SETTINGS.volume
       });
     }
 
+    applyMusicSettings();
+
     const playNow = () => {
-      if (THEME_MUSIC && !THEME_MUSIC.isPlaying) {
+      if (MUSIC_SETTINGS.enabled && THEME_MUSIC && !THEME_MUSIC.isPlaying) {
         THEME_MUSIC.play();
       }
     };
@@ -358,23 +469,237 @@
 
   function toggleTheme(scene) {
     const music = THEME_MUSIC || startTheme(scene);
-    if (!music) return false;
+    MUSIC_SETTINGS.enabled = !MUSIC_SETTINGS.enabled;
+    persistMusicSettings();
 
-    if (music.isPlaying) {
+    if (!music) return MUSIC_SETTINGS.enabled;
+
+    if (MUSIC_SETTINGS.enabled) {
+      music.setVolume(MUSIC_SETTINGS.volume);
+      if (music.isPaused) music.resume();
+      if (!music.isPlaying) music.play();
+    } else {
       music.pause();
-      return false;
     }
 
-    music.resume();
-    if (!music.isPlaying) music.play();
-    return true;
+    return MUSIC_SETTINGS.enabled;
   }
 
   function setThemeVolume(volume) {
-    THEME_ASSET.volume = Phaser.Math.Clamp(volume, 0, 1);
-    if (THEME_MUSIC) THEME_MUSIC.setVolume(THEME_ASSET.volume);
+    MUSIC_SETTINGS.volume = Phaser.Math.Clamp(volume, 0, 1);
+    THEME_ASSET.volume = MUSIC_SETTINGS.volume;
+    persistMusicSettings();
+    if (THEME_MUSIC) THEME_MUSIC.setVolume(MUSIC_SETTINGS.volume);
   }
 
+  function saveGame(scene) {
+    if (!scene) return false;
+
+    const sceneKey = scene.scene?.key || 'GameScene';
+    const state = {
+      savedAt: Date.now(),
+      sceneKey,
+      game: JSON.parse(JSON.stringify(GAME)),
+      music: { enabled: MUSIC_SETTINGS.enabled, volume: MUSIC_SETTINGS.volume }
+    };
+
+    if (sceneKey === 'PoliceStationScene') {
+      state.floorId = scene.floorId || 'floor1';
+      state.spawn = scene.playerBody ? { x: scene.playerBody.x, y: scene.playerBody.y, facing: scene.playerFacing || 'S' } : null;
+    } else if (sceneKey === 'ElevatorRoomScene') {
+      state.fromFloor = scene.fromFloor || 'floor1';
+      state.spawn = scene.playerBody ? { x: scene.playerBody.x, y: scene.playerBody.y, facing: scene.playerFacing || 'S' } : null;
+    } else {
+      state.spawn = scene.player ? { x: scene.player.x, y: scene.player.y, facing: scene.playerFacing || 'S' } : null;
+      state.inCar = !!scene.inCar;
+      state.car = scene.car ? { x: scene.car.x, y: scene.car.y, heading: scene.car.heading || 0 } : null;
+    }
+
+    try {
+      localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+      if (scene.message !== undefined) {
+        scene.message = 'Game saved.';
+        scene.messageTimer = 1800;
+      }
+      if (scene.promptText?.setText) scene.promptText.setText('Game saved.');
+      return true;
+    } catch (e) {
+      if (scene.message !== undefined) {
+        scene.message = 'Save failed: local storage blocked.';
+        scene.messageTimer = 2400;
+      }
+      if (scene.promptText?.setText) scene.promptText.setText('Save failed: local storage blocked.');
+      return false;
+    }
+  }
+
+  function loadGame(scene) {
+    let state = null;
+    try {
+      state = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
+    } catch (e) {}
+
+    if (!state) {
+      if (scene?.message !== undefined) {
+        scene.message = 'No save file found.';
+        scene.messageTimer = 2200;
+      }
+      if (scene?.promptText?.setText) scene.promptText.setText('No save file found.');
+      return false;
+    }
+
+    if (state.game) {
+      Object.assign(GAME, state.game);
+      GAME.car = Object.assign({ fuel:76, damage:0, trunk:[], visualState:{} }, GAME.car || {}, state.game.car || {});
+      GAME.case = Object.assign({}, GAME.case || {}, state.game.case || {});
+      GAME.ramos = Object.assign({ introduced:false, onDuty:true, dismissed:false, inCar:false, smallTalkIndex:0 }, GAME.ramos || {}, state.game.ramos || {});
+    }
+
+    if (state.music) {
+      MUSIC_SETTINGS.enabled = state.music.enabled !== false;
+      MUSIC_SETTINGS.volume = Number.isFinite(state.music.volume) ? Phaser.Math.Clamp(state.music.volume, 0, 1) : MUSIC_SETTINGS.volume;
+      persistMusicSettings();
+      applyMusicSettings();
+    }
+
+    closePauseMenu(scene);
+
+    if (state.sceneKey === 'PoliceStationScene') {
+      scene.scene.start('PoliceStationScene', {
+        floor: state.floorId || 'floor1',
+        spawn: state.spawn || null,
+        fromAutoTransition: true,
+        message: 'Loaded saved game.'
+      });
+      return true;
+    }
+
+    if (state.sceneKey === 'ElevatorRoomScene') {
+      scene.scene.start('ElevatorRoomScene', {
+        fromFloor: state.fromFloor || 'floor1',
+        message: 'Loaded saved game.'
+      });
+      return true;
+    }
+
+    scene.scene.start('GameScene', {
+      fromStationExit: true,
+      spawn: state.spawn || { x: 552, y: 690 },
+      message: 'Loaded saved game.'
+    });
+    return true;
+  }
+
+  function pauseRegister(scene, obj) {
+    if (!scene || !obj) return obj;
+    if (typeof scene.registerUi === 'function') scene.registerUi(obj);
+    else if (typeof scene.registerStationUi === 'function') scene.registerStationUi(obj);
+    else if (typeof scene.registerElevatorUi === 'function') scene.registerElevatorUi(obj);
+    else if (obj.setScrollFactor) obj.setScrollFactor(0);
+    if (obj.setDepth) obj.setDepth(5000);
+    if (scene.cameras?.main?.ignore && scene.uiCamera) scene.cameras.main.ignore(obj);
+    return obj;
+  }
+
+  function setActorPauseVelocity(scene) {
+    for (const obj of [scene?.player, scene?.playerBody, scene?.car, scene?.ramosBody]) {
+      if (obj?.body?.setVelocity) obj.body.setVelocity(0, 0);
+    }
+  }
+
+  function makePauseButton(scene, container, y, labelGetter, action) {
+    const label = typeof labelGetter === 'function' ? labelGetter() : labelGetter;
+    const bg = scene.add.rectangle(0, y, 390, 34, 0x101822, 0.96).setStrokeStyle(2, COLORS.amber, 0.75);
+    const tx = scene.add.text(0, y - 10, label, {
+      fontFamily: 'Courier New',
+      fontSize: '15px',
+      color: '#ffffff',
+      stroke: '#000',
+      strokeThickness: 3
+    }).setOrigin(0.5);
+
+    bg.setInteractive({ useHandCursor: true });
+    bg.on('pointerdown', () => {
+      action();
+      if (typeof labelGetter === 'function' && tx.active) tx.setText(labelGetter());
+    });
+
+    container.add([bg, tx]);
+    return { bg, tx };
+  }
+
+  function openPauseMenu(scene) {
+    if (!scene || scene.pauseMenuOpen) return;
+    scene.pauseMenuOpen = true;
+    setActorPauseVelocity(scene);
+    resetMobileInputState();
+
+    const c = scene.add.container(VIEW_W / 2, VIEW_H / 2).setScrollFactor(0).setDepth(5000);
+    const bg = scene.add.rectangle(0, 0, 470, 390, 0x02060a, 0.94).setStrokeStyle(3, COLORS.cyan, 0.9);
+    const title = scene.add.text(0, -170, 'PAUSED', {
+      fontFamily: 'Courier New',
+      fontSize: '28px',
+      color: '#f4d28a',
+      stroke: '#000',
+      strokeThickness: 5
+    }).setOrigin(0.5);
+    const help = scene.add.text(0, 165, 'ESC / STA resumes. Save uses browser local storage.', {
+      fontFamily: 'Courier New',
+      fontSize: '12px',
+      color: '#86e7ff',
+      stroke: '#000',
+      strokeThickness: 3
+    }).setOrigin(0.5);
+
+    c.add([bg, title, help]);
+
+    makePauseButton(scene, c, -120, 'RESUME', () => closePauseMenu(scene));
+    makePauseButton(scene, c, -76, () => `MUSIC: ${MUSIC_SETTINGS.enabled ? 'ON' : 'OFF'}`, () => {
+      toggleTheme(scene);
+    });
+    makePauseButton(scene, c, -32, () => `VOLUME: ${Math.round(MUSIC_SETTINGS.volume * 100)}%`, () => {
+      setThemeVolume(MUSIC_SETTINGS.volume <= 0.05 ? 1 : MUSIC_SETTINGS.volume - 0.10);
+    });
+    makePauseButton(scene, c, 12, 'VOLUME +', () => {
+      setThemeVolume(MUSIC_SETTINGS.volume + 0.10);
+    });
+    makePauseButton(scene, c, 56, 'SAVE GAME', () => saveGame(scene));
+    makePauseButton(scene, c, 100, 'LOAD GAME', () => loadGame(scene));
+    makePauseButton(scene, c, 144, 'QUIT TO TITLE', () => {
+      closePauseMenu(scene);
+      resetMobileInputState();
+      scene.scene.start('TitleScene');
+    });
+
+    scene.pauseMenu = c;
+    for (const child of c.list) pauseRegister(scene, child);
+    pauseRegister(scene, c);
+    if (scene.refreshCameraIgnores) scene.refreshCameraIgnores();
+  }
+
+  function closePauseMenu(scene) {
+    if (!scene) return;
+    scene.pauseMenuOpen = false;
+    if (scene.pauseMenu) {
+      scene.pauseMenu.destroy(true);
+      scene.pauseMenu = null;
+    }
+  }
+
+  function togglePauseMenu(scene) {
+    if (!scene) return;
+    if (scene.pauseMenuOpen) closePauseMenu(scene);
+    else openPauseMenu(scene);
+  }
+
+  function installPauseMenu(scene) {
+    if (!scene || scene._pauseMenuInstalled) return;
+    scene._pauseMenuInstalled = true;
+    scene.pauseMenuOpen = false;
+    scene.togglePauseMenu = () => togglePauseMenu(scene);
+    scene.input.keyboard.on('keydown-ESC', () => togglePauseMenu(scene));
+    scene.input.keyboard.on('keydown-PAUSE', () => togglePauseMenu(scene));
+  }
 
   function makeText(scene, x, y, value, size = 16, color = '#fff', fixed = false) {
     const t = scene.add.text(x, y, value, { fontFamily: 'Courier New', fontSize: `${size}px`, color, stroke: '#000', strokeThickness: 3, wordWrap: { width: 900 } });
@@ -395,6 +720,11 @@
 
     create() {
       this.cameras.main.setBackgroundColor('#05070b');
+      // Force title music ON every time the title screen opens.
+      MUSIC_SETTINGS.enabled = true;
+      persistMusicSettings();
+      startTheme(this);
+      this.time.delayedCall(80, () => startTheme(this));
 
       if (this.textures.exists(TITLE_ASSET.key)) {
         this.add.image(0, 0, TITLE_ASSET.key)
@@ -410,7 +740,7 @@
 
       // Menu cursor/selection is drawn in Phaser, not baked into the title image.
       this.titleCursor = makeText(this, 360, 314, '▶', 22, '#ff4fb8').setDepth(5);
-      this.startHint = makeText(this, VIEW_W / 2, VIEW_H - 34, 'TAP / ENTER — NEW CASE   |   M — MUSIC', 16, '#f4d28a').setOrigin(0.5).setDepth(5);
+      this.startHint = makeText(this, VIEW_W / 2, VIEW_H - 34, 'MUSIC ON — TAP / ENTER — NEW CASE   |   M — MUSIC', 16, '#f4d28a').setOrigin(0.5).setDepth(5);
       this.tweens.add({ targets: this.startHint, alpha: 0.35, yoyo: true, repeat: -1, duration: 650 });
 
       const start = () => {
@@ -492,6 +822,7 @@
       this.cameras.main.setDeadzone(42, 32);
       this.cameras.main.setZoom(CAMERA.playerZoom);
       this.lazyLoadGameAssets();
+      installPauseMenu(this);
     }
 
     lazyLoadGameAssets() {
@@ -500,7 +831,11 @@
         { type: 'image', key: BUILDING_SHEET_ASSET.key, path: BUILDING_SHEET_ASSET.path },
         ...BUILDING_IMAGE_ASSETS.map(b => ({ type: 'image', key: b.key, path: b.path })),
         { type: 'spritesheet', key: PLAYER_ASSET.key, path: PLAYER_ASSET.path, fw: PLAYER_ASSET.frameWidth, fh: PLAYER_ASSET.frameHeight },
+        { type: 'spritesheet', key: MALCOLM_SHOOT_ASSET.key, path: MALCOLM_SHOOT_ASSET.path, fw: MALCOLM_SHOOT_ASSET.frameWidth, fh: MALCOLM_SHOOT_ASSET.frameHeight },
         { type: 'spritesheet', key: EDDIE_CROSS_ASSET.key, path: EDDIE_CROSS_ASSET.path, fw: EDDIE_CROSS_ASSET.frameWidth, fh: EDDIE_CROSS_ASSET.frameHeight },
+        { type: 'spritesheet', key: RAMOS_WALK_ASSET.key, path: RAMOS_WALK_ASSET.path, fw: RAMOS_WALK_ASSET.frameWidth, fh: RAMOS_WALK_ASSET.frameHeight },
+        { type: 'spritesheet', key: RAMOS_TALK_ASSET.key, path: RAMOS_TALK_ASSET.path, fw: RAMOS_TALK_ASSET.frameWidth, fh: RAMOS_TALK_ASSET.frameHeight },
+        { type: 'spritesheet', key: RAMOS_SHOOT_ASSET.key, path: RAMOS_SHOOT_ASSET.path, fw: RAMOS_SHOOT_ASSET.frameWidth, fh: RAMOS_SHOOT_ASSET.frameHeight },
         { type: 'spritesheet', key: 'detective_sedan_clean_64', path: 'assets/vehicles/detective_sedan/detective_sedan_clean_64.png', fw: 128, fh: 128 },
         { type: 'spritesheet', key: 'detective_sedan_shadow_64', path: 'assets/vehicles/detective_sedan/detective_sedan_shadow_64.png', fw: 128, fh: 128 },
         { type: 'spritesheet', key: 'detective_sedan_lights_overlay_64', path: 'assets/vehicles/detective_sedan/detective_sedan_lights_overlay_64.png', fw: 128, fh: 128 },
@@ -517,6 +852,7 @@
         if (BUILDING_IMAGE_ASSETS.some(b => b.key === key)) this.applyBuildingImages();
         if (key === PLAYER_ASSET.key) this.ensurePlayerSprite();
         if (key === EDDIE_CROSS_ASSET.key) this.ensureEddieCrossSprite();
+        if ([RAMOS_WALK_ASSET.key, RAMOS_TALK_ASSET.key, RAMOS_SHOOT_ASSET.key].includes(key)) this.ensureRamosCompanion();
         this.ensureSpriteLayers();
         this.syncVehicleSprites();
 
@@ -558,6 +894,8 @@
       this.input.keyboard.on('keydown-E', () => this.handleInteract());
       this.input.keyboard.on('keydown-SPACE', () => this.tryArrest());
       this.input.keyboard.on('keydown-T', () => this.handleTrunk());
+      this.input.keyboard.on('keydown-Y', () => this.ramosSmallTalk());
+      this.input.keyboard.on('keydown-F', () => this.malcolmShoot());
       this.input.keyboard.on('keydown-R', () => this.tryReport());
       this.input.keyboard.on('keydown-C', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
       this.input.keyboard.on('keydown-I', () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
@@ -682,6 +1020,7 @@
       const ev = SPAWN_POINTS.find(s => s.id === 'stolen_cigarettes'); this.evidence = this.add.circle(ev.x, ev.y, 11, COLORS.yellow).setDepth(27); this.evidence.visible = false;
       const wt = SPAWN_POINTS.find(s => s.id === 'bennys_clerk'); this.witness = this.add.rectangle(wt.x, wt.y, 22, 28, COLORS.purple).setDepth(27); this.witness.visible = false;
       this.civilians = []; for (let i=0;i<7;i++) { const s = SPAWN_POINTS[i%SPAWN_POINTS.length]; const c = this.add.circle((s.x||500)+Phaser.Math.Between(-60,60),(s.y||700)+Phaser.Math.Between(-60,60),8,0xbfc7d1).setDepth(20); this.physics.add.existing(c); c.nodeTarget = new Phaser.Math.Vector2(c.x+Phaser.Math.Between(-120,120), c.y+Phaser.Math.Between(-120,120)); this.civilians.push(c); this.physics.add.collider(c, this.walls); }
+      this.createRamosCompanion(ps.x - 54, ps.y + 18);
     }
 
     ensureSpriteLayers() {
@@ -892,6 +1231,10 @@
       this.playerSprite.setPosition(this.player.x, this.player.y);
       this.playerSprite.setVisible(this.player.body.enable && !this.inCar);
       if (!this.playerSprite.visible) return;
+
+      if (this.playerActionUntil && (this.time.now || 0) < this.playerActionUntil) return;
+      this.restorePlayerWalkTexture();
+
       if (moving) {
         const key = this.animForFacing();
         if (this.playerSprite.anims.currentAnim?.key !== key || !this.playerSprite.anims.isPlaying) this.playerSprite.play(key, true);
@@ -947,10 +1290,17 @@
       addBtn(VIEW_W-140, VIEW_H-304, 'STA', 'sta', 0x263241, 24, '12px');
     }
     updateStick(pointer, bx, by, knob) { const x=clamp(pointer.x-bx,-48,48), y=clamp(pointer.y-by,-48,48); knob.setPosition(x,y); this.mobile.analogX=x/48; this.mobile.analogY=y/48; }
-    handleMobileAction(prop) { if(prop==='a') this.handleInteract(); if(prop==='b') this.tryArrest(); if(prop==='x'||prop==='sel') this.handleTrunk(); if(prop==='y'||prop==='sta') this.tryReport(); }
+    handleMobileAction(prop) {
+      if(prop==='a') this.handleInteract();
+      if(prop==='b') this.tryArrest();
+      if(prop==='x') this.malcolmShoot();
+      if(prop==='y') this.ramosSmallTalk();
+      if(prop==='sel') this.handleTrunk();
+      if(prop==='sta') this.togglePauseMenu ? this.togglePauseMenu() : togglePauseMenu(this);
+    }
     inputDir() { const kbL=this.keys.left.isDown||this.keys.arrowLeft.isDown, kbR=this.keys.right.isDown||this.keys.arrowRight.isDown, kbU=this.keys.up.isDown||this.keys.arrowUp.isDown, kbD=this.keys.down.isDown||this.keys.arrowDown.isDown; if (this.mobile.useStick && (Math.abs(this.mobile.analogX)>0.15 || Math.abs(this.mobile.analogY)>0.15)) return { left:this.mobile.analogX<-0.25||kbL, right:this.mobile.analogX>0.25||kbR, up:this.mobile.analogY<-0.25||kbU, down:this.mobile.analogY>0.25||kbD, ax:this.mobile.analogX, ay:this.mobile.analogY }; return { left:kbL||this.mobile.left, right:kbR||this.mobile.right, up:kbU||this.mobile.up, down:kbD||this.mobile.down, ax:0, ay:0 }; }
 
-    update(time, delta) { const dt=delta/1000; this.shiftMinutes += dt*0.85; this.updateClosestZone(); if(this.inCar) this.updateCar(dt); else this.updatePlayer(dt); this.updateCase(dt); this.updateCivilians(); this.updateHUD(); this.refreshCameraIgnores(); if(this.messageTimer>0) this.messageTimer-=delta; }
+    update(time, delta) { if (this.pauseMenuOpen) { setActorPauseVelocity(this); this.refreshCameraIgnores(); return; } const dt=delta/1000; this.shiftMinutes += dt*0.85; this.updateClosestZone(); if(this.inCar) this.updateCar(dt); else this.updatePlayer(dt); this.updateRamosCompanion(time, delta); this.updateCase(dt); this.updateCivilians(); this.updateHUD(); this.refreshCameraIgnores(); if(this.messageTimer>0) this.messageTimer-=delta; }
     updatePlayer() {
       const d=this.inputDir(); let vx=d.ax||0, vy=d.ay||0;
       if(!vx&&!vy){ if(d.left)vx-=1; if(d.right)vx+=1; if(d.up)vy-=1; if(d.down)vy+=1; }
@@ -1068,29 +1418,314 @@
       }
     }
 
+
+
+    malcolmShootFrame(facing = this.playerFacing || 'S') {
+      const rows = { S:0, SW:2, W:2, NW:2, N:1, NE:3, E:3, SE:3 };
+      return (rows[facing] ?? 0) * MALCOLM_SHOOT_ASSET.cols;
+    }
+
+    malcolmShootAnimKey(facing = this.playerFacing || 'S') {
+      const name = ({ S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' })[facing] || 'south';
+      return `malcolm_shoot_${name}`;
+    }
+
+    createMalcolmShootAnims() {
+      if (this.anims.exists('malcolm_shoot_south') || !this.textures.exists(MALCOLM_SHOOT_ASSET.key)) return;
+      const rows = [['south',0], ['north',1], ['west',2], ['east',3]];
+      for (const [name, row] of rows) {
+        this.anims.create({
+          key: `malcolm_shoot_${name}`,
+          frames: this.anims.generateFrameNumbers(MALCOLM_SHOOT_ASSET.key, {
+            start: row * MALCOLM_SHOOT_ASSET.cols,
+            end: row * MALCOLM_SHOOT_ASSET.cols + MALCOLM_SHOOT_ASSET.cols - 1
+          }),
+          frameRate: 12,
+          repeat: 0
+        });
+      }
+    }
+
+    malcolmShoot() {
+      if (this.inCar || !this.player || !this.player.body?.enable) {
+        this.message = 'Exit the car before firing.';
+        this.messageTimer = 1300;
+        return;
+      }
+
+      const now = this.time.now || 0;
+      if (now - (this.malcolmLastShotAt || 0) < 380) return;
+      this.malcolmLastShotAt = now;
+
+      this.ensurePlayerSprite();
+      this.createMalcolmShootAnims();
+
+      if (this.playerSprite && this.textures.exists(MALCOLM_SHOOT_ASSET.key)) {
+        this.playerSprite.setTexture(MALCOLM_SHOOT_ASSET.key);
+        this.playerSprite.setOrigin(0.5, MALCOLM_SHOOT_ASSET.originY);
+        this.playerSprite.setScale(MALCOLM_SHOOT_ASSET.scale);
+        this.playerSprite.play(this.malcolmShootAnimKey(this.playerFacing), true);
+        this.playerActionUntil = now + 520;
+      }
+
+      const dir = {
+        S:{x:0,y:1}, SW:{x:-0.7,y:0.7}, W:{x:-1,y:0}, NW:{x:-0.7,y:-0.7},
+        N:{x:0,y:-1}, NE:{x:0.7,y:-0.7}, E:{x:1,y:0}, SE:{x:0.7,y:0.7}
+      }[this.playerFacing || 'S'] || {x:0,y:1};
+
+      const sx = this.player.x + dir.x * 24;
+      const sy = this.player.y + dir.y * 24;
+      const ex = sx + dir.x * 310;
+      const ey = sy + dir.y * 310;
+
+      const tracer = this.add.line(0, 0, sx, sy, ex, ey, 0xffe27a, 0.96).setOrigin(0, 0).setLineWidth(3).setDepth(85);
+      const flash = this.add.circle(sx, sy, 10, 0xfff1a6, 0.95).setDepth(86);
+      this.tweens.add({ targets:[tracer, flash], alpha:0, duration:135, onComplete:()=>{ tracer.destroy(); flash.destroy(); } });
+
+      this.message = 'Malcolm fires.';
+      this.messageTimer = 800;
+    }
+
+    restorePlayerWalkTexture() {
+      if (!this.playerSprite || !this.textures.exists(PLAYER_ASSET.key)) return;
+      if (this.playerSprite.texture?.key !== PLAYER_ASSET.key) {
+        this.playerSprite.setTexture(PLAYER_ASSET.key);
+        this.playerSprite.setOrigin(0.5, PLAYER_ASSET.originY);
+        this.playerSprite.setScale(PLAYER_ASSET.scale);
+      }
+    }
+
+    ramosIsOnDuty() {
+      return !!(GAME.ramos && GAME.ramos.onDuty && !GAME.ramos.dismissed);
+    }
+
+    ramosFrame(asset, facing) {
+      const rows = { S:0, SW:2, W:2, NW:2, N:1, NE:3, E:3, SE:3 };
+      return (rows[facing] ?? 0) * asset.cols;
+    }
+
+    ramosAnimKey(mode, facing) {
+      const name = ({ S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' })[facing] || 'south';
+      return `ramos_${mode}_${name}`;
+    }
+
+    createRamosAnims() {
+      if (this.anims.exists('ramos_walk_south')) return;
+
+      const make = (mode, asset, frameRate, repeat) => {
+        const rows = [['south',0], ['north',1], ['west',2], ['east',3]];
+        for (const [name, row] of rows) {
+          this.anims.create({
+            key: `ramos_${mode}_${name}`,
+            frames: this.anims.generateFrameNumbers(asset.key, {
+              start: row * asset.cols,
+              end: row * asset.cols + asset.cols - 1
+            }),
+            frameRate,
+            repeat
+          });
+        }
+      };
+
+      if (this.textures.exists(RAMOS_WALK_ASSET.key)) make('walk', RAMOS_WALK_ASSET, 9, -1);
+      if (this.textures.exists(RAMOS_TALK_ASSET.key)) make('talk', RAMOS_TALK_ASSET, 7, 0);
+      if (this.textures.exists(RAMOS_SHOOT_ASSET.key)) make('shoot', RAMOS_SHOOT_ASSET, 10, 0);
+    }
+
+    createRamosCompanion(x = 500, y = 680) {
+      this.ramosFacing = this.ramosFacing || 'S';
+      this.ramosActionUntil = 0;
+
+      this.ramosBody = this.add.rectangle(x, y, 24, 34, COLORS.purple, 0).setDepth(29);
+      this.physics.add.existing(this.ramosBody);
+      this.ramosBody.body.setCollideWorldBounds(true);
+      this.physics.add.collider(this.ramosBody, this.walls);
+
+      this.ensureRamosCompanion();
+      this.setRamosVisible(this.ramosIsOnDuty() && !GAME.ramos.inCar);
+    }
+
+    ensureRamosCompanion() {
+      if (!this.ramosBody || this.ramosSprite || !this.textures.exists(RAMOS_WALK_ASSET.key)) return;
+      this.createRamosAnims();
+      this.ramosSprite = this.add.sprite(this.ramosBody.x, this.ramosBody.y, RAMOS_WALK_ASSET.key, this.ramosFrame(RAMOS_WALK_ASSET, this.ramosFacing))
+        .setOrigin(0.5, RAMOS_WALK_ASSET.originY)
+        .setScale(RAMOS_WALK_ASSET.scale)
+        .setDepth(30);
+      this.setRamosVisible(this.ramosIsOnDuty() && !GAME.ramos.inCar);
+    }
+
+    setRamosVisible(on) {
+      if (this.ramosBody?.body) this.ramosBody.body.enable = !!on;
+      if (this.ramosBody) this.ramosBody.setVisible(false);
+      if (this.ramosSprite) this.ramosSprite.setVisible(!!on);
+    }
+
+    isRamosNearPlayer(range = 105) {
+      if (!this.ramosIsOnDuty() || GAME.ramos.inCar || !this.ramosBody || !this.player) return false;
+      return Phaser.Math.Distance.Between(this.player.x, this.player.y, this.ramosBody.x, this.ramosBody.y) <= range;
+    }
+
+    ramosFollowOffset() {
+      const offsets = {
+        S:{x:-54,y:-44}, SW:{x:48,y:-38}, W:{x:64,y:8}, NW:{x:46,y:46},
+        N:{x:54,y:50}, NE:{x:-46,y:46}, E:{x:-64,y:8}, SE:{x:-48,y:-38}
+      };
+      return offsets[this.playerFacing] || offsets.S;
+    }
+
+    ramosDirectionFromVector(vx, vy) {
+      if (Math.abs(vx) < 0.01 && Math.abs(vy) < 0.01) return this.ramosFacing || 'S';
+      const angle = Phaser.Math.RadToDeg(Math.atan2(vy, vx));
+      return ['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8];
+    }
+
+    updateRamosCompanion(time, delta) {
+      if (!this.ramosBody) return;
+
+      if (!this.ramosIsOnDuty()) {
+        this.setRamosVisible(false);
+        return;
+      }
+
+      if (this.inCar || GAME.ramos.inCar) {
+        GAME.ramos.inCar = true;
+        this.setRamosVisible(false);
+        if (this.ramosBody.body) this.ramosBody.body.setVelocity(0, 0);
+        return;
+      }
+
+      GAME.ramos.inCar = false;
+      this.ensureRamosCompanion();
+      this.setRamosVisible(true);
+
+      const off = this.ramosFollowOffset();
+      const tx = this.player.x + off.x;
+      const ty = this.player.y + off.y;
+      const dx = tx - this.ramosBody.x;
+      const dy = ty - this.ramosBody.y;
+      const dist = Math.hypot(dx, dy);
+      let moving = false;
+
+      if (dist > 48 && this.ramosBody.body) {
+        const speed = dist > 180 ? 235 : 170;
+        this.ramosBody.body.setVelocity((dx / dist) * speed, (dy / dist) * speed);
+        this.ramosFacing = this.ramosDirectionFromVector(dx, dy);
+        moving = true;
+      } else if (this.ramosBody.body) {
+        this.ramosBody.body.setVelocity(0, 0);
+      }
+
+      if (!this.ramosSprite) return;
+      this.ramosSprite.setPosition(this.ramosBody.x, this.ramosBody.y);
+
+      if (this.ramosActionUntil && (this.time.now || 0) < this.ramosActionUntil) return;
+
+      if (this.ramosSprite.texture.key !== RAMOS_WALK_ASSET.key) this.ramosSprite.setTexture(RAMOS_WALK_ASSET.key);
+      if (moving) this.ramosSprite.play(this.ramosAnimKey('walk', this.ramosFacing), true);
+      else {
+        this.ramosSprite.anims.stop();
+        this.ramosSprite.setFrame(this.ramosFrame(RAMOS_WALK_ASSET, this.ramosFacing));
+      }
+    }
+
+    ramosSpeak(text) {
+      this.message = text;
+      this.messageTimer = 4200;
+      if (this.promptText?.setText) this.promptText.setText(text);
+      if (this.ramosSprite && this.textures.exists(RAMOS_TALK_ASSET.key)) {
+        this.ramosSprite.setTexture(RAMOS_TALK_ASSET.key);
+        this.ramosSprite.play(this.ramosAnimKey('talk', this.ramosFacing || this.playerFacing || 'S'), true);
+        this.ramosActionUntil = (this.time.now || 0) + 1500;
+      }
+    }
+
+    ramosSmallTalk() {
+      if (!this.ramosIsOnDuty()) {
+        this.message = 'Ramos is back at the station.';
+        this.messageTimer = 2200;
+        return;
+      }
+      const i = GAME.ramos.smallTalkIndex % RAMOS_SMALL_TALK_LINES.length;
+      GAME.ramos.smallTalkIndex += 1;
+      this.ramosSpeak(RAMOS_SMALL_TALK_LINES[i]);
+    }
+
+    ramosShoot() {
+      if (!this.ramosIsOnDuty() || GAME.ramos.inCar || !this.ramosBody) return;
+      const now = this.time.now || 0;
+      if (now - (this.ramosLastShotAt || 0) < 450) return;
+      this.ramosLastShotAt = now;
+
+      if (this.ramosSprite && this.textures.exists(RAMOS_SHOOT_ASSET.key)) {
+        this.ramosSprite.setTexture(RAMOS_SHOOT_ASSET.key);
+        this.ramosSprite.play(this.ramosAnimKey('shoot', this.ramosFacing || this.playerFacing || 'S'), true);
+        this.ramosActionUntil = now + 750;
+      }
+
+      const dir = {
+        S:{x:0,y:1}, SW:{x:-0.7,y:0.7}, W:{x:-1,y:0}, NW:{x:-0.7,y:-0.7},
+        N:{x:0,y:-1}, NE:{x:0.7,y:-0.7}, E:{x:1,y:0}, SE:{x:0.7,y:0.7}
+      }[this.ramosFacing || 'S'] || {x:0,y:1};
+
+      const sx = this.ramosBody.x + dir.x * 24;
+      const sy = this.ramosBody.y + dir.y * 24;
+      const ex = sx + dir.x * 260;
+      const ey = sy + dir.y * 260;
+
+      const tracer = this.add.line(0, 0, sx, sy, ex, ey, 0xffe27a, 0.95).setOrigin(0, 0).setLineWidth(3).setDepth(80);
+      const flash = this.add.circle(sx, sy, 9, 0xfff1a6, 0.9).setDepth(81);
+      this.tweens.add({ targets:[tracer, flash], alpha:0, duration:140, onComplete:()=>{ tracer.destroy(); flash.destroy(); } });
+      this.ramosSpeak('Ramos: Covering!');
+    }
+
+    ramosActionTalk() {
+      if (!GAME.ramos.introduced) {
+        GAME.ramos.introduced = true;
+        GAME.ramos.onDuty = true;
+        GAME.ramos.dismissed = false;
+        GAME.ramos.inCar = false;
+        this.ramosSpeak("Ramos: Detective King? Elena Ramos. Captain assigned me to ride with you. I’m your new partner.");
+        return true;
+      }
+
+      this.ramosSmallTalk();
+      return true;
+    }
+
     handleInteract() {
       if(this.inCar){
         this.inCar=false;
+        GAME.ramos.inCar = false;
         this.player.setVisible(false).setPosition(this.car.x-34,this.car.y+8);
         this.player.body.enable=true;
         this.updatePlayerSprite(false);
+        if (this.ramosBody) this.ramosBody.setPosition(this.player.x + 48, this.player.y + 10);
         this.car.body.setVelocity(0,0); this.car.vx=this.car.vy=0;
         this.cameras.main.startFollow(this.player,true,CAMERA.followLerp,CAMERA.followLerp);
         this.cameras.main.setDeadzone(42, 32);
         this.cameras.main.setZoom(CAMERA.playerZoom);
         GAME.car.visualState.driverDoorOpen=true; this.syncVehicleSprites();
         this.time.delayedCall(900,()=>{GAME.car.visualState.driverDoorOpen=false;this.syncVehicleSprites();});
-        this.message='Exited vehicle.'; this.messageTimer=2200; return;
+        this.message=GAME.ramos.onDuty && !GAME.ramos.dismissed ? 'Exited vehicle. Ramos steps out passenger side.' : 'Exited vehicle.';
+        this.messageTimer=2200; return;
       }
       if(dist(this.player,this.car)<70){
         this.inCar=true;
+        if (GAME.ramos.onDuty && !GAME.ramos.dismissed) GAME.ramos.inCar = true;
         this.player.setVisible(false); this.player.body.enable=false;
         if(this.playerSprite) this.playerSprite.setVisible(false);
+        this.setRamosVisible(false);
         this.cameras.main.startFollow(this.car,true,CAMERA.followLerp,CAMERA.followLerp);
         this.cameras.main.setDeadzone(62, 48);
         GAME.car.visualState.driverDoorOpen=true; this.syncVehicleSprites();
         this.time.delayedCall(700,()=>{GAME.car.visualState.driverDoorOpen=false;this.syncVehicleSprites();});
-        this.message='Entered unmarked sedan.'; this.messageTimer=2200; return;
+        this.message=GAME.ramos.onDuty && !GAME.ramos.dismissed ? 'Entered unmarked sedan. Ramos gets in passenger side.' : 'Entered unmarked sedan.';
+        this.messageTimer=2200; return;
+      }
+      if (!this.closestZone && this.isRamosNearPlayer()) {
+        this.ramosActionTalk();
+        return;
       }
       if(!this.closestZone) return;
       const z=this.closestZone;
@@ -1127,7 +1762,7 @@
     }
     handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
     tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
-    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:'A/E enter/exit | B/SPACE arrest | X/T trunk | Y/R report'); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
+    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:(this.isRamosNearPlayer()?'A/E interact | X/F Malcolm shoot | Y Ramos talk | T trunk':'A/E enter/exit | X/F shoot | Y talk | T trunk | B arrest')); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
     redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
   }
 
@@ -1138,6 +1773,7 @@
     init(data) { this.entryData = data || {}; }
 
     preload() {
+      if (!this.cache.audio.exists(THEME_ASSET.key)) this.load.audio(THEME_ASSET.key, A(THEME_ASSET.path));
       for (const level of Object.values(POLICE_STATION_LEVEL_ASSETS)) {
         this.load.image(level.baseKey, A(level.basePath));
         this.load.image(level.propsKey, A(level.propsPath));
@@ -1149,6 +1785,18 @@
         frameWidth: MALCOLM_STATION_ASSET.frameWidth,
         frameHeight: MALCOLM_STATION_ASSET.frameHeight
       });
+
+      this.load.spritesheet(MALCOLM_SHOOT_ASSET.key, A(MALCOLM_SHOOT_ASSET.path), {
+        frameWidth: MALCOLM_SHOOT_ASSET.frameWidth,
+        frameHeight: MALCOLM_SHOOT_ASSET.frameHeight
+      });
+
+      for (const ramosAsset of [RAMOS_WALK_ASSET, RAMOS_TALK_ASSET, RAMOS_SHOOT_ASSET]) {
+        this.load.spritesheet(ramosAsset.key, A(ramosAsset.path), {
+          frameWidth: ramosAsset.frameWidth,
+          frameHeight: ramosAsset.frameHeight
+        });
+      }
 
       this.load.spritesheet(PLAYER_ASSET.key, A(PLAYER_ASSET.path), {
         frameWidth: PLAYER_ASSET.frameWidth,
@@ -1233,6 +1881,8 @@
         this.playerFallback = this.add.rectangle(startX, startY, 42, 64, COLORS.blue, 1).setDepth(31);
       }
 
+      this.createRamosCompanion(startX - 64, startY + 18);
+
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
       this.cameras.main.setZoom(0.68);
@@ -1252,11 +1902,14 @@
       this.input.keyboard.on('keydown-E', () => this.handleInteract());
       this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
       this.input.keyboard.on('keydown-A', () => this.handleInteract());
+      this.input.keyboard.on('keydown-T', () => this.ramosSmallTalk());
+      this.input.keyboard.on('keydown-F', () => this.malcolmShoot());
       this.input.keyboard.on('keydown-O', () => { if (this.stationPropsLayer) this.stationPropsLayer.setVisible(!this.stationPropsLayer.visible); });
       this.input.keyboard.on('keydown', (event) => this.handleFloorPromptKey(event));
 
       launchGlobalMobileControls(this);
       this.setupStationUiCamera();
+      installPauseMenu(this);
       // Keep title theme alive after scene transition. On iOS this also retries after the user tap.
       this.time.delayedCall(150, () => startTheme(this));
       this.input.once('pointerdown', () => startTheme(this));
@@ -1459,8 +2112,8 @@
 
       if (hits.includes('a')) this.handleInteract();
       if (hits.includes('b')) this.handleInteract();
-      if (hits.includes('x')) this.promptText?.setText('X: station systems placeholder.');
-      if (hits.includes('y')) this.promptText?.setText('Y: report/evidence shortcut placeholder.');
+      if (hits.includes('x')) this.malcolmShoot();
+      if (hits.includes('y')) this.ramosSmallTalk();
       if (hits.includes('sel')) this.promptText?.setText('SEL: station debug placeholder.');
       if (hits.includes('sta')) this.promptText?.setText('STA: pause placeholder.');
     }
@@ -1526,6 +2179,9 @@
         this.playerSprite.setPosition(x, y);
         this.playerSprite.setFlipX(mirrorLeft);
 
+        if (this.playerActionUntil && (this.time.now || 0) < this.playerActionUntil) return;
+        this.restoreStationPlayerWalkTexture();
+
         if (moving) {
           const key = this.animForFacing();
           if (this.playerSprite.anims.currentAnim?.key !== key || !this.playerSprite.anims.isPlaying) {
@@ -1537,6 +2193,277 @@
         }
       }
       if (this.playerFallback) this.playerFallback.setPosition(x, y);
+    }
+
+
+
+    malcolmShootFrame(facing = this.playerFacing || 'S') {
+      const rows = { S:0, SW:2, W:2, NW:2, N:1, NE:3, E:3, SE:3 };
+      return (rows[facing] ?? 0) * MALCOLM_SHOOT_ASSET.cols;
+    }
+
+    malcolmShootAnimKey(facing = this.playerFacing || 'S') {
+      const name = ({ S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' })[facing] || 'south';
+      return `malcolm_shoot_${name}`;
+    }
+
+    createMalcolmShootAnims() {
+      if (this.anims.exists('station_malcolm_shoot_south') || !this.textures.exists(MALCOLM_SHOOT_ASSET.key)) return;
+      const rows = [['south',0], ['north',1], ['west',2], ['east',3]];
+      for (const [name, row] of rows) {
+        this.anims.create({
+          key: `station_malcolm_shoot_${name}`,
+          frames: this.anims.generateFrameNumbers(MALCOLM_SHOOT_ASSET.key, {
+            start: row * MALCOLM_SHOOT_ASSET.cols,
+            end: row * MALCOLM_SHOOT_ASSET.cols + MALCOLM_SHOOT_ASSET.cols - 1
+          }),
+          frameRate: 12,
+          repeat: 0
+        });
+      }
+    }
+
+    stationMalcolmShootAnimKey(facing = this.playerFacing || 'S') {
+      const name = ({ S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' })[facing] || 'south';
+      return `station_malcolm_shoot_${name}`;
+    }
+
+    malcolmShoot() {
+      if (this.floorMenuOpen || this.transitionLocked || !this.playerBody) return;
+      const now = this.time.now || 0;
+      if (now - (this.malcolmLastShotAt || 0) < 380) return;
+      this.malcolmLastShotAt = now;
+
+      this.createMalcolmShootAnims();
+
+      if (this.playerSprite && this.textures.exists(MALCOLM_SHOOT_ASSET.key)) {
+        this.playerSprite.setTexture(MALCOLM_SHOOT_ASSET.key);
+        this.playerSprite.setOrigin(0.5, MALCOLM_SHOOT_ASSET.originY);
+        this.playerSprite.setScale(MALCOLM_SHOOT_ASSET.stationScale);
+        this.playerSprite.play(this.stationMalcolmShootAnimKey(this.playerFacing), true);
+        this.playerActionUntil = now + 520;
+      }
+
+      const dir = {
+        S:{x:0,y:1}, SW:{x:-0.7,y:0.7}, W:{x:-1,y:0}, NW:{x:-0.7,y:-0.7},
+        N:{x:0,y:-1}, NE:{x:0.7,y:-0.7}, E:{x:1,y:0}, SE:{x:0.7,y:0.7}
+      }[this.playerFacing || 'S'] || {x:0,y:1};
+
+      const sx = this.playerBody.x + dir.x * 26;
+      const sy = this.playerBody.y + dir.y * 26;
+      const ex = sx + dir.x * 285;
+      const ey = sy + dir.y * 285;
+
+      const tracer = this.add.line(0, 0, sx, sy, ex, ey, 0xffe27a, 0.96).setOrigin(0, 0).setLineWidth(3).setDepth(80);
+      const flash = this.add.circle(sx, sy, 10, 0xfff1a6, 0.95).setDepth(81);
+      this.tweens.add({ targets:[tracer, flash], alpha:0, duration:135, onComplete:()=>{ tracer.destroy(); flash.destroy(); } });
+      this.promptText?.setText('Malcolm fires.');
+    }
+
+    restoreStationPlayerWalkTexture() {
+      if (!this.playerSprite || !this.textures.exists(MALCOLM_STATION_ASSET.key)) return;
+      if (this.playerSprite.texture?.key !== MALCOLM_STATION_ASSET.key) {
+        this.playerSprite.setTexture(MALCOLM_STATION_ASSET.key);
+        this.playerSprite.setOrigin(0.5, MALCOLM_STATION_ASSET.originY);
+        this.playerSprite.setScale(this.stationPlayerScale);
+      }
+    }
+
+    ramosIsOnDuty() {
+      return !!(GAME.ramos && GAME.ramos.onDuty && !GAME.ramos.dismissed);
+    }
+
+    ramosFrame(asset, facing) {
+      const rows = { S:0, SW:2, W:2, NW:2, N:1, NE:3, E:3, SE:3 };
+      return (rows[facing] ?? 0) * asset.cols;
+    }
+
+    ramosAnimKey(mode, facing) {
+      const name = ({ S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' })[facing] || 'south';
+      return `ramos_${mode}_${name}`;
+    }
+
+    createRamosAnims() {
+      if (this.anims.exists('ramos_walk_south')) return;
+
+      const make = (mode, asset, frameRate, repeat) => {
+        const rows = [['south',0], ['north',1], ['west',2], ['east',3]];
+        for (const [name, row] of rows) {
+          this.anims.create({
+            key: `ramos_${mode}_${name}`,
+            frames: this.anims.generateFrameNumbers(asset.key, {
+              start: row * asset.cols,
+              end: row * asset.cols + asset.cols - 1
+            }),
+            frameRate,
+            repeat
+          });
+        }
+      };
+
+      if (this.textures.exists(RAMOS_WALK_ASSET.key)) make('walk', RAMOS_WALK_ASSET, 9, -1);
+      if (this.textures.exists(RAMOS_TALK_ASSET.key)) make('talk', RAMOS_TALK_ASSET, 7, 0);
+      if (this.textures.exists(RAMOS_SHOOT_ASSET.key)) make('shoot', RAMOS_SHOOT_ASSET, 10, 0);
+    }
+
+    createRamosCompanion(x, y) {
+      this.ramosFacing = this.ramosFacing || 'S';
+      this.ramosActionUntil = 0;
+
+      this.ramosBody = this.add.rectangle(x, y, 28, 46, COLORS.purple, 0.0).setDepth(29);
+      this.physics.add.existing(this.ramosBody);
+      this.ramosBody.body.setCollideWorldBounds(true);
+      this.physics.add.collider(this.ramosBody, this.walls);
+
+      if (this.textures.exists(RAMOS_WALK_ASSET.key)) {
+        this.createRamosAnims();
+        this.ramosSprite = this.add.sprite(x, y, RAMOS_WALK_ASSET.key, this.ramosFrame(RAMOS_WALK_ASSET, this.ramosFacing))
+          .setOrigin(0.5, RAMOS_WALK_ASSET.originY)
+          .setScale(RAMOS_WALK_ASSET.scale)
+          .setDepth(30);
+      } else {
+        this.ramosSprite = this.add.rectangle(x, y, 30, 54, COLORS.purple, 1).setDepth(30);
+      }
+
+      this.setRamosVisible(this.ramosIsOnDuty());
+    }
+
+    setRamosVisible(on) {
+      if (this.ramosBody?.body) this.ramosBody.body.enable = !!on;
+      if (this.ramosBody) this.ramosBody.setVisible(false);
+      if (this.ramosSprite) this.ramosSprite.setVisible(!!on);
+    }
+
+    isRamosNearPlayer(range = 115) {
+      if (!this.ramosIsOnDuty() || !this.ramosBody || !this.playerBody) return false;
+      return Phaser.Math.Distance.Between(this.playerBody.x, this.playerBody.y, this.ramosBody.x, this.ramosBody.y) <= range;
+    }
+
+    ramosFollowOffset() {
+      const offsets = {
+        S:{x:-58,y:-52}, SW:{x:48,y:-44}, W:{x:66,y:8}, NW:{x:48,y:48},
+        N:{x:58,y:54}, NE:{x:-48,y:48}, E:{x:-66,y:8}, SE:{x:-48,y:-44}
+      };
+      return offsets[this.playerFacing] || offsets.S;
+    }
+
+    ramosDirectionFromVector(vx, vy) {
+      if (Math.abs(vx) < 0.01 && Math.abs(vy) < 0.01) return this.ramosFacing || 'S';
+      const angle = Phaser.Math.RadToDeg(Math.atan2(vy, vx));
+      return ['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8];
+    }
+
+    updateRamosCompanion(time, delta) {
+      if (!this.ramosBody) return;
+
+      if (!this.ramosIsOnDuty()) {
+        this.setRamosVisible(false);
+        return;
+      }
+
+      this.setRamosVisible(true);
+
+      const off = this.ramosFollowOffset();
+      const tx = this.playerBody.x + off.x;
+      const ty = this.playerBody.y + off.y;
+      const dx = tx - this.ramosBody.x;
+      const dy = ty - this.ramosBody.y;
+      const dist = Math.hypot(dx, dy);
+      let moving = false;
+
+      if (!this.floorMenuOpen && !this.transitionLocked && dist > 52 && this.ramosBody.body) {
+        const speed = dist > 170 ? 235 : 172;
+        this.ramosBody.body.setVelocity((dx / dist) * speed, (dy / dist) * speed);
+        this.ramosFacing = this.ramosDirectionFromVector(dx, dy);
+        moving = true;
+      } else if (this.ramosBody.body) {
+        this.ramosBody.body.setVelocity(0, 0);
+      }
+
+      if (!this.ramosSprite) return;
+      this.ramosSprite.setPosition(this.ramosBody.x, this.ramosBody.y);
+
+      if (this.ramosActionUntil && (this.time.now || 0) < this.ramosActionUntil) return;
+
+      if (this.ramosSprite.setTexture && this.ramosSprite.texture?.key !== RAMOS_WALK_ASSET.key) this.ramosSprite.setTexture(RAMOS_WALK_ASSET.key);
+      if (moving && this.ramosSprite.play) this.ramosSprite.play(this.ramosAnimKey('walk', this.ramosFacing), true);
+      else if (this.ramosSprite.anims) {
+        this.ramosSprite.anims.stop();
+        if (this.ramosSprite.setFrame) this.ramosSprite.setFrame(this.ramosFrame(RAMOS_WALK_ASSET, this.ramosFacing));
+      }
+    }
+
+    ramosSpeak(text) {
+      this.promptText?.setText(text);
+      if (this.ramosSprite && this.textures.exists(RAMOS_TALK_ASSET.key)) {
+        this.ramosSprite.setTexture(RAMOS_TALK_ASSET.key);
+        this.ramosSprite.play(this.ramosAnimKey('talk', this.ramosFacing || this.playerFacing || 'S'), true);
+        this.ramosActionUntil = (this.time.now || 0) + 1500;
+      }
+    }
+
+    ramosSmallTalk() {
+      if (!this.ramosIsOnDuty()) {
+        this.promptText?.setText('Ramos is back at the station.');
+        return;
+      }
+
+      const i = GAME.ramos.smallTalkIndex % RAMOS_SMALL_TALK_LINES.length;
+      GAME.ramos.smallTalkIndex += 1;
+      this.ramosSpeak(RAMOS_SMALL_TALK_LINES[i]);
+    }
+
+    ramosShoot() {
+      if (!this.ramosIsOnDuty() || !this.ramosBody) return;
+      const now = this.time.now || 0;
+      if (now - (this.ramosLastShotAt || 0) < 450) return;
+      this.ramosLastShotAt = now;
+
+      if (this.ramosSprite && this.textures.exists(RAMOS_SHOOT_ASSET.key)) {
+        this.ramosSprite.setTexture(RAMOS_SHOOT_ASSET.key);
+        this.ramosSprite.play(this.ramosAnimKey('shoot', this.ramosFacing || this.playerFacing || 'S'), true);
+        this.ramosActionUntil = now + 750;
+      }
+
+      const dir = {
+        S:{x:0,y:1}, SW:{x:-0.7,y:0.7}, W:{x:-1,y:0}, NW:{x:-0.7,y:-0.7},
+        N:{x:0,y:-1}, NE:{x:0.7,y:-0.7}, E:{x:1,y:0}, SE:{x:0.7,y:0.7}
+      }[this.ramosFacing || 'S'] || {x:0,y:1};
+
+      const sx = this.ramosBody.x + dir.x * 24;
+      const sy = this.ramosBody.y + dir.y * 24;
+      const ex = sx + dir.x * 250;
+      const ey = sy + dir.y * 250;
+
+      const tracer = this.add.line(0, 0, sx, sy, ex, ey, 0xffe27a, 0.95).setOrigin(0, 0).setLineWidth(3).setDepth(80);
+      const flash = this.add.circle(sx, sy, 9, 0xfff1a6, 0.9).setDepth(81);
+      this.tweens.add({ targets:[tracer, flash], alpha:0, duration:140, onComplete:()=>{ tracer.destroy(); flash.destroy(); } });
+      this.ramosSpeak('Ramos: Covering!');
+    }
+
+    ramosActionTalk() {
+      if (!this.ramosIsOnDuty()) return false;
+
+      if (!GAME.ramos.introduced) {
+        GAME.ramos.introduced = true;
+        GAME.ramos.onDuty = true;
+        GAME.ramos.dismissed = false;
+        GAME.ramos.inCar = false;
+        this.ramosSpeak("Ramos: Detective King? Elena Ramos. Captain assigned me to ride with you. I’m your new partner.");
+        return true;
+      }
+
+      if (this.floorId === 'floor1') {
+        GAME.ramos.onDuty = false;
+        GAME.ramos.dismissed = true;
+        GAME.ramos.inCar = false;
+        this.setRamosVisible(false);
+        this.promptText?.setText("Malcolm: You’re relieved for now, Ramos. Ramos: I’ll report back to the station.");
+        return true;
+      }
+
+      this.ramosSmallTalk();
+      return true;
     }
 
     inputDir() {
@@ -1551,6 +2478,13 @@
     }
 
     update(time, delta) {
+      if (this.pauseMenuOpen) {
+        setActorPauseVelocity(this);
+        this.updatePlayerVisual(false);
+        this.updateRamosCompanion(time, delta);
+        return;
+      }
+
       if (this.transitionCooldown > 0) this.transitionCooldown -= delta || 16;
 
       if (this.floorMenuOpen) {
@@ -1569,6 +2503,7 @@
       }
 
       this.updatePlayerVisual(moving);
+      this.updateRamosCompanion(time, delta);
 
       if (this.checkElevatorDoorTransition()) return;
       this.checkAutoTransitions();
@@ -1689,8 +2624,16 @@
     handleInteract() {
       if (this.floorMenuOpen) return;
 
+      if (this.isRamosNearPlayer() && (!GAME.ramos.introduced || !this.currentHotspot)) {
+        if (this.ramosActionTalk()) return;
+      }
+
       const h = this.currentHotspot || this.getCurrentHotspot();
       if (!h) {
+        if (this.isRamosNearPlayer()) {
+          this.ramosActionTalk();
+          return;
+        }
         if (this.playerInRectZone(this.getElevatorDoorZone())) this.enterElevatorRoom();
         return;
       }
@@ -1842,6 +2785,7 @@
     init(data) { this.entryData = data || {}; }
 
     preload() {
+      if (!this.cache.audio.exists(THEME_ASSET.key)) this.load.audio(THEME_ASSET.key, A(THEME_ASSET.path));
       this.load.image(ELEVATOR_ROOM_ASSET.key, A(ELEVATOR_ROOM_ASSET.path));
 
       if (!this.textures.exists(MALCOLM_STATION_ASSET.key)) {
@@ -1920,6 +2864,7 @@
       this.input.keyboard.on('keydown', (event) => this.handleFloorPromptKey(event));
 
       launchGlobalMobileControls(this);
+      installPauseMenu(this);
       this.time.delayedCall(100, () => startTheme(this));
       this.input.once('pointerdown', () => startTheme(this));
 
@@ -2014,6 +2959,12 @@
     }
 
     update(time, delta) {
+      if (this.pauseMenuOpen) {
+        setActorPauseVelocity(this);
+        this.updatePlayerVisual(false);
+        return;
+      }
+
       if (this.floorMenuOpen) {
         if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
         this.updatePlayerVisual(false);
@@ -2493,6 +3444,12 @@
         }
       }
 
+      if (key === 'sta') {
+        if (typeof target.togglePauseMenu === 'function') target.togglePauseMenu();
+        else togglePauseMenu(target);
+        return;
+      }
+
       if (key === 'b') {
         if (typeof target.tryArrest === 'function') target.tryArrest();
         else if (typeof target.handleInteract === 'function') target.handleInteract();
@@ -2500,14 +3457,16 @@
       }
 
       if (key === 'x') {
-        if (typeof target.handleTrunk === 'function') target.handleTrunk();
-        else if (target.promptText?.setText) target.promptText.setText('X: station systems placeholder.');
+        if (typeof target.malcolmShoot === 'function') target.malcolmShoot();
+        else if (typeof target.handleTrunk === 'function') target.handleTrunk();
+        else if (target.promptText?.setText) target.promptText.setText('X: shoot placeholder.');
         return;
       }
 
       if (key === 'y') {
-        if (typeof target.tryReport === 'function') target.tryReport();
-        else if (target.promptText?.setText) target.promptText.setText('Y: report/evidence shortcut placeholder.');
+        if (typeof target.ramosSmallTalk === 'function') target.ramosSmallTalk();
+        else if (typeof target.tryReport === 'function') target.tryReport();
+        else if (target.promptText?.setText) target.promptText.setText('Y: talk placeholder.');
         return;
       }
 
