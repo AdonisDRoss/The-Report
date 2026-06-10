@@ -29,6 +29,7 @@
   // BUILD_NOTE_LOCKED_CONTROLS_ROOFS_ZOOM: roof depth + enterable buildings + UI camera locked controls + close zoom.
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
   // STATION_OVERLAY_GIT_PROPS_PATH_014: station props layer now uses existing Git props-folder overlay path.
+  // FLOOR2_CAMERA_SPAWN_FIX_001: floor2 elevator/default spawn moved into visible room and camera recenters after load.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -62,25 +63,6 @@
     },
     case: { active: false, complete: false, suspectArrested: false, evidenceCollected: false, evidenceInTrunk: false, witnessStatement: false, reportFiled: false }
   };
-
-
-  const MOBILE_INPUT_STATE = {
-    up:false, down:false, left:false, right:false,
-    a:false, b:false, x:false, y:false, sel:false, sta:false,
-    analogX:0, analogY:0, useStick:true
-  };
-
-  function resetMobileInputState() {
-    for (const key of ['up','down','left','right','a','b','x','y','sel','sta']) MOBILE_INPUT_STATE[key] = false;
-    MOBILE_INPUT_STATE.analogX = 0;
-    MOBILE_INPUT_STATE.analogY = 0;
-  }
-
-  function launchGlobalMobileControls(scene) {
-    if (!scene || !scene.scene) return;
-    if (!scene.scene.isActive('MobileControlsScene')) scene.scene.launch('MobileControlsScene');
-    scene.scene.bringToTop('MobileControlsScene');
-  }
 
   const COLLISION_RECTS = [
     { id: 'precinct', x: 285, y: 155, w: 565, h: 430, type: 'building' },
@@ -268,9 +250,9 @@
       propsKey: POLICE_STATION_ASSETS.props.key,
       propsPath: POLICE_STATION_ASSETS.props.path,
       spawns: {
-        default: { x: 800, y: 735, facing: 'N' },
-        elevator: { x: 800, y: 700, facing: 'N' },
-        stairsFromFloor2: { x: 760, y: 255, facing: 'S' }
+        default: { x: 800, y: 825, facing: 'N' },
+        elevator: { x: 800, y: 725, facing: 'N' },
+        stairsFromFloor2: { x: 760, y: 170, facing: 'S' }
       }
     },
     floor2: {
@@ -281,9 +263,9 @@
       propsKey: 'police_station_floor2_props_overlay',
       propsPath: 'assets/interiors/police_station/floor2/police_station_floor2_props_overlay.png',
       spawns: {
-        default: { x: 800, y: 250, facing: 'S' },
-        elevator: { x: 800, y: 250, facing: 'S' },
-        stairsFromFloor1: { x: 760, y: 700, facing: 'N' }
+        default: { x: 800, y: 585, facing: 'S' },
+        elevator: { x: 800, y: 585, facing: 'S' },
+        stairsFromFloor1: { x: 760, y: 820, facing: 'N' }
       }
     },
     b1: {
@@ -461,7 +443,7 @@
       this.cameras.main.setBackgroundColor('#070b10');
 
       this.keys = this.input.keyboard.addKeys({ up:'W', down:'S', left:'A', right:'D', arrowUp:'UP', arrowDown:'DOWN', arrowLeft:'LEFT', arrowRight:'RIGHT', interact:'E', arrest:'SPACE', trunk:'T', report:'R' });
-      this.mobile = MOBILE_INPUT_STATE;
+      this.mobile = { up:false, down:false, left:false, right:false, a:false, b:false, x:false, y:false, analogX:0, analogY:0, useStick:true };
       this.inCar = false; this.shiftMinutes = 8 * 60; this.playerInventory = [];
       this.message = 'Loaded mobile-safe. Optional car art will stream in after gameplay starts.';
       this.objective = "Reach Benny's Market and trigger the shoplifting case.";
@@ -470,7 +452,7 @@
       this.debug = { collision:false, interaction:false, spawns:false };
       this.debugGraphics = this.add.graphics().setDepth(1100);
 
-      this.drawGround(); this.drawBuildings(); this.createCollision(); this.createEntities(); this.applyEntrySpawn(); this.createHUD(); launchGlobalMobileControls(this); this.setupUiCamera(); this.bindKeys();
+      this.drawGround(); this.drawBuildings(); this.createCollision(); this.createEntities(); this.applyEntrySpawn(); this.createHUD(); this.createMobileControls(); this.setupUiCamera(); this.bindKeys();
       this.cameras.main.roundPixels = true;
       this.cameras.main.startFollow(this.player, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
@@ -1019,7 +1001,7 @@
     }
 
     checkAutoTransitions() {
-      if (this.transitionLocked || this.floorMenuOpen || this.transitionCooldown > 0) return;
+      if (this.transitionLocked || this.floorMenuOpen) return;
 
       const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
       if (!h) return;
@@ -1028,11 +1010,7 @@
       if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
 
       if (h.id === 'station_exit_main') {
-        this.scene.start('GameScene', {
-          fromStationExit: true,
-          spawn: { x: 552, y: 690 },
-          message: 'Exited Raven Hook Police Station.'
-        });
+        this.promptText.setText('Walk through the front door to exit.');
         return;
       }
 
@@ -1162,11 +1140,10 @@
         interact: 'E', enter: 'ENTER'
       });
 
-      this.mobile = MOBILE_INPUT_STATE;
+      this.mobile = { up:false, down:false, left:false, right:false, a:false };
       this.uiObjects = [];
       this.floorMenuOpen = false;
       this.transitionLocked = false;
-      this.transitionCooldown = this.entryData.fromAutoTransition ? 900 : 350;
 
       this.add.image(0, 0, this.floorData.baseKey)
         .setOrigin(0, 0)
@@ -1180,7 +1157,6 @@
         .setVisible(true);
 
       this.hotspots = this.makeHotspotsForFloor(this.floorId);
-      this.drawElevatorCallButton();
 
       this.walls = this.physics.add.staticGroup();
       this.addCollisionRects();
@@ -1215,7 +1191,7 @@
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(0.68);
+      this.cameras.main.setZoom(0.82);
       this.cameras.main.centerOn(startX, startY);
       this.time.delayedCall(80, () => {
         if (!this.playerBody) return;
@@ -1243,10 +1219,6 @@
 
       this.createMobileControls();
       this.setupStationUiCamera();
-      // Keep title theme alive after scene transition. On iOS this also retries after the user tap.
-      this.time.delayedCall(150, () => startTheme(this));
-      this.input.once('pointerdown', () => startTheme(this));
-
 
       if (this.entryData.message) this.promptText.setText(this.entryData.message);
     }
@@ -1283,7 +1255,7 @@
       if (floorId === 'floor1') {
         return [
           { id:'station_exit_main', x:610, y:845, w:380, h:150, label:'Exit to Central Street' },
-          { id:'station_elevator_floor1_disabled', x:700, y:700, w:210, h:145, label:'Elevator unavailable — use stairs' },
+          { id:'station_elevator', x:700, y:700, w:210, h:145, label:'Elevator' },
           { id:'stairs_to_floor2', x:650, y:65, w:300, h:155, label:'Stairs to Floor 2' },
           { id:'station_phone', x:410, y:500, w:120, h:120, label:'Use Station Phone' },
           { id:'report_room', x:85, y:80, w:240, h:230, label:'File Report' },
@@ -1294,8 +1266,7 @@
 
       if (floorId === 'floor2') {
         return [
-          { id:'station_elevator', x:700, y:20, w:460, h:360, label:'Elevator' },
-          { id:'elevator_call_button', x:760, y:95, w:120, h:150, label:'Elevator Call Button' },
+          { id:'station_elevator', x:665, y:55, w:270, h:205, label:'Elevator' },
           { id:'stairs_to_floor1', x:640, y:760, w:320, h:220, label:'Stairs Down to Floor 1' },
           { id:'chief_office', x:1000, y:120, w:360, h:265, label:'Chief / Command Offices' },
           { id:'detective_bullpen', x:480, y:385, w:520, h:330, label:'Detective Offices' }
@@ -1304,8 +1275,7 @@
 
       if (floorId === 'b1') {
         return [
-          { id:'station_elevator', x:640, y:20, w:360, h:300, label:'Elevator' },
-          { id:'elevator_call_button', x:870, y:90, w:120, h:150, label:'Elevator Call Button' },
+          { id:'station_elevator', x:665, y:45, w:270, h:210, label:'Elevator' },
           { id:'records_evidence', x:60, y:150, w:430, h:690, label:'Records / Evidence Room' },
           { id:'task_force_room', x:520, y:170, w:520, h:670, label:"Malcolm's Task Force Room — Empty" },
           { id:'utility_room', x:1080, y:150, w:430, h:690, label:'Storage / Utility Room' }
@@ -1314,8 +1284,7 @@
 
       if (floorId === 'motorPool') {
         return [
-          { id:'station_elevator', x:640, y:700, w:360, h:280, label:'Elevator' },
-          { id:'elevator_call_button', x:880, y:760, w:120, h:150, label:'Elevator Call Button' },
+          { id:'station_elevator', x:690, y:760, w:230, h:185, label:'Elevator' },
           { id:'repair_bays', x:460, y:95, w:660, h:360, label:'Repair Bays' },
           { id:'motor_pool_office', x:55, y:575, w:450, h:310, label:'Motor Pool Office' }
         ];
@@ -1445,15 +1414,6 @@
 
       if (!fireAction) return;
 
-      if (this.floorMenuOpen) {
-        if (hits.includes('up')) this.handleFloorPromptButton('up');
-        if (hits.includes('down')) this.handleFloorPromptButton('down');
-        if (hits.includes('a')) this.handleFloorPromptButton('a');
-        if (hits.includes('b')) this.handleFloorPromptButton('b');
-        if (hits.includes('sel') || hits.includes('sta')) this.handleFloorPromptButton('b');
-        return;
-      }
-
       if (hits.includes('a')) this.handleInteract();
       if (hits.includes('b')) this.handleInteract();
       if (hits.includes('x')) this.promptText?.setText('X: station systems placeholder.');
@@ -1547,9 +1507,7 @@
       return { vx: vx / len, vy: vy / len };
     }
 
-    update(time, delta) {
-      if (this.transitionCooldown > 0) this.transitionCooldown -= delta || 16;
-
+    update() {
       if (this.floorMenuOpen) {
         if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
         this.updatePlayerVisual(false);
@@ -1571,22 +1529,12 @@
 
       const spot = this.getCurrentHotspot();
       this.currentHotspot = spot;
-      this.promptText.setText(spot ? `A: ${spot.label}` : `${this.floorData.title} | A interact`);
+      this.promptText.setText(spot ? `A/E: ${spot.label}` : `${this.floorData.title} | A/E interact`);
     }
 
     getCurrentHotspot() {
       const b = this.playerBody.getBounds();
       const p = { x: this.playerBody.x, y: this.playerBody.y };
-
-      const button = (this.hotspots || []).find(h => h.id === 'elevator_call_button');
-      if (button && this.floorId !== 'floor1') {
-        const bx = button.x + button.w / 2;
-        const by = button.y + button.h / 2;
-        const br = new Phaser.Geom.Rectangle(button.x, button.y, button.w, button.h);
-        if (Phaser.Geom.Rectangle.Overlaps(br, b) || Phaser.Geom.Rectangle.Contains(br, p.x, p.y) || Phaser.Math.Distance.Between(p.x, p.y, bx, by) < 170) {
-          return button;
-        }
-      }
 
       let nearest = null;
       let nearestDist = Infinity;
@@ -1608,87 +1556,10 @@
       return nearest;
     }
 
-    getStrictHotspot(ids = []) {
-      const b = this.playerBody.getBounds();
-      const p = { x: this.playerBody.x, y: this.playerBody.y };
-
-      for (const h of this.hotspots) {
-        if (ids.length && !ids.includes(h.id)) continue;
-
-        const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
-        if (Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return h;
-      }
-
-      return null;
-    }
-
-    checkAutoTransitions() {
-      if (this.transitionLocked || this.floorMenuOpen) return;
-
-      const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
-      if (!h) return;
-
-      this.transitionLocked = true;
-      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
-
-      if (h.id === 'station_exit_main') {
-        this.scene.start('GameScene', {
-          fromStationExit: true,
-          spawn: { x: 552, y: 690 },
-          message: 'Exited Raven Hook Police Station.'
-        });
-        return;
-      }
-
-      if (h.id === 'stairs_to_floor2') {
-        this.changeStationFloor('floor2', 'stairsFromFloor1', 'Came up the stairs to Floor 2.');
-        return;
-      }
-
-      if (h.id === 'stairs_to_floor1') {
-        this.changeStationFloor('floor1', 'stairsFromFloor2', 'Came down the stairs to Floor 1.');
-        return;
-      }
-    }
-
-    isNearStationElevator() {
-      if (this.floorId === 'floor1') return false;
-
-      const p = { x: this.playerBody.x, y: this.playerBody.y };
-
-      const button = (this.hotspots || []).find(h => h.id === 'elevator_call_button');
-      if (button) {
-        const bx = button.x + button.w / 2;
-        const by = button.y + button.h / 2;
-        const br = new Phaser.Geom.Rectangle(button.x, button.y, button.w, button.h);
-
-        if (Phaser.Geom.Rectangle.Contains(br, p.x, p.y)) return true;
-        if (Phaser.Geom.Rectangle.Overlaps(br, this.playerBody.getBounds())) return true;
-        if (Phaser.Math.Distance.Between(p.x, p.y, bx, by) < 170) return true;
-      }
-
-      const elevator = (this.hotspots || []).find(h => h.id === 'station_elevator');
-      if (!elevator || !this.playerBody) return false;
-
-      const r = new Phaser.Geom.Rectangle(elevator.x, elevator.y, elevator.w, elevator.h);
-      if (Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return true;
-      if (Phaser.Geom.Rectangle.Overlaps(r, this.playerBody.getBounds())) return true;
-
-      const cx = elevator.x + elevator.w / 2;
-      const cy = elevator.y + elevator.h / 2;
-      return Phaser.Math.Distance.Between(p.x, p.y, cx, cy) < 230;
-    }
-
     handleInteract() {
       if (this.floorMenuOpen) return;
 
       const h = this.currentHotspot || this.getCurrentHotspot();
-
-      if ((!h || h.id !== 'station_elevator') && this.isNearStationElevator()) {
-        this.showFloorPrompt();
-        return;
-      }
-
       if (!h) return;
 
       if (h.id === 'station_exit_main') {
@@ -1700,17 +1571,8 @@
         return;
       }
 
-      if (h.id === 'station_elevator' || h.id === 'elevator_call_button') {
-        if (this.floorId === 'floor1') {
-          this.promptText.setText('Use the stairs from Floor 1.');
-          return;
-        }
+      if (h.id === 'station_elevator') {
         this.showFloorPrompt();
-        return;
-      }
-
-      if (h.id === 'station_elevator_floor1_disabled') {
-        this.promptText.setText('Use the stairs from Floor 1.');
         return;
       }
 
@@ -1748,36 +1610,19 @@
     }
 
     showFloorPrompt() {
-      if (this.floorId === 'floor1') {
-        this.promptText.setText('Use the stairs from Floor 1.');
-        return;
-      }
-
       this.floorMenuOpen = true;
-      this.floorMenuIndex = 0;
-      this.floorMenuOptions = [
-        { label: '1 — MAIN STATION', floorId: 'floor1' },
-        { label: '2 — OFFICES / CHIEF OFFICE', floorId: 'floor2' },
-        { label: 'B1 — RECORDS / EVIDENCE', floorId: 'b1' },
-        { label: 'B3 — MOTOR POOL', floorId: 'motorPool' }
-      ];
-
-      const currentIndex = this.floorMenuOptions.findIndex(o => o.floorId === this.floorId);
-      this.floorMenuIndex = currentIndex >= 0 ? currentIndex : 0;
-
       if (this.floorMenu) this.floorMenu.destroy(true);
 
-      const c = this.add.container(VIEW_W / 2, VIEW_H / 2).setScrollFactor(0).setDepth(5200);
-      const bg = this.add.rectangle(0, 0, 560, 330, 0x02060a, 0.96).setStrokeStyle(3, COLORS.cyan, 0.95);
-      const title = this.add.text(0, -138, 'ELEVATOR — SELECT FLOOR', {
+      const c = this.add.container(VIEW_W / 2, VIEW_H / 2).setScrollFactor(0).setDepth(3000);
+      const bg = this.add.rectangle(0, 0, 520, 300, 0x02060a, 0.92).setStrokeStyle(2, COLORS.cyan, 0.9);
+      const title = this.add.text(0, -120, 'ELEVATOR', {
         fontFamily: 'Courier New',
-        fontSize: '22px',
+        fontSize: '24px',
         color: '#f4d28a',
         stroke: '#000',
         strokeThickness: 4
       }).setOrigin(0.5);
-
-      const help = this.add.text(0, 135, 'D-PAD ▲▼ highlight  |  A confirm  |  B cancel', {
+      const help = this.add.text(0, 118, 'Keyboard: 2 / B / 3   |   Tap a floor   |   ESC closes', {
         fontFamily: 'Courier New',
         fontSize: '13px',
         color: '#86e7ff',
@@ -1786,130 +1631,53 @@
       }).setOrigin(0.5);
 
       c.add([bg, title, help]);
-      this.floorMenuRows = [];
 
-      const yStart = -78;
-      for (let i = 0; i < this.floorMenuOptions.length; i++) {
-        const y = yStart + i * 50;
-        const rowBg = this.add.rectangle(0, y, 440, 42, 0x111827, 0.94).setStrokeStyle(2, 0x4b5563, 0.8);
-        const cursor = this.add.text(-205, y - 10, '▶', {
+      const addOption = (y, label, floorId) => {
+        const box = this.add.rectangle(0, y, 420, 48, 0x111827, 0.95).setStrokeStyle(2, COLORS.amber, 0.85);
+        const tx = this.add.text(0, y - 10, label, {
           fontFamily: 'Courier New',
-          fontSize: '18px',
-          color: '#ffdf59',
-          stroke: '#000',
-          strokeThickness: 3
-        }).setOrigin(0.5);
-        const label = this.add.text(0, y - 10, this.floorMenuOptions[i].label, {
-          fontFamily: 'Courier New',
-          fontSize: '16px',
+          fontSize: '17px',
           color: '#ffffff',
           stroke: '#000',
           strokeThickness: 3
         }).setOrigin(0.5);
+        box.setInteractive({ useHandCursor: true });
+        box.on('pointerdown', () => this.changeStationFloor(floorId, 'elevator', `Elevator: ${label}`));
+        c.add([box, tx]);
+      };
 
-        rowBg.setInteractive({ useHandCursor: true });
-        rowBg.on('pointerdown', () => {
-          this.floorMenuIndex = i;
-          this.updateFloorMenuSelection();
-          this.confirmFloorMenuSelection();
-        });
-
-        c.add([rowBg, cursor, label]);
-        this.floorMenuRows.push({ bg: rowBg, cursor, label });
-      }
+      addOption(-55, '2 — OFFICES / CHIEF OFFICE', 'floor2');
+      addOption(5, 'B1 — RECORDS / EVIDENCE', 'b1');
+      addOption(65, 'B3 — MOTOR POOL', 'motorPool');
 
       this.floorMenu = c;
       this.registerStationUi(c);
       this.cameras.main.ignore(c);
-      this.updateFloorMenuSelection();
-    }
-
-    updateFloorMenuSelection() {
-      if (!this.floorMenuRows) return;
-
-      const index = this.floorMenuIndex || 0;
-      for (let i = 0; i < this.floorMenuRows.length; i++) {
-        const selected = i === index;
-        const row = this.floorMenuRows[i];
-
-        row.cursor.setVisible(selected);
-        row.bg.setFillStyle(selected ? 0x263241 : 0x111827, selected ? 0.98 : 0.94);
-        row.bg.setStrokeStyle(2, selected ? COLORS.amber : 0x4b5563, selected ? 1 : 0.8);
-        row.label.setColor(selected ? '#ffdf59' : '#ffffff');
-      }
-    }
-
-    moveFloorMenuSelection(delta) {
-      if (!this.floorMenuOpen || !this.floorMenuOptions?.length) return false;
-
-      this.floorMenuIndex = Phaser.Math.Wrap(
-        (this.floorMenuIndex || 0) + delta,
-        0,
-        this.floorMenuOptions.length
-      );
-
-      this.updateFloorMenuSelection();
-      return true;
-    }
-
-    confirmFloorMenuSelection() {
-      if (!this.floorMenuOpen || !this.floorMenuOptions?.length) return false;
-
-      const choice = this.floorMenuOptions[this.floorMenuIndex || 0];
-      if (!choice) return false;
-
-      this.changeStationFloor(choice.floorId, 'elevator', `Elevator: ${choice.label}`);
-      return true;
     }
 
     handleFloorPromptKey(event) {
       if (!this.floorMenuOpen) return;
       const key = String(event.key || '').toLowerCase();
 
-      if (['arrowup', 'w'].includes(key)) {
-        this.handleFloorPromptButton('up');
-        return;
-      }
-
-      if (['arrowdown', 's'].includes(key)) {
-        this.handleFloorPromptButton('down');
-        return;
-      }
-
-      if (key === 'enter' || key === 'a' || key === ' ') {
-        this.handleFloorPromptButton('a');
-        return;
-      }
-
-      if (key === 'escape' || key === 'b') {
-        this.handleFloorPromptButton('b');
-        return;
-      }
-    }
-
-    handleFloorPromptButton(buttonKey) {
-      if (!this.floorMenuOpen) return false;
-
-      const key = String(buttonKey || '').toLowerCase();
-
-      if (key === 'up' || key === 'arrowup' || key === 'w') {
-        return this.moveFloorMenuSelection(-1);
-      }
-
-      if (key === 'down' || key === 'arrowdown' || key === 's') {
-        return this.moveFloorMenuSelection(1);
-      }
-
-      if (key === 'a' || key === 'enter' || key === ' ') {
-        return this.confirmFloorMenuSelection();
-      }
-
-      if (key === 'b' || key === 'sel' || key === 'sta' || key === 'escape') {
+      if (key === 'escape') {
         this.closeFloorPrompt();
-        return true;
+        return;
       }
 
-      return false;
+      if (key === '2') {
+        this.changeStationFloor('floor2', 'elevator', 'Elevator: Floor 2 offices.');
+        return;
+      }
+
+      if (key === '1' || key === 'b') {
+        this.changeStationFloor('b1', 'elevator', 'Elevator: B1 records / evidence.');
+        return;
+      }
+
+      if (key === '3') {
+        this.changeStationFloor('motorPool', 'elevator', 'Elevator: B3 motor pool.');
+        return;
+      }
     }
 
     closeFloorPrompt() {
@@ -1918,7 +1686,6 @@
         this.floorMenu.destroy(true);
         this.floorMenu = null;
       }
-      this.floorMenuRows = null;
       this.promptText?.setText(this.floorData.title);
     }
 
@@ -1928,8 +1695,7 @@
       this.scene.start('PoliceStationScene', {
         floor: floorId,
         spawn,
-        message,
-        fromAutoTransition: spawnKey && spawnKey.startsWith('stairs')
+        message
       });
     }
   }
@@ -2067,229 +1833,7 @@
     create(){ this.cameras.main.setBackgroundColor('#101018'); const g=this.add.graphics(); g.fillStyle(0xe0d0a5,1).fillRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); g.lineStyle(4,0x2b2117,1).strokeRoundedRect(100,40,VIEW_W-200,VIEW_H-80,12); const items=[["Correct location: Benny's Market",GAME.case.active],["Correct crime: Shoplifting",GAME.case.active],["Suspect arrested: Eddie Cross",GAME.case.suspectArrested],["Evidence collected: stolen cigarettes",GAME.case.evidenceCollected],["Evidence stored in trunk",GAME.case.evidenceInTrunk],["Witness statement: Marlene Pike",GAME.case.witnessStatement]]; let score=0; for(const i of items) if(i[1]) score+=100; if(score>=500&&!GAME.case.reportFiled){ GAME.xp+=score; GAME.case.complete=true; GAME.case.reportFiled=true; GAME.day+=1; } makeText(this,VIEW_W/2,74,'RAVEN HOOK POLICE DEPARTMENT',24,'#2b2117').setOrigin(0.5); makeText(this,VIEW_W/2,110,"INCIDENT REPORT — BENNY'S MARKET SHOPLIFTING",18,'#2b2117').setOrigin(0.5); let y=160; for(const [label,ok] of items){ makeText(this,160,y,`${ok?'✓':'✗'} ${label}`,18,ok?'#134f24':'#7a1c1c'); y+=38; } makeText(this,160,y+10,`REPORT SCORE: ${score} / 600`,22,'#2b2117'); makeText(this,160,y+50,score>=500?'Report accepted. Day advanced. XP awarded.':'Report incomplete. Return to the field and finish the case.',18,score>=500?'#134f24':'#7a1c1c'); makeText(this,VIEW_W/2,VIEW_H-78,'PRESS ENTER / TAP TO RETURN',18,'#2b2117').setOrigin(0.5); this.input.keyboard.once('keydown-ENTER',()=>this.scene.start('PoliceStationScene')); this.input.once('pointerdown',()=>this.scene.start('PoliceStationScene')); }
   }
 
-
-  class MobileControlsScene extends Phaser.Scene {
-    constructor() { super('MobileControlsScene'); }
-
-    create() {
-      this.input.addPointer(5);
-      this.input.mouse?.disableContextMenu();
-      this.activePointerControls = new Map();
-      this.drawControls();
-    }
-
-    drawControls() {
-      this.children.removeAll(true);
-
-      const addBtn = (x, y, label, key, color = 0x111827, radius = 30, font = '18px') => {
-        const c = this.add.container(x, y).setScrollFactor(0).setDepth(5000);
-        const bg = this.add.circle(0, 0, radius, color, 0.82).setStrokeStyle(2, 0xffffff, 0.65);
-        const tx = this.add.text(0, -8, label, {
-          fontFamily: 'Courier New',
-          fontSize: font,
-          color: '#fff',
-          stroke: '#000',
-          strokeThickness: 3
-        }).setOrigin(0.5);
-
-        c.add([bg, tx]);
-        c.setSize(radius * 2 + 18, radius * 2 + 18);
-        c.setInteractive(new Phaser.Geom.Circle(0, 0, radius + 18), Phaser.Geom.Circle.Contains);
-        c.on('pointerdown', (pointer) => {
-          this.setControl(key, true);
-          this.activePointerControls.set(pointer.id, [key]);
-          this.fireAction(key);
-        });
-        c.on('pointerup', (pointer) => this.releasePointer(pointer));
-        c.on('pointerout', (pointer) => this.releasePointer(pointer));
-        return c;
-      };
-
-      const dX = 96;
-      const dY = VIEW_H - 170;
-      addBtn(dX, dY - 76, '▲', 'up');
-      addBtn(dX, dY + 76, '▼', 'down');
-      addBtn(dX - 72, dY, '◀', 'left');
-      addBtn(dX + 72, dY, '▶', 'right');
-
-      const bX = VIEW_W - 96;
-      const bY = VIEW_H - 258;
-      addBtn(bX, bY, 'A', 'a', 0x1f4d2f, 32);
-      addBtn(bX - 72, bY + 52, 'B', 'b', 0x4d1f1f, 32);
-      addBtn(bX, bY + 104, 'X', 'x', 0x1f314d, 32);
-      addBtn(bX + 62, bY + 52, 'Y', 'y', 0x4d3b1f, 32);
-
-      addBtn(VIEW_W - 230, VIEW_H - 326, 'SEL', 'sel', 0x263241, 25, '12px');
-      addBtn(VIEW_W - 160, VIEW_H - 326, 'STA', 'sta', 0x263241, 25, '12px');
-
-      this.input.on('pointerup', (pointer) => this.releasePointer(pointer));
-      this.input.on('pointerupoutside', (pointer) => this.releasePointer(pointer));
-      this.events.on('shutdown', () => resetMobileInputState());
-    }
-
-    openElevatorMenu(targetScene) {
-      this.elevatorMenuTarget = targetScene;
-      this.renderElevatorMenu();
-    }
-
-    closeElevatorMenu() {
-      if (this.elevatorMenu) {
-        this.elevatorMenu.destroy(true);
-        this.elevatorMenu = null;
-      }
-      this.elevatorMenuTarget = null;
-    }
-
-    refreshElevatorMenu() {
-      if (!this.elevatorMenuTarget?.floorMenuOpen) {
-        this.closeElevatorMenu();
-        return;
-      }
-
-      if (!this.elevatorMenu) {
-        this.renderElevatorMenu();
-        return;
-      }
-
-      const rows = this.elevatorMenuRows || [];
-      const index = this.elevatorMenuTarget.floorMenuIndex || 0;
-
-      for (let i = 0; i < rows.length; i++) {
-        const selected = i === index;
-        rows[i].cursor.setVisible(selected);
-        rows[i].bg.setFillStyle(selected ? 0x263241 : 0x111827, selected ? 0.98 : 0.94);
-        rows[i].bg.setStrokeStyle(2, selected ? COLORS.amber : 0x4b5563, selected ? 1 : 0.8);
-        rows[i].label.setColor(selected ? '#ffdf59' : '#ffffff');
-      }
-    }
-
-    renderElevatorMenu() {
-      this.closeElevatorMenu();
-
-      const target = this.elevatorMenuTarget;
-      if (!target?.floorMenuOpen) return;
-
-      const c = this.add.container(VIEW_W / 2, VIEW_H / 2).setDepth(7000);
-      const bg = this.add.rectangle(0, 0, 560, 330, 0x02060a, 0.96).setStrokeStyle(3, COLORS.cyan, 0.95);
-      const title = this.add.text(0, -138, 'ELEVATOR — SELECT FLOOR', {
-        fontFamily: 'Courier New',
-        fontSize: '22px',
-        color: '#f4d28a',
-        stroke: '#000',
-        strokeThickness: 4
-      }).setOrigin(0.5);
-
-      const help = this.add.text(0, 135, 'D-PAD ▲▼ highlight  |  A confirm  |  B cancel', {
-        fontFamily: 'Courier New',
-        fontSize: '13px',
-        color: '#86e7ff',
-        stroke: '#000',
-        strokeThickness: 3
-      }).setOrigin(0.5);
-
-      c.add([bg, title, help]);
-
-      this.elevatorMenuRows = [];
-      const options = target.floorMenuOptions || [];
-      const yStart = -78;
-
-      for (let i = 0; i < options.length; i++) {
-        const y = yStart + i * 50;
-        const rowBg = this.add.rectangle(0, y, 440, 42, 0x111827, 0.94).setStrokeStyle(2, 0x4b5563, 0.8);
-        const cursor = this.add.text(-205, y - 10, '▶', {
-          fontFamily: 'Courier New',
-          fontSize: '18px',
-          color: '#ffdf59',
-          stroke: '#000',
-          strokeThickness: 3
-        }).setOrigin(0.5);
-
-        const label = this.add.text(0, y - 10, options[i].label, {
-          fontFamily: 'Courier New',
-          fontSize: '16px',
-          color: '#ffffff',
-          stroke: '#000',
-          strokeThickness: 3
-        }).setOrigin(0.5);
-
-        c.add([rowBg, cursor, label]);
-        this.elevatorMenuRows.push({ bg: rowBg, cursor, label });
-      }
-
-      this.elevatorMenu = c;
-      this.refreshElevatorMenu();
-    }
-
-    setControl(key, value) {
-      if (key in MOBILE_INPUT_STATE) MOBILE_INPUT_STATE[key] = value;
-    }
-
-    releasePointer(pointer) {
-      const keys = this.activePointerControls.get(pointer.id);
-      if (!keys) return;
-      for (const key of keys) this.setControl(key, false);
-      this.activePointerControls.delete(pointer.id);
-    }
-
-    getTargetScene() {
-      for (const key of ['PoliceStationScene', 'GameScene', 'InteriorScene', 'ReportScene']) {
-        const scene = this.scene.get(key);
-        if (scene?.scene?.isActive()) return scene;
-      }
-      return null;
-    }
-
-    fireAction(key) {
-      const target = this.getTargetScene();
-      if (!target) return;
-
-      if (target.scene?.key === 'PoliceStationScene' && target.floorMenuOpen && typeof target.handleFloorPromptButton === 'function') {
-        if (target.handleFloorPromptButton(key)) return;
-      }
-
-      if (key === 'a') {
-        if (typeof target.handleInteract === 'function') {
-          target.handleInteract();
-          return;
-        }
-        if (target.scene?.key === 'InteriorScene') {
-          target.scene.start('GameScene', {
-            fromStationExit: true,
-            spawn: target.dataIn?.returnSpawn || { x: 550, y: 675 },
-            message: `Exited ${target.dataIn?.title || 'building'}.`
-          });
-          return;
-        }
-        if (target.scene?.key === 'ReportScene') {
-          target.scene.start('PoliceStationScene');
-          return;
-        }
-      }
-
-      if (key === 'b') {
-        if (typeof target.tryArrest === 'function') target.tryArrest();
-        else if (typeof target.handleInteract === 'function') target.handleInteract();
-        return;
-      }
-
-      if (key === 'x') {
-        if (typeof target.handleTrunk === 'function') target.handleTrunk();
-        else if (target.promptText?.setText) target.promptText.setText('X: station systems placeholder.');
-        return;
-      }
-
-      if (key === 'y') {
-        if (typeof target.tryReport === 'function') target.tryReport();
-        else if (target.promptText?.setText) target.promptText.setText('Y: report/evidence shortcut placeholder.');
-        return;
-      }
-
-      if (key === 'sel' && target.promptText?.setText) target.promptText.setText('SEL: station debug placeholder.');
-      if (key === 'sta' && target.promptText?.setText) target.promptText.setText('STA: pause placeholder.');
-    }
-  }
-
-  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
+  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, GameScene, InteriorScene, ReportScene] });
 })();
 </script>
 </body>
