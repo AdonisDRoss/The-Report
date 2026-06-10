@@ -30,6 +30,7 @@
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
   // STATION_OVERLAY_GIT_PROPS_PATH_014: station props layer now uses existing Git props-folder overlay path.
   // ELEVATOR_HOTSPOT_FLOOR2_RIGHT_FIX: Floor 2 elevator walk-in hotspot moved to the visible right-side elevator door.
+  // ELEVATOR_WALKIN_AUTO_TRANSITION_FIX: walking into station_elevator hotspot now enters ElevatorRoomScene.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -1033,7 +1034,7 @@
     checkAutoTransitions() {
       if (this.transitionLocked || this.floorMenuOpen || this.transitionCooldown > 0) return;
 
-      const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main']);
+      const h = this.getStrictHotspot(['stairs_to_floor2', 'stairs_to_floor1', 'station_exit_main', 'station_elevator']);
       if (!h) return;
 
       this.transitionLocked = true;
@@ -1044,6 +1045,18 @@
           fromStationExit: true,
           spawn: { x: 552, y: 690 },
           message: 'Exited Raven Hook Police Station.'
+        });
+        return;
+      }
+
+      if (h.id === 'station_elevator') {
+        this.promptText?.setText('Entering elevator...');
+        this.cameras.main.fadeOut(140, 0, 0, 0);
+        this.time.delayedCall(150, () => {
+          this.scene.start('ElevatorRoomScene', {
+            fromFloor: this.floorId,
+            message: 'Entered elevator.'
+          });
         });
         return;
       }
