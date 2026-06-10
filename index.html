@@ -38,6 +38,7 @@
   // PAUSE_MENU_MUSIC_SAVE_LOAD_PATCH: restores music asset packaging and adds pause menu with music volume/on-off/save/load/quit.
   // MALCOLM_SHOOT_X_Y_TALK_FORCED_MUSIC_PATCH: X/F make Malcolm shoot, Y talks to Ramos, title screen forces music enabled.
   // GIT_MAPPED_STANDARD_128_SPRITES_PATCH: Ramos walk path mapped to existing Git movement sheet; city actor action sheets standardized to 128x128 frames.
+  // RAMOS_SCALE_CAR_B_FIX: city Ramos scaled to Malcolm movement height, station Ramos scaled up, B button enters/exits car near sedan.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -197,6 +198,8 @@
     }
   };
 
+  const CAR_INTERACT_RANGE = 150;
+
   const PLAYER_ASSET = {
     key: 'main_detective',
     path: 'assets/characters/main_detective/main_detective_movement_8dir_96x96_transparent.png',
@@ -236,7 +239,8 @@
     path: 'assets/characters/npcs/partners/ramos/ramos_movement_8dir_96x96.png', // Git file name; sheet is 1024x512 with 128x128 frames.
     frameWidth: 128,
     frameHeight: 128,
-    scale: 0.64,
+    scale: 0.44,        // city scale: matches Malcolm city movement height
+    stationScale: 0.88, // station scale: bigger inside interiors
     originY: 0.84,
     cols: 8
   };
@@ -246,7 +250,8 @@
     path: 'assets/characters/npcs/partners/ramos/ramos_talk_6x4_128.png',
     frameWidth: 128,
     frameHeight: 128,
-    scale: 0.64,
+    scale: 0.44,
+    stationScale: 0.88,
     originY: 0.84,
     cols: 6
   };
@@ -256,7 +261,8 @@
     path: 'assets/characters/npcs/partners/ramos/ramos_shoot_6x4_128.png',
     frameWidth: 128,
     frameHeight: 128,
-    scale: 0.64,
+    scale: 0.44,
+    stationScale: 0.88,
     originY: 0.84,
     cols: 6
   };
@@ -901,7 +907,7 @@
       this.input.keyboard.on('keydown-C', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
       this.input.keyboard.on('keydown-I', () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
       this.input.keyboard.on('keydown-P', () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
-      this.input.keyboard.on('keydown-B', () => this.toggleBuildingArt());
+      this.input.keyboard.on('keydown-B', () => this.handleCarOrArrest());
       this.input.keyboard.on('keydown-M', () => {
         const on = toggleTheme(this);
         this.message = on ? 'Theme music on.' : 'Theme music paused.';
@@ -1293,7 +1299,7 @@
     updateStick(pointer, bx, by, knob) { const x=clamp(pointer.x-bx,-48,48), y=clamp(pointer.y-by,-48,48); knob.setPosition(x,y); this.mobile.analogX=x/48; this.mobile.analogY=y/48; }
     handleMobileAction(prop) {
       if(prop==='a') this.handleInteract();
-      if(prop==='b') this.tryArrest();
+      if(prop==='b') this.handleCarOrArrest();
       if(prop==='x') this.malcolmShoot();
       if(prop==='y') this.ramosSmallTalk();
       if(prop==='sel') this.handleTrunk();
@@ -1636,6 +1642,7 @@
       if (this.promptText?.setText) this.promptText.setText(text);
       if (this.ramosSprite && this.textures.exists(RAMOS_TALK_ASSET.key)) {
         this.ramosSprite.setTexture(RAMOS_TALK_ASSET.key);
+        this.ramosSprite.setScale(RAMOS_TALK_ASSET.scale);
         this.ramosSprite.play(this.ramosAnimKey('talk', this.ramosFacing || this.playerFacing || 'S'), true);
         this.ramosActionUntil = (this.time.now || 0) + 1500;
       }
@@ -1660,6 +1667,7 @@
 
       if (this.ramosSprite && this.textures.exists(RAMOS_SHOOT_ASSET.key)) {
         this.ramosSprite.setTexture(RAMOS_SHOOT_ASSET.key);
+        this.ramosSprite.setScale(RAMOS_SHOOT_ASSET.scale);
         this.ramosSprite.play(this.ramosAnimKey('shoot', this.ramosFacing || this.playerFacing || 'S'), true);
         this.ramosActionUntil = now + 750;
       }
@@ -1694,6 +1702,18 @@
       return true;
     }
 
+    canUseCar() {
+      return !!(this.inCar || (this.player && this.car && dist(this.player, this.car) < CAR_INTERACT_RANGE));
+    }
+
+    handleCarOrArrest() {
+      if (this.canUseCar()) {
+        this.handleInteract();
+        return;
+      }
+      this.tryArrest();
+    }
+
     handleInteract() {
       if(this.inCar){
         this.inCar=false;
@@ -1711,7 +1731,7 @@
         this.message=GAME.ramos.onDuty && !GAME.ramos.dismissed ? 'Exited vehicle. Ramos steps out passenger side.' : 'Exited vehicle.';
         this.messageTimer=2200; return;
       }
-      if(dist(this.player,this.car)<70){
+      if(dist(this.player,this.car)<CAR_INTERACT_RANGE){
         this.inCar=true;
         if (GAME.ramos.onDuty && !GAME.ramos.dismissed) GAME.ramos.inCar = true;
         this.player.setVisible(false); this.player.body.enable=false;
@@ -1743,6 +1763,10 @@
       }
     }
     tryArrest(){
+      if (this.canUseCar && this.canUseCar()) {
+        this.handleInteract();
+        return;
+      }
       if (!GAME.case.active || GAME.case.suspectArrested) return;
       const actor = this.inCar ? this.car : this.player;
       if (dist(actor, this.suspect) < 75) {
@@ -1763,7 +1787,7 @@
     }
     handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
     tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
-    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:(this.isRamosNearPlayer()?'A/E interact | X/F Malcolm shoot | Y Ramos talk | T trunk':'A/E enter/exit | X/F shoot | Y talk | T trunk | B arrest')); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
+    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook Central v0.3 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:(this.isRamosNearPlayer()?'A/E interact | X/F Malcolm shoot | Y Ramos talk | T trunk':'A/E interact | B car/arrest | X/F shoot | Y talk | T trunk')); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
     redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
   }
 
@@ -2320,7 +2344,7 @@
         this.createRamosAnims();
         this.ramosSprite = this.add.sprite(x, y, RAMOS_WALK_ASSET.key, this.ramosFrame(RAMOS_WALK_ASSET, this.ramosFacing))
           .setOrigin(0.5, RAMOS_WALK_ASSET.originY)
-          .setScale(RAMOS_WALK_ASSET.scale)
+          .setScale(RAMOS_WALK_ASSET.stationScale || RAMOS_WALK_ASSET.scale)
           .setDepth(30);
       } else {
         this.ramosSprite = this.add.rectangle(x, y, 30, 54, COLORS.purple, 1).setDepth(30);
@@ -3452,7 +3476,8 @@
       }
 
       if (key === 'b') {
-        if (typeof target.tryArrest === 'function') target.tryArrest();
+        if (typeof target.handleCarOrArrest === 'function') target.handleCarOrArrest();
+        else if (typeof target.tryArrest === 'function') target.tryArrest();
         else if (typeof target.handleInteract === 'function') target.handleInteract();
         return;
       }
