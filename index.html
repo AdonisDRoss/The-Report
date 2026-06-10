@@ -29,7 +29,6 @@
   // BUILD_NOTE_LOCKED_CONTROLS_ROOFS_ZOOM: roof depth + enterable buildings + UI camera locked controls + close zoom.
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
   // STATION_OVERLAY_GIT_PROPS_PATH_014: station props layer now uses existing Git props-folder overlay path.
-  // FLOOR2_CAMERA_SPAWN_FIX_001: floor2 elevator/default spawn moved into visible room and camera recenters after load.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 2048, WORLD_H = 1536;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -1191,13 +1190,7 @@
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(0.82);
-      this.cameras.main.centerOn(startX, startY);
-      this.time.delayedCall(80, () => {
-        if (!this.playerBody) return;
-        this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
-        this.cameras.main.centerOn(this.playerBody.x, this.playerBody.y);
-      });
+      this.cameras.main.setZoom(0.68);
 
       this.promptBg = this.add.rectangle(VIEW_W / 2, VIEW_H - 38, 760, 42, 0x02060a, 0.72)
         .setScrollFactor(0)
