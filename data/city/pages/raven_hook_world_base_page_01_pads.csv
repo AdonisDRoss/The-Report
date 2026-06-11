@@ -1,0 +1,177 @@
+id,kind,label,x,y,w,h,hasInterior
+rhpq_police_station,civic,Raven Hook Police Station,780,230,430,280,True
+precinct_annex,civic,Precinct Annex,1260,225,280,190,True
+old_offices,commercial,Old Offices,130,365,270,145,True
+red_gull_edge,food,Red Gull Edge,250,900,270,145,True
+records_office,civic,Records Office,775,950,300,165,True
+lockup_exterior,civic,Lockup Exterior,1250,945,340,175,True
+station_payphone_corner,commercial,Payphone Corner,1515,520,80,130,False
+gull_pump_station_edge,gas,Gull Pump Edge,1520,1475,320,140,True
+bennys_market,store,Benny's Market,2245,230,345,215,True
+red_gull_diner,food,Red Gull Diner,2820,225,380,220,True
+raven_laundromat,store,Raven Laundromat,3260,245,300,190,True
+gull_pump,gas,Gull Pump,3600,535,330,180,True
+pawn_shop,store,Pawn Shop,2200,920,270,160,True
+market_apartments,res,Apartments,2525,980,300,150,True
+row_shops,commercial,Row Shops,2910,920,310,195,True
+auto_garage,commercial,Auto Garage,3320,930,290,185,True
+raven_hook_courthouse,civic,Courthouse,780,2210,480,320,True
+city_hall,civic,City Hall,1290,2240,370,260,True
+civic_clerk_office,civic,Clerk Office,240,2640,330,190,True
+law_offices,commercial,Law Offices,730,3010,330,170,True
+bail_bonds,commercial,Bail Bonds,1160,3000,400,190,True
+last_stop_dogs,food,Last Stop Dogs,320,3470,360,200,True
+city_archives,civic,City Archives,860,3480,410,210,True
+civic_service_tow,gas,Civic Service & Tow,1360,3480,350,200,True
+old_town_block,commercial,Old Town Block,2180,2220,390,230,True
+old_town_rooms,res,Old Town Rooms,2650,2210,330,210,True
+river_warehouse,industrial,River Warehouse,3050,2200,420,250,True
+harrows_auto_gas,gas,Harrow's Auto & Gas,3530,2185,370,250,True
+old_town_liquor,store,Old Town Liquor,2220,2860,330,185,True
+canal_motel,commercial,Canal Motel,2620,2865,350,190,True
+dock_office,commercial,Dock Office,3060,2860,350,200,True
+river_storage,industrial,River Storage,3500,2860,390,210,True
+crow_burger,food,Crow Burger,2360,3380,340,190,True
+filler_pad_000,commercial,Filler,720,89,84,58,False
+filler_pad_001,res,Filler,834,46,131,66,False
+filler_pad_002,res,Filler,990,37,78,91,False
+filler_pad_003,commercial,Filler,1089,32,133,75,False
+filler_pad_004,res,Filler,1239,50,86,86,False
+filler_pad_005,commercial,Filler,1353,41,118,83,False
+filler_pad_006,res,Filler,1491,46,78,99,False
+filler_pad_007,commercial,Filler,1600,38,125,68,False
+filler_pad_008,res,Filler,30,1230,90,77,False
+filler_pad_009,res,Filler,148,1230,117,92,False
+filler_pad_010,commercial,Filler,290,1230,115,63,False
+filler_pad_011,commercial,Filler,780,1170,115,98,False
+filler_pad_012,commercial,Filler,925,1179,95,57,False
+filler_pad_013,res,Filler,1051,1181,66,55,False
+filler_pad_014,commercial,Filler,1144,1186,113,72,False
+filler_pad_015,res,Filler,1282,1171,131,60,False
+filler_pad_016,res,Filler,1437,1186,76,58,False
+filler_pad_017,res,Filler,1538,1170,80,94,False
+filler_pad_018,commercial,Filler,60,1661,110,85,False
+filler_pad_019,res,Filler,191,1662,89,58,False
+filler_pad_020,res,Filler,309,1654,68,81,False
+filler_pad_021,commercial,Filler,410,1691,74,46,False
+filler_pad_022,res,Filler,518,1655,81,95,False
+filler_pad_023,commercial,Filler,628,1652,111,91,False
+filler_pad_024,res,Filler,757,1651,89,94,False
+filler_pad_025,commercial,Filler,863,1672,65,64,False
+filler_pad_026,res,Filler,956,1654,86,64,False
+filler_pad_027,commercial,Filler,1076,1653,99,90,False
+filler_pad_028,res,Filler,1189,1653,61,97,False
+filler_pad_029,commercial,Filler,1272,1660,111,86,False
+filler_pad_030,res,Filler,1407,1663,104,76,False
+filler_pad_031,commercial,Filler,1535,1684,72,54,False
+filler_pad_032,res,Filler,1623,1652,114,61,False
+filler_pad_033,commercial,Filler,2180,61,61,80,False
+filler_pad_034,res,Filler,2256,79,115,55,False
+filler_pad_035,commercial,Filler,2389,75,124,88,False
+filler_pad_036,res,Filler,2542,75,70,53,False
+filler_pad_037,res,Filler,2645,47,130,79,False
+filler_pad_038,commercial,Filler,2791,88,85,61,False
+filler_pad_039,commercial,Filler,2902,25,109,87,False
+filler_pad_040,commercial,Filler,3036,45,122,58,False
+filler_pad_041,res,Filler,3181,56,117,70,False
+filler_pad_042,commercial,Filler,3322,113,73,49,False
+filler_pad_043,commercial,Filler,3412,108,121,56,False
+filler_pad_044,res,Filler,3567,59,99,78,False
+filler_pad_045,commercial,Filler,3696,67,86,71,False
+filler_pad_046,commercial,Filler,3798,101,86,54,False
+filler_pad_047,res,Filler,2180,1134,87,75,False
+filler_pad_048,res,Filler,2284,1198,67,58,False
+filler_pad_049,res,Filler,2364,1163,125,70,False
+filler_pad_050,res,Filler,2509,1188,118,52,False
+filler_pad_051,commercial,Filler,2647,1137,135,65,False
+filler_pad_052,res,Filler,2812,1175,110,72,False
+filler_pad_053,res,Filler,2947,1161,73,99,False
+filler_pad_054,res,Filler,3053,1150,121,82,False
+filler_pad_055,commercial,Filler,3206,1143,74,47,False
+filler_pad_056,res,Filler,3303,1147,123,76,False
+filler_pad_057,commercial,Filler,3447,1156,69,77,False
+filler_pad_058,commercial,Filler,3543,1156,122,74,False
+filler_pad_059,commercial,Filler,3686,1131,75,98,False
+filler_pad_060,commercial,Filler,3791,1155,95,97,False
+filler_pad_061,res,Filler,2200,1528,115,68,False
+filler_pad_062,commercial,Filler,2342,1463,106,73,False
+filler_pad_063,res,Filler,2478,1467,73,98,False
+filler_pad_064,res,Filler,2572,1481,92,57,False
+filler_pad_065,res,Filler,2686,1524,134,62,False
+filler_pad_066,commercial,Filler,2848,1504,129,45,False
+filler_pad_067,res,Filler,2996,1478,103,65,False
+filler_pad_068,commercial,Filler,3116,1487,125,95,False
+filler_pad_069,commercial,Filler,3272,1500,93,49,False
+filler_pad_070,commercial,Filler,3383,1489,98,63,False
+filler_pad_071,commercial,Filler,3496,1495,100,56,False
+filler_pad_072,commercial,Filler,3615,1506,120,60,False
+filler_pad_073,res,Filler,3749,1474,63,80,False
+filler_pad_074,res,Filler,3846,1491,85,55,False
+filler_pad_075,res,Filler,40,2061,98,69,False
+filler_pad_076,commercial,Filler,155,2060,68,95,False
+filler_pad_077,res,Filler,239,2062,128,67,False
+filler_pad_078,res,Filler,401,2060,79,99,False
+filler_pad_079,res,Filler,700,2063,94,97,False
+filler_pad_080,commercial,Filler,809,2080,95,69,False
+filler_pad_081,commercial,Filler,925,2070,78,73,False
+filler_pad_082,res,Filler,1015,2060,74,81,False
+filler_pad_083,commercial,Filler,1123,2060,83,88,False
+filler_pad_084,commercial,Filler,1239,2079,115,72,False
+filler_pad_085,res,Filler,1376,2065,85,54,False
+filler_pad_086,res,Filler,1482,2081,134,59,False
+filler_pad_087,commercial,Filler,40,2864,105,84,False
+filler_pad_088,res,Filler,170,2866,94,84,False
+filler_pad_089,res,Filler,282,2862,81,91,False
+filler_pad_090,commercial,Filler,389,2871,62,84,False
+filler_pad_091,commercial,Filler,680,2843,112,93,False
+filler_pad_092,res,Filler,812,2871,129,62,False
+filler_pad_093,res,Filler,970,2891,101,64,False
+filler_pad_094,res,Filler,1095,2861,115,98,False
+filler_pad_095,commercial,Filler,1244,2845,107,99,False
+filler_pad_096,commercial,Filler,1371,2898,124,54,False
+filler_pad_097,commercial,Filler,1515,2870,130,45,False
+filler_pad_098,commercial,Filler,2180,2063,130,82,False
+filler_pad_099,res,Filler,2330,2060,107,45,False
+filler_pad_100,res,Filler,2461,2078,79,50,False
+filler_pad_101,res,Filler,2558,2060,103,97,False
+filler_pad_102,res,Filler,2683,2090,63,57,False
+filler_pad_103,commercial,Filler,2760,2080,103,51,False
+filler_pad_104,commercial,Filler,2897,2068,74,75,False
+filler_pad_105,res,Filler,2994,2062,119,90,False
+filler_pad_106,commercial,Filler,3130,2068,111,55,False
+filler_pad_107,res,Filler,3267,2070,95,87,False
+filler_pad_108,commercial,Filler,3397,2077,94,70,False
+filler_pad_109,res,Filler,3519,2097,68,52,False
+filler_pad_110,commercial,Filler,3599,2073,68,86,False
+filler_pad_111,commercial,Filler,3698,2060,92,100,False
+filler_pad_112,commercial,Filler,3812,2075,108,71,False
+filler_pad_113,res,Filler,2180,2626,101,87,False
+filler_pad_114,res,Filler,2309,2700,74,49,False
+filler_pad_115,commercial,Filler,2396,2654,66,70,False
+filler_pad_116,res,Filler,2488,2628,81,97,False
+filler_pad_117,commercial,Filler,2593,2639,80,91,False
+filler_pad_118,commercial,Filler,2695,2660,133,51,False
+filler_pad_119,res,Filler,2855,2686,92,55,False
+filler_pad_120,commercial,Filler,2961,2642,73,86,False
+filler_pad_121,res,Filler,3061,2703,79,48,False
+filler_pad_122,commercial,Filler,3156,2647,120,76,False
+filler_pad_123,res,Filler,3300,2628,62,92,False
+filler_pad_124,commercial,Filler,3374,2633,62,72,False
+filler_pad_125,commercial,Filler,3448,2656,95,97,False
+filler_pad_126,commercial,Filler,3577,2678,121,80,False
+filler_pad_127,commercial,Filler,3715,2628,110,93,False
+filler_pad_128,commercial,Filler,3840,2641,110,95,False
+filler_pad_129,res,Filler,2180,3421,68,89,False
+filler_pad_130,res,Filler,2279,3446,117,49,False
+filler_pad_131,commercial,Filler,2431,3433,99,74,False
+filler_pad_132,res,Filler,2553,3404,83,93,False
+filler_pad_133,res,Filler,2662,3427,87,86,False
+filler_pad_134,commercial,Filler,2779,3400,77,52,False
+filler_pad_135,res,Filler,2870,3403,114,49,False
+filler_pad_136,commercial,Filler,3014,3409,120,75,False
+filler_pad_137,commercial,Filler,3157,3414,132,84,False
+filler_pad_138,res,Filler,3313,3422,70,59,False
+filler_pad_139,res,Filler,3409,3460,127,56,False
+filler_pad_140,commercial,Filler,3565,3413,93,89,False
+filler_pad_141,res,Filler,3688,3415,123,92,False
+filler_pad_142,commercial,Filler,3835,3401,115,97,False

@@ -1,0 +1,2686 @@
+{
+  "pageId": "raven_hook_world_base_page_01",
+  "type": "base_layer",
+  "size": [
+    4096,
+    4096
+  ],
+  "chunkSize": [
+    2048,
+    2048
+  ],
+  "chunksPerPage": 4,
+  "layout": "2x2",
+  "chunks": [
+    {
+      "id": "chunk_03_03_police_starter",
+      "pageRect": [
+        0,
+        0,
+        2048,
+        2048
+      ]
+    },
+    {
+      "id": "chunk_04_03_bennys_diner_gull_pump",
+      "pageRect": [
+        2048,
+        0,
+        2048,
+        2048
+      ]
+    },
+    {
+      "id": "chunk_03_04_civic_court",
+      "pageRect": [
+        0,
+        2048,
+        2048,
+        2048
+      ]
+    },
+    {
+      "id": "chunk_04_04_old_town_riverport",
+      "pageRect": [
+        2048,
+        2048,
+        2048,
+        2048
+      ]
+    }
+  ],
+  "pads": [
+    {
+      "id": "rhpq_police_station",
+      "kind": "civic",
+      "label": "Raven Hook Police Station",
+      "x": 780,
+      "y": 230,
+      "w": 430,
+      "h": 280,
+      "hasInterior": true
+    },
+    {
+      "id": "precinct_annex",
+      "kind": "civic",
+      "label": "Precinct Annex",
+      "x": 1260,
+      "y": 225,
+      "w": 280,
+      "h": 190,
+      "hasInterior": true
+    },
+    {
+      "id": "old_offices",
+      "kind": "commercial",
+      "label": "Old Offices",
+      "x": 130,
+      "y": 365,
+      "w": 270,
+      "h": 145,
+      "hasInterior": true
+    },
+    {
+      "id": "red_gull_edge",
+      "kind": "food",
+      "label": "Red Gull Edge",
+      "x": 250,
+      "y": 900,
+      "w": 270,
+      "h": 145,
+      "hasInterior": true
+    },
+    {
+      "id": "records_office",
+      "kind": "civic",
+      "label": "Records Office",
+      "x": 775,
+      "y": 950,
+      "w": 300,
+      "h": 165,
+      "hasInterior": true
+    },
+    {
+      "id": "lockup_exterior",
+      "kind": "civic",
+      "label": "Lockup Exterior",
+      "x": 1250,
+      "y": 945,
+      "w": 340,
+      "h": 175,
+      "hasInterior": true
+    },
+    {
+      "id": "station_payphone_corner",
+      "kind": "commercial",
+      "label": "Payphone Corner",
+      "x": 1515,
+      "y": 520,
+      "w": 80,
+      "h": 130,
+      "hasInterior": false
+    },
+    {
+      "id": "gull_pump_station_edge",
+      "kind": "gas",
+      "label": "Gull Pump Edge",
+      "x": 1520,
+      "y": 1475,
+      "w": 320,
+      "h": 140,
+      "hasInterior": true
+    },
+    {
+      "id": "bennys_market",
+      "kind": "store",
+      "label": "Benny's Market",
+      "x": 2245,
+      "y": 230,
+      "w": 345,
+      "h": 215,
+      "hasInterior": true
+    },
+    {
+      "id": "red_gull_diner",
+      "kind": "food",
+      "label": "Red Gull Diner",
+      "x": 2820,
+      "y": 225,
+      "w": 380,
+      "h": 220,
+      "hasInterior": true
+    },
+    {
+      "id": "raven_laundromat",
+      "kind": "store",
+      "label": "Raven Laundromat",
+      "x": 3260,
+      "y": 245,
+      "w": 300,
+      "h": 190,
+      "hasInterior": true
+    },
+    {
+      "id": "gull_pump",
+      "kind": "gas",
+      "label": "Gull Pump",
+      "x": 3600,
+      "y": 535,
+      "w": 330,
+      "h": 180,
+      "hasInterior": true
+    },
+    {
+      "id": "pawn_shop",
+      "kind": "store",
+      "label": "Pawn Shop",
+      "x": 2200,
+      "y": 920,
+      "w": 270,
+      "h": 160,
+      "hasInterior": true
+    },
+    {
+      "id": "market_apartments",
+      "kind": "res",
+      "label": "Apartments",
+      "x": 2525,
+      "y": 980,
+      "w": 300,
+      "h": 150,
+      "hasInterior": true
+    },
+    {
+      "id": "row_shops",
+      "kind": "commercial",
+      "label": "Row Shops",
+      "x": 2910,
+      "y": 920,
+      "w": 310,
+      "h": 195,
+      "hasInterior": true
+    },
+    {
+      "id": "auto_garage",
+      "kind": "commercial",
+      "label": "Auto Garage",
+      "x": 3320,
+      "y": 930,
+      "w": 290,
+      "h": 185,
+      "hasInterior": true
+    },
+    {
+      "id": "raven_hook_courthouse",
+      "kind": "civic",
+      "label": "Courthouse",
+      "x": 780,
+      "y": 2210,
+      "w": 480,
+      "h": 320,
+      "hasInterior": true
+    },
+    {
+      "id": "city_hall",
+      "kind": "civic",
+      "label": "City Hall",
+      "x": 1290,
+      "y": 2240,
+      "w": 370,
+      "h": 260,
+      "hasInterior": true
+    },
+    {
+      "id": "civic_clerk_office",
+      "kind": "civic",
+      "label": "Clerk Office",
+      "x": 240,
+      "y": 2640,
+      "w": 330,
+      "h": 190,
+      "hasInterior": true
+    },
+    {
+      "id": "law_offices",
+      "kind": "commercial",
+      "label": "Law Offices",
+      "x": 730,
+      "y": 3010,
+      "w": 330,
+      "h": 170,
+      "hasInterior": true
+    },
+    {
+      "id": "bail_bonds",
+      "kind": "commercial",
+      "label": "Bail Bonds",
+      "x": 1160,
+      "y": 3000,
+      "w": 400,
+      "h": 190,
+      "hasInterior": true
+    },
+    {
+      "id": "last_stop_dogs",
+      "kind": "food",
+      "label": "Last Stop Dogs",
+      "x": 320,
+      "y": 3470,
+      "w": 360,
+      "h": 200,
+      "hasInterior": true
+    },
+    {
+      "id": "city_archives",
+      "kind": "civic",
+      "label": "City Archives",
+      "x": 860,
+      "y": 3480,
+      "w": 410,
+      "h": 210,
+      "hasInterior": true
+    },
+    {
+      "id": "civic_service_tow",
+      "kind": "gas",
+      "label": "Civic Service & Tow",
+      "x": 1360,
+      "y": 3480,
+      "w": 350,
+      "h": 200,
+      "hasInterior": true
+    },
+    {
+      "id": "old_town_block",
+      "kind": "commercial",
+      "label": "Old Town Block",
+      "x": 2180,
+      "y": 2220,
+      "w": 390,
+      "h": 230,
+      "hasInterior": true
+    },
+    {
+      "id": "old_town_rooms",
+      "kind": "res",
+      "label": "Old Town Rooms",
+      "x": 2650,
+      "y": 2210,
+      "w": 330,
+      "h": 210,
+      "hasInterior": true
+    },
+    {
+      "id": "river_warehouse",
+      "kind": "industrial",
+      "label": "River Warehouse",
+      "x": 3050,
+      "y": 2200,
+      "w": 420,
+      "h": 250,
+      "hasInterior": true
+    },
+    {
+      "id": "harrows_auto_gas",
+      "kind": "gas",
+      "label": "Harrow's Auto & Gas",
+      "x": 3530,
+      "y": 2185,
+      "w": 370,
+      "h": 250,
+      "hasInterior": true
+    },
+    {
+      "id": "old_town_liquor",
+      "kind": "store",
+      "label": "Old Town Liquor",
+      "x": 2220,
+      "y": 2860,
+      "w": 330,
+      "h": 185,
+      "hasInterior": true
+    },
+    {
+      "id": "canal_motel",
+      "kind": "commercial",
+      "label": "Canal Motel",
+      "x": 2620,
+      "y": 2865,
+      "w": 350,
+      "h": 190,
+      "hasInterior": true
+    },
+    {
+      "id": "dock_office",
+      "kind": "commercial",
+      "label": "Dock Office",
+      "x": 3060,
+      "y": 2860,
+      "w": 350,
+      "h": 200,
+      "hasInterior": true
+    },
+    {
+      "id": "river_storage",
+      "kind": "industrial",
+      "label": "River Storage",
+      "x": 3500,
+      "y": 2860,
+      "w": 390,
+      "h": 210,
+      "hasInterior": true
+    },
+    {
+      "id": "crow_burger",
+      "kind": "food",
+      "label": "Crow Burger",
+      "x": 2360,
+      "y": 3380,
+      "w": 340,
+      "h": 190,
+      "hasInterior": true
+    },
+    {
+      "id": "filler_pad_000",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 720,
+      "y": 89,
+      "w": 84,
+      "h": 58,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_001",
+      "kind": "res",
+      "label": "Filler",
+      "x": 834,
+      "y": 46,
+      "w": 131,
+      "h": 66,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_002",
+      "kind": "res",
+      "label": "Filler",
+      "x": 990,
+      "y": 37,
+      "w": 78,
+      "h": 91,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_003",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1089,
+      "y": 32,
+      "w": 133,
+      "h": 75,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_004",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1239,
+      "y": 50,
+      "w": 86,
+      "h": 86,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_005",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1353,
+      "y": 41,
+      "w": 118,
+      "h": 83,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_006",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1491,
+      "y": 46,
+      "w": 78,
+      "h": 99,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_007",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1600,
+      "y": 38,
+      "w": 125,
+      "h": 68,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_008",
+      "kind": "res",
+      "label": "Filler",
+      "x": 30,
+      "y": 1230,
+      "w": 90,
+      "h": 77,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_009",
+      "kind": "res",
+      "label": "Filler",
+      "x": 148,
+      "y": 1230,
+      "w": 117,
+      "h": 92,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_010",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 290,
+      "y": 1230,
+      "w": 115,
+      "h": 63,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_011",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 780,
+      "y": 1170,
+      "w": 115,
+      "h": 98,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_012",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 925,
+      "y": 1179,
+      "w": 95,
+      "h": 57,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_013",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1051,
+      "y": 1181,
+      "w": 66,
+      "h": 55,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_014",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1144,
+      "y": 1186,
+      "w": 113,
+      "h": 72,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_015",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1282,
+      "y": 1171,
+      "w": 131,
+      "h": 60,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_016",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1437,
+      "y": 1186,
+      "w": 76,
+      "h": 58,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_017",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1538,
+      "y": 1170,
+      "w": 80,
+      "h": 94,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_018",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 60,
+      "y": 1661,
+      "w": 110,
+      "h": 85,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_019",
+      "kind": "res",
+      "label": "Filler",
+      "x": 191,
+      "y": 1662,
+      "w": 89,
+      "h": 58,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_020",
+      "kind": "res",
+      "label": "Filler",
+      "x": 309,
+      "y": 1654,
+      "w": 68,
+      "h": 81,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_021",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 410,
+      "y": 1691,
+      "w": 74,
+      "h": 46,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_022",
+      "kind": "res",
+      "label": "Filler",
+      "x": 518,
+      "y": 1655,
+      "w": 81,
+      "h": 95,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_023",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 628,
+      "y": 1652,
+      "w": 111,
+      "h": 91,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_024",
+      "kind": "res",
+      "label": "Filler",
+      "x": 757,
+      "y": 1651,
+      "w": 89,
+      "h": 94,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_025",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 863,
+      "y": 1672,
+      "w": 65,
+      "h": 64,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_026",
+      "kind": "res",
+      "label": "Filler",
+      "x": 956,
+      "y": 1654,
+      "w": 86,
+      "h": 64,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_027",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1076,
+      "y": 1653,
+      "w": 99,
+      "h": 90,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_028",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1189,
+      "y": 1653,
+      "w": 61,
+      "h": 97,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_029",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1272,
+      "y": 1660,
+      "w": 111,
+      "h": 86,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_030",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1407,
+      "y": 1663,
+      "w": 104,
+      "h": 76,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_031",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1535,
+      "y": 1684,
+      "w": 72,
+      "h": 54,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_032",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1623,
+      "y": 1652,
+      "w": 114,
+      "h": 61,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_033",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2180,
+      "y": 61,
+      "w": 61,
+      "h": 80,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_034",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2256,
+      "y": 79,
+      "w": 115,
+      "h": 55,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_035",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2389,
+      "y": 75,
+      "w": 124,
+      "h": 88,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_036",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2542,
+      "y": 75,
+      "w": 70,
+      "h": 53,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_037",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2645,
+      "y": 47,
+      "w": 130,
+      "h": 79,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_038",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2791,
+      "y": 88,
+      "w": 85,
+      "h": 61,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_039",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2902,
+      "y": 25,
+      "w": 109,
+      "h": 87,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_040",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3036,
+      "y": 45,
+      "w": 122,
+      "h": 58,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_041",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3181,
+      "y": 56,
+      "w": 117,
+      "h": 70,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_042",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3322,
+      "y": 113,
+      "w": 73,
+      "h": 49,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_043",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3412,
+      "y": 108,
+      "w": 121,
+      "h": 56,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_044",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3567,
+      "y": 59,
+      "w": 99,
+      "h": 78,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_045",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3696,
+      "y": 67,
+      "w": 86,
+      "h": 71,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_046",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3798,
+      "y": 101,
+      "w": 86,
+      "h": 54,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_047",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2180,
+      "y": 1134,
+      "w": 87,
+      "h": 75,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_048",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2284,
+      "y": 1198,
+      "w": 67,
+      "h": 58,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_049",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2364,
+      "y": 1163,
+      "w": 125,
+      "h": 70,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_050",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2509,
+      "y": 1188,
+      "w": 118,
+      "h": 52,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_051",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2647,
+      "y": 1137,
+      "w": 135,
+      "h": 65,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_052",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2812,
+      "y": 1175,
+      "w": 110,
+      "h": 72,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_053",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2947,
+      "y": 1161,
+      "w": 73,
+      "h": 99,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_054",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3053,
+      "y": 1150,
+      "w": 121,
+      "h": 82,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_055",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3206,
+      "y": 1143,
+      "w": 74,
+      "h": 47,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_056",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3303,
+      "y": 1147,
+      "w": 123,
+      "h": 76,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_057",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3447,
+      "y": 1156,
+      "w": 69,
+      "h": 77,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_058",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3543,
+      "y": 1156,
+      "w": 122,
+      "h": 74,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_059",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3686,
+      "y": 1131,
+      "w": 75,
+      "h": 98,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_060",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3791,
+      "y": 1155,
+      "w": 95,
+      "h": 97,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_061",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2200,
+      "y": 1528,
+      "w": 115,
+      "h": 68,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_062",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2342,
+      "y": 1463,
+      "w": 106,
+      "h": 73,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_063",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2478,
+      "y": 1467,
+      "w": 73,
+      "h": 98,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_064",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2572,
+      "y": 1481,
+      "w": 92,
+      "h": 57,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_065",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2686,
+      "y": 1524,
+      "w": 134,
+      "h": 62,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_066",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2848,
+      "y": 1504,
+      "w": 129,
+      "h": 45,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_067",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2996,
+      "y": 1478,
+      "w": 103,
+      "h": 65,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_068",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3116,
+      "y": 1487,
+      "w": 125,
+      "h": 95,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_069",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3272,
+      "y": 1500,
+      "w": 93,
+      "h": 49,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_070",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3383,
+      "y": 1489,
+      "w": 98,
+      "h": 63,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_071",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3496,
+      "y": 1495,
+      "w": 100,
+      "h": 56,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_072",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3615,
+      "y": 1506,
+      "w": 120,
+      "h": 60,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_073",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3749,
+      "y": 1474,
+      "w": 63,
+      "h": 80,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_074",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3846,
+      "y": 1491,
+      "w": 85,
+      "h": 55,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_075",
+      "kind": "res",
+      "label": "Filler",
+      "x": 40,
+      "y": 2061,
+      "w": 98,
+      "h": 69,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_076",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 155,
+      "y": 2060,
+      "w": 68,
+      "h": 95,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_077",
+      "kind": "res",
+      "label": "Filler",
+      "x": 239,
+      "y": 2062,
+      "w": 128,
+      "h": 67,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_078",
+      "kind": "res",
+      "label": "Filler",
+      "x": 401,
+      "y": 2060,
+      "w": 79,
+      "h": 99,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_079",
+      "kind": "res",
+      "label": "Filler",
+      "x": 700,
+      "y": 2063,
+      "w": 94,
+      "h": 97,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_080",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 809,
+      "y": 2080,
+      "w": 95,
+      "h": 69,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_081",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 925,
+      "y": 2070,
+      "w": 78,
+      "h": 73,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_082",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1015,
+      "y": 2060,
+      "w": 74,
+      "h": 81,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_083",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1123,
+      "y": 2060,
+      "w": 83,
+      "h": 88,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_084",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1239,
+      "y": 2079,
+      "w": 115,
+      "h": 72,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_085",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1376,
+      "y": 2065,
+      "w": 85,
+      "h": 54,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_086",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1482,
+      "y": 2081,
+      "w": 134,
+      "h": 59,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_087",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 40,
+      "y": 2864,
+      "w": 105,
+      "h": 84,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_088",
+      "kind": "res",
+      "label": "Filler",
+      "x": 170,
+      "y": 2866,
+      "w": 94,
+      "h": 84,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_089",
+      "kind": "res",
+      "label": "Filler",
+      "x": 282,
+      "y": 2862,
+      "w": 81,
+      "h": 91,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_090",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 389,
+      "y": 2871,
+      "w": 62,
+      "h": 84,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_091",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 680,
+      "y": 2843,
+      "w": 112,
+      "h": 93,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_092",
+      "kind": "res",
+      "label": "Filler",
+      "x": 812,
+      "y": 2871,
+      "w": 129,
+      "h": 62,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_093",
+      "kind": "res",
+      "label": "Filler",
+      "x": 970,
+      "y": 2891,
+      "w": 101,
+      "h": 64,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_094",
+      "kind": "res",
+      "label": "Filler",
+      "x": 1095,
+      "y": 2861,
+      "w": 115,
+      "h": 98,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_095",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1244,
+      "y": 2845,
+      "w": 107,
+      "h": 99,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_096",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1371,
+      "y": 2898,
+      "w": 124,
+      "h": 54,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_097",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 1515,
+      "y": 2870,
+      "w": 130,
+      "h": 45,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_098",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2180,
+      "y": 2063,
+      "w": 130,
+      "h": 82,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_099",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2330,
+      "y": 2060,
+      "w": 107,
+      "h": 45,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_100",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2461,
+      "y": 2078,
+      "w": 79,
+      "h": 50,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_101",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2558,
+      "y": 2060,
+      "w": 103,
+      "h": 97,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_102",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2683,
+      "y": 2090,
+      "w": 63,
+      "h": 57,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_103",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2760,
+      "y": 2080,
+      "w": 103,
+      "h": 51,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_104",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2897,
+      "y": 2068,
+      "w": 74,
+      "h": 75,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_105",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2994,
+      "y": 2062,
+      "w": 119,
+      "h": 90,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_106",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3130,
+      "y": 2068,
+      "w": 111,
+      "h": 55,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_107",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3267,
+      "y": 2070,
+      "w": 95,
+      "h": 87,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_108",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3397,
+      "y": 2077,
+      "w": 94,
+      "h": 70,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_109",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3519,
+      "y": 2097,
+      "w": 68,
+      "h": 52,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_110",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3599,
+      "y": 2073,
+      "w": 68,
+      "h": 86,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_111",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3698,
+      "y": 2060,
+      "w": 92,
+      "h": 100,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_112",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3812,
+      "y": 2075,
+      "w": 108,
+      "h": 71,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_113",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2180,
+      "y": 2626,
+      "w": 101,
+      "h": 87,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_114",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2309,
+      "y": 2700,
+      "w": 74,
+      "h": 49,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_115",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2396,
+      "y": 2654,
+      "w": 66,
+      "h": 70,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_116",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2488,
+      "y": 2628,
+      "w": 81,
+      "h": 97,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_117",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2593,
+      "y": 2639,
+      "w": 80,
+      "h": 91,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_118",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2695,
+      "y": 2660,
+      "w": 133,
+      "h": 51,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_119",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2855,
+      "y": 2686,
+      "w": 92,
+      "h": 55,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_120",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2961,
+      "y": 2642,
+      "w": 73,
+      "h": 86,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_121",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3061,
+      "y": 2703,
+      "w": 79,
+      "h": 48,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_122",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3156,
+      "y": 2647,
+      "w": 120,
+      "h": 76,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_123",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3300,
+      "y": 2628,
+      "w": 62,
+      "h": 92,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_124",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3374,
+      "y": 2633,
+      "w": 62,
+      "h": 72,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_125",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3448,
+      "y": 2656,
+      "w": 95,
+      "h": 97,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_126",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3577,
+      "y": 2678,
+      "w": 121,
+      "h": 80,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_127",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3715,
+      "y": 2628,
+      "w": 110,
+      "h": 93,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_128",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3840,
+      "y": 2641,
+      "w": 110,
+      "h": 95,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_129",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2180,
+      "y": 3421,
+      "w": 68,
+      "h": 89,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_130",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2279,
+      "y": 3446,
+      "w": 117,
+      "h": 49,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_131",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2431,
+      "y": 3433,
+      "w": 99,
+      "h": 74,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_132",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2553,
+      "y": 3404,
+      "w": 83,
+      "h": 93,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_133",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2662,
+      "y": 3427,
+      "w": 87,
+      "h": 86,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_134",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 2779,
+      "y": 3400,
+      "w": 77,
+      "h": 52,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_135",
+      "kind": "res",
+      "label": "Filler",
+      "x": 2870,
+      "y": 3403,
+      "w": 114,
+      "h": 49,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_136",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3014,
+      "y": 3409,
+      "w": 120,
+      "h": 75,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_137",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3157,
+      "y": 3414,
+      "w": 132,
+      "h": 84,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_138",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3313,
+      "y": 3422,
+      "w": 70,
+      "h": 59,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_139",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3409,
+      "y": 3460,
+      "w": 127,
+      "h": 56,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_140",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3565,
+      "y": 3413,
+      "w": 93,
+      "h": 89,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_141",
+      "kind": "res",
+      "label": "Filler",
+      "x": 3688,
+      "y": 3415,
+      "w": 123,
+      "h": 92,
+      "hasInterior": false
+    },
+    {
+      "id": "filler_pad_142",
+      "kind": "commercial",
+      "label": "Filler",
+      "x": 3835,
+      "y": 3401,
+      "w": 115,
+      "h": 97,
+      "hasInterior": false
+    }
+  ],
+  "roads": [
+    {
+      "id": "road_north_cross",
+      "rect": [
+        0,
+        642,
+        4096,
+        116
+      ],
+      "orientation": "h",
+      "mainRoad": true
+    },
+    {
+      "id": "road_central_cross",
+      "rect": [
+        0,
+        1262,
+        4096,
+        116
+      ],
+      "orientation": "h",
+      "mainRoad": true
+    },
+    {
+      "id": "road_midline_cross",
+      "rect": [
+        0,
+        1990,
+        4096,
+        116
+      ],
+      "orientation": "h",
+      "mainRoad": true
+    },
+    {
+      "id": "road_court_cross",
+      "rect": [
+        0,
+        2602,
+        4096,
+        116
+      ],
+      "orientation": "h",
+      "mainRoad": true
+    },
+    {
+      "id": "road_south_cross",
+      "rect": [
+        0,
+        3292,
+        4096,
+        116
+      ],
+      "orientation": "h",
+      "mainRoad": true
+    },
+    {
+      "id": "road_west_ave",
+      "rect": [
+        462,
+        0,
+        116,
+        4096
+      ],
+      "orientation": "v",
+      "mainRoad": true
+    },
+    {
+      "id": "road_station_ave",
+      "rect": [
+        1102,
+        0,
+        116,
+        4096
+      ],
+      "orientation": "v",
+      "mainRoad": true
+    },
+    {
+      "id": "road_old_ave",
+      "rect": [
+        1702,
+        0,
+        116,
+        4096
+      ],
+      "orientation": "v",
+      "mainRoad": true
+    },
+    {
+      "id": "road_chunk_spine",
+      "rect": [
+        1990,
+        0,
+        116,
+        4096
+      ],
+      "orientation": "v",
+      "mainRoad": true
+    },
+    {
+      "id": "road_market_ave",
+      "rect": [
+        2502,
+        0,
+        116,
+        4096
+      ],
+      "orientation": "v",
+      "mainRoad": true
+    },
+    {
+      "id": "road_river_ave",
+      "rect": [
+        3102,
+        0,
+        116,
+        4096
+      ],
+      "orientation": "v",
+      "mainRoad": true
+    },
+    {
+      "id": "road_boonie_road",
+      "rect": [
+        3642,
+        0,
+        116,
+        4096
+      ],
+      "orientation": "v",
+      "mainRoad": true
+    },
+    {
+      "id": "road_diagonal_police_to_market",
+      "type": "diagonal",
+      "points": [
+        [
+          1450,
+          1750
+        ],
+        [
+          2500,
+          930
+        ]
+      ],
+      "mainRoad": false
+    },
+    {
+      "id": "road_diagonal_court_to_oldtown",
+      "type": "diagonal",
+      "points": [
+        [
+          1700,
+          2760
+        ],
+        [
+          2700,
+          2090
+        ]
+      ],
+      "mainRoad": false
+    },
+    {
+      "id": "road_diagonal_market_to_riverport",
+      "type": "diagonal",
+      "points": [
+        [
+          2180,
+          1340
+        ],
+        [
+          3500,
+          1900
+        ]
+      ],
+      "mainRoad": false
+    },
+    {
+      "id": "riverfront_bridge_road",
+      "rect": [
+        2280,
+        3620,
+        1816,
+        110
+      ],
+      "orientation": "h",
+      "mainRoad": false
+    }
+  ],
+  "doors": [
+    {
+      "id": "rhpq_police_station_door",
+      "buildingId": "rhpq_police_station",
+      "x": 969,
+      "y": 502,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "rhpq_police_station_interior"
+    },
+    {
+      "id": "precinct_annex_door",
+      "buildingId": "precinct_annex",
+      "x": 1374,
+      "y": 407,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "precinct_annex_interior"
+    },
+    {
+      "id": "old_offices_door",
+      "buildingId": "old_offices",
+      "x": 239,
+      "y": 502,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "old_offices_interior"
+    },
+    {
+      "id": "red_gull_edge_door",
+      "buildingId": "red_gull_edge",
+      "x": 359,
+      "y": 1037,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "red_gull_edge_interior"
+    },
+    {
+      "id": "records_office_door",
+      "buildingId": "records_office",
+      "x": 899,
+      "y": 1107,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "records_office_interior"
+    },
+    {
+      "id": "lockup_exterior_door",
+      "buildingId": "lockup_exterior",
+      "x": 1394,
+      "y": 1112,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "lockup_exterior_interior"
+    },
+    {
+      "id": "gull_pump_station_edge_door",
+      "buildingId": "gull_pump_station_edge",
+      "x": 1654,
+      "y": 1607,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "gull_pump_station_edge_interior"
+    },
+    {
+      "id": "bennys_market_door",
+      "buildingId": "bennys_market",
+      "x": 2391,
+      "y": 437,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "bennys_market_interior"
+    },
+    {
+      "id": "red_gull_diner_door",
+      "buildingId": "red_gull_diner",
+      "x": 2984,
+      "y": 437,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "red_gull_diner_interior"
+    },
+    {
+      "id": "raven_laundromat_door",
+      "buildingId": "raven_laundromat",
+      "x": 3384,
+      "y": 427,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "raven_laundromat_interior"
+    },
+    {
+      "id": "gull_pump_door",
+      "buildingId": "gull_pump",
+      "x": 3739,
+      "y": 707,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "gull_pump_interior"
+    },
+    {
+      "id": "pawn_shop_door",
+      "buildingId": "pawn_shop",
+      "x": 2309,
+      "y": 1072,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "pawn_shop_interior"
+    },
+    {
+      "id": "market_apartments_door",
+      "buildingId": "market_apartments",
+      "x": 2649,
+      "y": 1122,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "market_apartments_interior"
+    },
+    {
+      "id": "row_shops_door",
+      "buildingId": "row_shops",
+      "x": 3039,
+      "y": 1107,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "row_shops_interior"
+    },
+    {
+      "id": "auto_garage_door",
+      "buildingId": "auto_garage",
+      "x": 3439,
+      "y": 1107,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "auto_garage_interior"
+    },
+    {
+      "id": "raven_hook_courthouse_door",
+      "buildingId": "raven_hook_courthouse",
+      "x": 994,
+      "y": 2522,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "raven_hook_courthouse_interior"
+    },
+    {
+      "id": "city_hall_door",
+      "buildingId": "city_hall",
+      "x": 1449,
+      "y": 2492,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "city_hall_interior"
+    },
+    {
+      "id": "civic_clerk_office_door",
+      "buildingId": "civic_clerk_office",
+      "x": 379,
+      "y": 2822,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "civic_clerk_office_interior"
+    },
+    {
+      "id": "law_offices_door",
+      "buildingId": "law_offices",
+      "x": 869,
+      "y": 3172,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "law_offices_interior"
+    },
+    {
+      "id": "bail_bonds_door",
+      "buildingId": "bail_bonds",
+      "x": 1334,
+      "y": 3182,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "bail_bonds_interior"
+    },
+    {
+      "id": "last_stop_dogs_door",
+      "buildingId": "last_stop_dogs",
+      "x": 474,
+      "y": 3662,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "last_stop_dogs_interior"
+    },
+    {
+      "id": "city_archives_door",
+      "buildingId": "city_archives",
+      "x": 1039,
+      "y": 3682,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "city_archives_interior"
+    },
+    {
+      "id": "civic_service_tow_door",
+      "buildingId": "civic_service_tow",
+      "x": 1509,
+      "y": 3672,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "civic_service_tow_interior"
+    },
+    {
+      "id": "old_town_block_door",
+      "buildingId": "old_town_block",
+      "x": 2349,
+      "y": 2442,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "old_town_block_interior"
+    },
+    {
+      "id": "old_town_rooms_door",
+      "buildingId": "old_town_rooms",
+      "x": 2789,
+      "y": 2412,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "old_town_rooms_interior"
+    },
+    {
+      "id": "river_warehouse_door",
+      "buildingId": "river_warehouse",
+      "x": 3234,
+      "y": 2442,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "river_warehouse_interior"
+    },
+    {
+      "id": "harrows_auto_gas_door",
+      "buildingId": "harrows_auto_gas",
+      "x": 3689,
+      "y": 2427,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "harrows_auto_gas_interior"
+    },
+    {
+      "id": "old_town_liquor_door",
+      "buildingId": "old_town_liquor",
+      "x": 2359,
+      "y": 3037,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "old_town_liquor_interior"
+    },
+    {
+      "id": "canal_motel_door",
+      "buildingId": "canal_motel",
+      "x": 2769,
+      "y": 3047,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "canal_motel_interior"
+    },
+    {
+      "id": "dock_office_door",
+      "buildingId": "dock_office",
+      "x": 3209,
+      "y": 3052,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "dock_office_interior"
+    },
+    {
+      "id": "river_storage_door",
+      "buildingId": "river_storage",
+      "x": 3669,
+      "y": 3062,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "river_storage_interior"
+    },
+    {
+      "id": "crow_burger_door",
+      "buildingId": "crow_burger",
+      "x": 2504,
+      "y": 3562,
+      "w": 52,
+      "h": 26,
+      "targetInterior": "crow_burger_interior"
+    }
+  ],
+  "caseNodes": [
+    {
+      "id": "rhpq_police_station_station_start",
+      "type": "station_start",
+      "x": 995,
+      "y": 370,
+      "w": 430,
+      "h": 280
+    },
+    {
+      "id": "detective_sedan_spawn",
+      "type": "vehicle_spawn",
+      "x": 1020,
+      "y": 790,
+      "w": 52,
+      "h": 52
+    },
+    {
+      "id": "starter_station_alley",
+      "type": "escape_alley",
+      "x": 1377,
+      "y": 620,
+      "w": 105,
+      "h": 320
+    },
+    {
+      "id": "records_back_alley",
+      "type": "escape_alley",
+      "x": 665,
+      "y": 1160,
+      "w": 490,
+      "h": 80
+    },
+    {
+      "id": "station_payphone_corner_payphone_case",
+      "type": "payphone_case",
+      "x": 1555,
+      "y": 585,
+      "w": 80,
+      "h": 130
+    },
+    {
+      "id": "payphone_threat_node",
+      "type": "payphone",
+      "x": 1548,
+      "y": 675,
+      "w": 52,
+      "h": 52
+    },
+    {
+      "id": "gull_pump_station_edge_gas_case",
+      "type": "gas_case",
+      "x": 1680,
+      "y": 1545,
+      "w": 320,
+      "h": 140
+    },
+    {
+      "id": "bennys_market_receipt_case",
+      "type": "receipt_case",
+      "x": 2417,
+      "y": 337,
+      "w": 345,
+      "h": 215
+    },
+    {
+      "id": "bennys_escape_alley",
+      "type": "escape_alley",
+      "x": 2650,
+      "y": 465,
+      "w": 100,
+      "h": 470
+    },
+    {
+      "id": "red_gull_diner_diner_witness",
+      "type": "diner_witness",
+      "x": 3010,
+      "y": 335,
+      "w": 380,
+      "h": 220
+    },
+    {
+      "id": "raven_laundromat_laundromat_case",
+      "type": "laundromat_case",
+      "x": 3410,
+      "y": 340,
+      "w": 300,
+      "h": 190
+    },
+    {
+      "id": "gull_pump_gas_station_case",
+      "type": "gas_station_case",
+      "x": 3765,
+      "y": 625,
+      "w": 330,
+      "h": 180
+    },
+    {
+      "id": "parking_hit_and_run_node",
+      "type": "hit_and_run",
+      "x": 2465,
+      "y": 665,
+      "w": 52,
+      "h": 52
+    },
+    {
+      "id": "red_gull_witness_node",
+      "type": "witness",
+      "x": 3065,
+      "y": 660,
+      "w": 52,
+      "h": 52
+    },
+    {
+      "id": "raven_hook_courthouse_court_case",
+      "type": "court_case",
+      "x": 1020,
+      "y": 2370,
+      "w": 480,
+      "h": 320
+    },
+    {
+      "id": "city_hall_corruption_case",
+      "type": "corruption_case",
+      "x": 1475,
+      "y": 2370,
+      "w": 370,
+      "h": 260
+    },
+    {
+      "id": "last_stop_dogs_food_case",
+      "type": "food_case",
+      "x": 500,
+      "y": 3570,
+      "w": 360,
+      "h": 200
+    },
+    {
+      "id": "civic_service_tow_tow_case",
+      "type": "tow_case",
+      "x": 1535,
+      "y": 3580,
+      "w": 350,
+      "h": 200
+    },
+    {
+      "id": "court_back_alley",
+      "type": "escape_alley",
+      "x": 1272,
+      "y": 2730,
+      "w": 105,
+      "h": 400
+    },
+    {
+      "id": "law_office_alley",
+      "type": "escape_alley",
+      "x": 905,
+      "y": 2905,
+      "w": 650,
+      "h": 90
+    },
+    {
+      "id": "courtroom_entry_node",
+      "type": "court_entry",
+      "x": 965,
+      "y": 2830,
+      "w": 52,
+      "h": 52
+    },
+    {
+      "id": "judge_court_npc_node",
+      "type": "court_npc",
+      "x": 1510,
+      "y": 3180,
+      "w": 52,
+      "h": 52
+    },
+    {
+      "id": "river_warehouse_warehouse_case",
+      "type": "warehouse_case",
+      "x": 3260,
+      "y": 2325,
+      "w": 420,
+      "h": 250
+    },
+    {
+      "id": "harrows_auto_gas_auto_gas_case",
+      "type": "auto_gas_case",
+      "x": 3715,
+      "y": 2310,
+      "w": 370,
+      "h": 250
+    },
+    {
+      "id": "old_town_escape_alley",
+      "type": "escape_alley",
+      "x": 2930,
+      "y": 2462,
+      "w": 700,
+      "h": 105
+    },
+    {
+      "id": "old_town_liquor_liquor_case",
+      "type": "liquor_case",
+      "x": 2385,
+      "y": 2952,
+      "w": 330,
+      "h": 185
+    },
+    {
+      "id": "canal_motel_motel_case",
+      "type": "motel_case",
+      "x": 2795,
+      "y": 2960,
+      "w": 350,
+      "h": 190
+    },
+    {
+      "id": "dock_office_dock_case",
+      "type": "dock_case",
+      "x": 3235,
+      "y": 2960,
+      "w": 350,
+      "h": 200
+    },
+    {
+      "id": "crow_burger_fast_food_case",
+      "type": "fast_food_case",
+      "x": 2530,
+      "y": 3475,
+      "w": 340,
+      "h": 190
+    },
+    {
+      "id": "villain_spawn_old_town",
+      "type": "villain_spawn",
+      "x": 2590,
+      "y": 3125,
+      "w": 52,
+      "h": 52
+    },
+    {
+      "id": "dock_case_node",
+      "type": "dock_case",
+      "x": 3310,
+      "y": 3425,
+      "w": 52,
+      "h": 52
+    }
+  ],
+  "parkingLots": [
+    {
+      "id": "station_parking_lot",
+      "x": 825,
+      "y": 540,
+      "w": 420,
+      "h": 210
+    },
+    {
+      "id": "old_office_lot",
+      "x": 120,
+      "y": 565,
+      "w": 300,
+      "h": 170
+    },
+    {
+      "id": "bennys_lot",
+      "x": 2205,
+      "y": 480,
+      "w": 420,
+      "h": 185
+    },
+    {
+      "id": "gull_pump_lot",
+      "x": 3570,
+      "y": 255,
+      "w": 380,
+      "h": 205
+    },
+    {
+      "id": "courthouse_parking_lot",
+      "x": 780,
+      "y": 2580,
+      "w": 490,
+      "h": 230
+    },
+    {
+      "id": "harrows_lot",
+      "x": 3520,
+      "y": 2470,
+      "w": 390,
+      "h": 220
+    },
+    {
+      "id": "old_town_lot",
+      "x": 2190,
+      "y": 3160,
+      "w": 560,
+      "h": 210
+    },
+    {
+      "id": "river_storage_lot",
+      "x": 3010,
+      "y": 3160,
+      "w": 460,
+      "h": 210
+    }
+  ],
+  "pedestrianNodes": [
+    {
+      "id": "ped_node_000",
+      "x": 930,
+      "y": 610
+    },
+    {
+      "id": "ped_node_001",
+      "x": 1030,
+      "y": 610
+    },
+    {
+      "id": "ped_node_002",
+      "x": 1450,
+      "y": 705
+    },
+    {
+      "id": "ped_node_003",
+      "x": 2350,
+      "y": 530
+    },
+    {
+      "id": "ped_node_004",
+      "x": 2990,
+      "y": 520
+    },
+    {
+      "id": "ped_node_005",
+      "x": 3390,
+      "y": 520
+    },
+    {
+      "id": "ped_node_006",
+      "x": 1020,
+      "y": 2650
+    },
+    {
+      "id": "ped_node_007",
+      "x": 980,
+      "y": 2820
+    },
+    {
+      "id": "ped_node_008",
+      "x": 3700,
+      "y": 620
+    },
+    {
+      "id": "ped_node_009",
+      "x": 2420,
+      "y": 3350
+    }
+  ],
+  "vehicleNodes": [
+    {
+      "id": "veh_node_000",
+      "x": 1020,
+      "y": 800
+    },
+    {
+      "id": "veh_node_001",
+      "x": 2450,
+      "y": 690
+    },
+    {
+      "id": "veh_node_002",
+      "x": 3670,
+      "y": 480
+    },
+    {
+      "id": "veh_node_003",
+      "x": 1510,
+      "y": 3430
+    },
+    {
+      "id": "veh_node_004",
+      "x": 3670,
+      "y": 2470
+    },
+    {
+      "id": "veh_node_005",
+      "x": 3160,
+      "y": 3350
+    }
+  ]
+}
