@@ -1,0 +1,220 @@
+[
+  {
+    "id": "rd_station_w",
+    "x": 280,
+    "y": 760,
+    "lane": "eastbound",
+    "links": [
+      "rd_station_mid"
+    ]
+  },
+  {
+    "id": "rd_station_mid",
+    "x": 960,
+    "y": 760,
+    "lane": "eastbound",
+    "stop": true,
+    "intersection": "int_station",
+    "links": [
+      "rd_market_w",
+      "rd_civic_n"
+    ]
+  },
+  {
+    "id": "rd_market_w",
+    "x": 1820,
+    "y": 760,
+    "lane": "eastbound",
+    "links": [
+      "rd_market_mid"
+    ]
+  },
+  {
+    "id": "rd_market_mid",
+    "x": 2420,
+    "y": 760,
+    "lane": "eastbound",
+    "stop": true,
+    "intersection": "int_market",
+    "links": [
+      "rd_market_e",
+      "rd_oldtown_n"
+    ]
+  },
+  {
+    "id": "rd_market_e",
+    "x": 3500,
+    "y": 760,
+    "lane": "eastbound",
+    "stop": true,
+    "intersection": "int_gas",
+    "links": [
+      "rd_gas_s",
+      "rd_market_return"
+    ]
+  },
+  {
+    "id": "rd_market_return",
+    "x": 3840,
+    "y": 700,
+    "lane": "westbound",
+    "links": [
+      "rd_market_e_w"
+    ]
+  },
+  {
+    "id": "rd_market_e_w",
+    "x": 3500,
+    "y": 700,
+    "lane": "westbound",
+    "stop": true,
+    "intersection": "int_gas",
+    "links": [
+      "rd_market_mid_w"
+    ]
+  },
+  {
+    "id": "rd_market_mid_w",
+    "x": 2420,
+    "y": 700,
+    "lane": "westbound",
+    "stop": true,
+    "intersection": "int_market",
+    "links": [
+      "rd_market_w_w",
+      "rd_oldtown_n"
+    ]
+  },
+  {
+    "id": "rd_market_w_w",
+    "x": 1820,
+    "y": 700,
+    "lane": "westbound",
+    "links": [
+      "rd_station_mid_w"
+    ]
+  },
+  {
+    "id": "rd_station_mid_w",
+    "x": 960,
+    "y": 700,
+    "lane": "westbound",
+    "stop": true,
+    "intersection": "int_station",
+    "links": [
+      "rd_station_w_w",
+      "rd_civic_n"
+    ]
+  },
+  {
+    "id": "rd_station_w_w",
+    "x": 280,
+    "y": 700,
+    "lane": "westbound",
+    "links": [
+      "rd_station_w"
+    ]
+  },
+  {
+    "id": "rd_civic_n",
+    "x": 960,
+    "y": 1320,
+    "lane": "southbound",
+    "stop": true,
+    "intersection": "int_station_s",
+    "links": [
+      "rd_civic_mid"
+    ]
+  },
+  {
+    "id": "rd_civic_mid",
+    "x": 960,
+    "y": 2200,
+    "lane": "southbound",
+    "links": [
+      "rd_civic_s"
+    ]
+  },
+  {
+    "id": "rd_civic_s",
+    "x": 960,
+    "y": 3320,
+    "lane": "southbound",
+    "stop": true,
+    "intersection": "int_civic",
+    "links": [
+      "rd_civic_loop_e"
+    ]
+  },
+  {
+    "id": "rd_civic_loop_e",
+    "x": 1680,
+    "y": 3320,
+    "lane": "eastbound",
+    "links": [
+      "rd_oldtown_s"
+    ]
+  },
+  {
+    "id": "rd_oldtown_n",
+    "x": 2420,
+    "y": 1320,
+    "lane": "southbound",
+    "stop": true,
+    "intersection": "int_market_s",
+    "links": [
+      "rd_oldtown_mid"
+    ]
+  },
+  {
+    "id": "rd_oldtown_mid",
+    "x": 2420,
+    "y": 2200,
+    "lane": "southbound",
+    "links": [
+      "rd_oldtown_s"
+    ]
+  },
+  {
+    "id": "rd_oldtown_s",
+    "x": 2420,
+    "y": 3320,
+    "lane": "eastbound",
+    "stop": true,
+    "intersection": "int_oldtown",
+    "links": [
+      "rd_river_s"
+    ]
+  },
+  {
+    "id": "rd_river_s",
+    "x": 3480,
+    "y": 3320,
+    "lane": "eastbound",
+    "stop": true,
+    "intersection": "int_river",
+    "links": [
+      "rd_river_n"
+    ]
+  },
+  {
+    "id": "rd_river_n",
+    "x": 3480,
+    "y": 1320,
+    "lane": "northbound",
+    "stop": true,
+    "intersection": "int_gas_s",
+    "links": [
+      "rd_gas_s"
+    ]
+  },
+  {
+    "id": "rd_gas_s",
+    "x": 3480,
+    "y": 900,
+    "lane": "northbound",
+    "links": [
+      "rd_market_e_w"
+    ]
+  }
+]

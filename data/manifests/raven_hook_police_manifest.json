@@ -1,0 +1,87 @@
+{
+  "pack": "raven_hook_police_no_bg_v3",
+  "note": "Hard alpha-cleaned version. Backgrounds removed from officer sheets and police cruiser.",
+  "characters": [
+    {
+      "id": "rhpd_officer_female_light_01",
+      "label": "RHPD Officer Female Light 01",
+      "path": "assets/characters/npcs/police/rhpd_officer_female_light_01/rhpd_officer_female_light_01_walk_4x8_256x192.png",
+      "frameWidth": 256,
+      "frameHeight": 192,
+      "cols": 4,
+      "rows": 8,
+      "totalFrames": 32,
+      "transparent": true,
+      "roleTags": [
+        "police",
+        "uniformed_officer",
+        "witness",
+        "backup"
+      ]
+    },
+    {
+      "id": "rhpd_officer_female_dark_01",
+      "label": "RHPD Officer Female Dark 01",
+      "path": "assets/characters/npcs/police/rhpd_officer_female_dark_01/rhpd_officer_female_dark_01_walk_4x8_256x192.png",
+      "frameWidth": 256,
+      "frameHeight": 192,
+      "cols": 4,
+      "rows": 8,
+      "totalFrames": 32,
+      "transparent": true,
+      "roleTags": [
+        "police",
+        "uniformed_officer",
+        "witness",
+        "backup"
+      ]
+    },
+    {
+      "id": "rhpd_officer_male_01",
+      "label": "RHPD Officer Male 01",
+      "path": "assets/characters/npcs/police/rhpd_officer_male_01/rhpd_officer_male_01_walk_4x8_256x192.png",
+      "frameWidth": 256,
+      "frameHeight": 192,
+      "cols": 4,
+      "rows": 8,
+      "totalFrames": 32,
+      "transparent": true,
+      "roleTags": [
+        "police",
+        "uniformed_officer",
+        "witness",
+        "backup"
+      ]
+    },
+    {
+      "id": "rhpd_officer_female_light_02",
+      "label": "RHPD Officer Female Light 02",
+      "path": "assets/characters/npcs/police/rhpd_officer_female_light_02/rhpd_officer_female_light_02_walk_4x8_256x192.png",
+      "frameWidth": 256,
+      "frameHeight": 192,
+      "cols": 4,
+      "rows": 8,
+      "totalFrames": 32,
+      "transparent": true,
+      "roleTags": [
+        "police",
+        "uniformed_officer",
+        "witness",
+        "backup"
+      ]
+    }
+  ],
+  "vehicles": [
+    {
+      "id": "meridian_sentinel_patrol",
+      "label": "1984 Meridian Sentinel Patrol",
+      "path": "assets/vehicles/police_cruiser/meridian_sentinel_patrol_clean_64.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "cols": 8,
+      "rows": 8,
+      "totalFrames": 64,
+      "transparent": true
+    }
+  ]
+}

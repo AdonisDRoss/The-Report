@@ -1,0 +1,125 @@
+{
+  "pack": "Raven Hook Vehicle Pack",
+  "version": "1.0",
+  "vehicles": [
+    {
+      "key": "meridian_sentinel_lx",
+      "brand": "Meridian",
+      "model": "1984 Sentinel LX",
+      "role": "detective sedan",
+      "sheet": "assets/vehicles/meridian/sentinel_lx/meridian_sentinel_lx_clean_64.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 8,
+      "rows": 8,
+      "frameCount": 64,
+      "users": [
+        "plainclothes police",
+        "municipal fleet",
+        "civilian fleet"
+      ]
+    },
+    {
+      "key": "meridian_sentinel_patrol",
+      "brand": "Meridian",
+      "model": "1984 Sentinel Patrol",
+      "role": "marked police cruiser",
+      "sheet": "assets/vehicles/police_cruiser/meridian_sentinel_patrol_clean_64.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 8,
+      "rows": 8,
+      "frameCount": 64,
+      "users": [
+        "Raven Hook PD"
+      ]
+    },
+    {
+      "key": "blackthorne_regent",
+      "brand": "Blackthorne",
+      "model": "1985 Regent",
+      "role": "mid-size family sedan",
+      "sheet": "assets/vehicles/blackthorne/regent/blackthorne_regent_clean_64.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 8,
+      "rows": 8,
+      "frameCount": 64,
+      "users": [
+        "families",
+        "clerks",
+        "teachers",
+        "office workers"
+      ]
+    },
+    {
+      "key": "blackthorne_regent_taxi",
+      "brand": "Blackthorne",
+      "model": "1985 Regent Taxi",
+      "role": "city taxi cab",
+      "sheet": "assets/vehicles/blackthorne/regent_taxi/blackthorne_regent_taxi_clean_64.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 8,
+      "rows": 8,
+      "frameCount": 64,
+      "users": [
+        "cab drivers",
+        "city transport"
+      ]
+    },
+    {
+      "key": "rustway_comet",
+      "brand": "Rustway",
+      "model": "1982 Comet",
+      "role": "cheap rusty compact sedan",
+      "sheet": "assets/vehicles/rustway/comet/rustway_comet_clean_64.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 8,
+      "rows": 8,
+      "frameCount": 64,
+      "users": [
+        "broke civilians",
+        "suspects",
+        "delivery runners",
+        "Receipt Crew"
+      ]
+    },
+    {
+      "key": "fairline_metro",
+      "brand": "Fairline",
+      "model": "1984 Metro",
+      "role": "compact economy hatchback",
+      "sheet": "assets/vehicles/fairline/metro/fairline_metro_clean_64.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 8,
+      "rows": 8,
+      "frameCount": 64,
+      "users": [
+        "students",
+        "clerks",
+        "low-income workers"
+      ]
+    },
+    {
+      "key": "ironcrest_hauler",
+      "brand": "Ironcrest",
+      "model": "1985 Hauler",
+      "role": "boxy work pickup truck",
+      "sheet": "assets/vehicles/ironcrest/hauler/ironcrest_hauler_clean_64.png",
+      "frameWidth": 128,
+      "frameHeight": 128,
+      "columns": 8,
+      "rows": 8,
+      "frameCount": 64,
+      "users": [
+        "contractors",
+        "warehouse workers",
+        "scrapyard crews",
+        "Iron Dogs"
+      ]
+    }
+  ]
+}

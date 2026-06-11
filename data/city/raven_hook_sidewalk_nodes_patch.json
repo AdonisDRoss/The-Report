@@ -1,0 +1,229 @@
+[
+  {
+    "id": "sw_station_01",
+    "x": 760,
+    "y": 560,
+    "links": [
+      "sw_station_02"
+    ]
+  },
+  {
+    "id": "sw_station_02",
+    "x": 940,
+    "y": 560,
+    "links": [
+      "sw_station_01",
+      "sw_station_03",
+      "sw_station_cross"
+    ]
+  },
+  {
+    "id": "sw_station_03",
+    "x": 1220,
+    "y": 560,
+    "links": [
+      "sw_station_02",
+      "sw_station_04"
+    ]
+  },
+  {
+    "id": "sw_station_04",
+    "x": 1500,
+    "y": 680,
+    "links": [
+      "sw_station_03",
+      "sw_market_01"
+    ]
+  },
+  {
+    "id": "sw_market_01",
+    "x": 2220,
+    "y": 520,
+    "links": [
+      "sw_station_04",
+      "sw_market_02"
+    ]
+  },
+  {
+    "id": "sw_market_02",
+    "x": 2420,
+    "y": 520,
+    "links": [
+      "sw_market_01",
+      "sw_market_03",
+      "sw_market_lot"
+    ]
+  },
+  {
+    "id": "sw_market_03",
+    "x": 2860,
+    "y": 520,
+    "links": [
+      "sw_market_02",
+      "sw_market_04"
+    ]
+  },
+  {
+    "id": "sw_market_04",
+    "x": 3240,
+    "y": 520,
+    "links": [
+      "sw_market_03",
+      "sw_gas_01"
+    ]
+  },
+  {
+    "id": "sw_gas_01",
+    "x": 3700,
+    "y": 770,
+    "links": [
+      "sw_market_04",
+      "sw_oldtown_01"
+    ]
+  },
+  {
+    "id": "sw_market_lot",
+    "x": 2420,
+    "y": 690,
+    "links": [
+      "sw_market_02",
+      "sw_market_alley"
+    ]
+  },
+  {
+    "id": "sw_market_alley",
+    "x": 2700,
+    "y": 690,
+    "links": [
+      "sw_market_lot",
+      "sw_market_03"
+    ]
+  },
+  {
+    "id": "sw_civic_01",
+    "x": 720,
+    "y": 2580,
+    "links": [
+      "sw_civic_02"
+    ]
+  },
+  {
+    "id": "sw_civic_02",
+    "x": 990,
+    "y": 2580,
+    "links": [
+      "sw_civic_01",
+      "sw_civic_03",
+      "sw_civic_park"
+    ]
+  },
+  {
+    "id": "sw_civic_03",
+    "x": 1360,
+    "y": 2580,
+    "links": [
+      "sw_civic_02",
+      "sw_civic_04"
+    ]
+  },
+  {
+    "id": "sw_civic_04",
+    "x": 1680,
+    "y": 2760,
+    "links": [
+      "sw_civic_03",
+      "sw_oldtown_01"
+    ]
+  },
+  {
+    "id": "sw_civic_park",
+    "x": 1000,
+    "y": 2880,
+    "links": [
+      "sw_civic_02",
+      "sw_civic_05"
+    ]
+  },
+  {
+    "id": "sw_civic_05",
+    "x": 1420,
+    "y": 3260,
+    "links": [
+      "sw_civic_park"
+    ]
+  },
+  {
+    "id": "sw_oldtown_01",
+    "x": 2240,
+    "y": 2520,
+    "links": [
+      "sw_gas_01",
+      "sw_oldtown_02",
+      "sw_civic_04"
+    ]
+  },
+  {
+    "id": "sw_oldtown_02",
+    "x": 2700,
+    "y": 2520,
+    "links": [
+      "sw_oldtown_01",
+      "sw_oldtown_03",
+      "sw_oldtown_alley"
+    ]
+  },
+  {
+    "id": "sw_oldtown_03",
+    "x": 3160,
+    "y": 2520,
+    "links": [
+      "sw_oldtown_02",
+      "sw_oldtown_04"
+    ]
+  },
+  {
+    "id": "sw_oldtown_04",
+    "x": 3660,
+    "y": 2520,
+    "links": [
+      "sw_oldtown_03",
+      "sw_oldtown_yard"
+    ]
+  },
+  {
+    "id": "sw_oldtown_alley",
+    "x": 2720,
+    "y": 3050,
+    "links": [
+      "sw_oldtown_02",
+      "sw_oldtown_river"
+    ]
+  },
+  {
+    "id": "sw_oldtown_yard",
+    "x": 3660,
+    "y": 3060,
+    "links": [
+      "sw_oldtown_04",
+      "sw_oldtown_river"
+    ]
+  },
+  {
+    "id": "sw_oldtown_river",
+    "x": 3180,
+    "y": 3340,
+    "links": [
+      "sw_oldtown_alley",
+      "sw_oldtown_yard"
+    ]
+  },
+  {
+    "id": "sw_station_cross",
+    "x": 1010,
+    "y": 720,
+    "links": [
+      "sw_station_02",
+      "sw_civic_01"
+    ]
+  }
+]

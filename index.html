@@ -40,7 +40,7 @@
   // GIT_MAPPED_STANDARD_128_SPRITES_PATCH: Ramos walk path mapped to existing Git movement sheet; city actor action sheets standardized to 128x128 frames.
   // RAMOS_SCALE_CAR_B_FIX: city Ramos scaled to Malcolm movement height, station Ramos scaled up, B button enters/exits car near sedan.
   // X_CAR_ENTRY_RAMOS_CUT_FIX: X enters/exits car near sedan; Ramos sheets recut per frame to remove duplicate/bleed sprites.
-  // RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
+  // NPC_TRAFFIC_POLICE_HARD_PATCH_001: hardens police/NPC/traffic. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -863,6 +863,98 @@
   };
 
 
+  // ─── NPC & TRAFFIC SYSTEM CONSTANTS ──────────────────────────────────────
+  const MAX_CITY_CIVILIANS = 12;
+  const MAX_CITY_TRAFFIC   = 6;
+  const MAX_POLICE_PATROLS = 2;
+  const MAX_STATION_POLICE = 4;
+
+  const CIVILIAN_ASSETS = [
+    { key:'civ_af_blonde',  path:'assets/characters/civilians/civilian_adult_female_blonde_01/civilian_adult_female_blonde_01_walk_4x8_128.png',     fw:128, fh:128 },
+    { key:'civ_af_tan',     path:'assets/characters/civilians/civilian_adult_female_tan_jacket_01/civilian_adult_female_tan_jacket_01_walk_4x8_128.png', fw:128, fh:128 },
+    { key:'civ_am_black',   path:'assets/characters/civilians/civilian_adult_male_black_01/civilian_adult_male_black_01_walk_4x8_128.png',           fw:128, fh:128 },
+    { key:'civ_am_tan',     path:'assets/characters/civilians/civilian_adult_male_tan_jacket_01/civilian_adult_male_tan_jacket_01_walk_4x8_128.png', fw:128, fh:128 },
+    { key:'civ_ef_black',   path:'assets/characters/civilians/civilian_elder_female_black_01/civilian_elder_female_black_01_walk_4x8_128.png',       fw:128, fh:128 },
+    { key:'civ_em_cap',     path:'assets/characters/civilians/civilian_elder_male_cap_01/civilian_elder_male_cap_01_walk_4x8_128.png',               fw:128, fh:128 },
+    { key:'civ_tf_denim',   path:'assets/characters/civilians/civilian_teen_female_denim_01/civilian_teen_female_denim_01_walk_4x8_128.png',         fw:128, fh:128 },
+    { key:'civ_tm_blue',    path:'assets/characters/civilians/civilian_teen_male_blue_jacket_02/civilian_teen_male_blue_jacket_02_walk_4x8_128.png', fw:128, fh:128 },
+    { key:'civ_tm_denim',   path:'assets/characters/civilians/civilian_teen_male_denim_01/civilian_teen_male_denim_01_walk_4x8_128.png',             fw:128, fh:128 },
+  ];
+  const POLICE_NPC_ASSETS = [
+    { key:'rhpd_f_dark_01',  path:'assets/characters/npcs/police/rhpd_officer_female_dark_01/rhpd_officer_female_dark_01_walk_4x8_256x192.png',   fw:256, fh:192 },
+    { key:'rhpd_f_light_01', path:'assets/characters/npcs/police/rhpd_officer_female_light_01/rhpd_officer_female_light_01_walk_4x8_256x192.png', fw:256, fh:192 },
+    { key:'rhpd_f_light_02', path:'assets/characters/npcs/police/rhpd_officer_female_light_02/rhpd_officer_female_light_02_walk_4x8_256x192.png', fw:256, fh:192 },
+    { key:'rhpd_m_01',       path:'assets/characters/npcs/police/rhpd_officer_male_01/rhpd_officer_male_01_walk_4x8_256x192.png',                 fw:256, fh:192 },
+  ];
+  const TRAFFIC_VEHICLE_ASSETS = [
+    { key:'blackthorne_regent',       path:'assets/vehicles/blackthorne/regent/blackthorne_regent_clean_64.png',           fw:128, fh:128 },
+    { key:'blackthorne_regent_taxi',  path:'assets/vehicles/blackthorne/regent_taxi/blackthorne_regent_taxi_clean_64.png', fw:128, fh:128 },
+    { key:'rustway_comet',            path:'assets/vehicles/rustway/comet/rustway_comet_clean_64.png',                     fw:128, fh:128 },
+    { key:'fairline_metro',           path:'assets/vehicles/fairline/metro/fairline_metro_clean_64.png',                   fw:128, fh:128 },
+    { key:'ironcrest_hauler',         path:'assets/vehicles/ironcrest/hauler/ironcrest_hauler_clean_64.png',               fw:128, fh:128 },
+    { key:'meridian_sentinel_patrol', path:'assets/vehicles/police_cruiser/meridian_sentinel_patrol_clean_64.png',         fw:128, fh:128 },
+  ];
+  // 8-dir row index for walk sheets (8 rows × 4 cols = 32 frames).
+  // Mirrors Eddie Cross layout: S=0 SW=1 W=2 NW=3 N=4 NE=5 E=6 SE=7
+  const NPC_DIR_ROW = { S:0, SW:1, W:2, NW:3, N:4, NE:5, E:6, SE:7 };
+  const CIV_CITY_SCALE   = 0.44;   // 128 × 0.44 ≈ 56 px — matches Ramos city height
+  const POLICE_NPC_SCALE = 0.65;   // 192 × 0.65 ≈ 125 px — matches Malcolm station height
+
+  // Pedestrian sidewalk graph — safe zones between building edges and road lanes
+  const CITY_SIDEWALK_NODES = [
+    { id:'sw_a1', x: 840, y: 555, links:['sw_a2'] },
+    { id:'sw_a2', x: 960, y: 555, links:['sw_a1','sw_a3'] },
+    { id:'sw_a3', x:1100, y: 555, links:['sw_a2','sw_a4'] },
+    { id:'sw_a4', x:1230, y: 555, links:['sw_a3'] },
+    { id:'sw_b1', x:2280, y: 510, links:['sw_b2'] },
+    { id:'sw_b2', x:2440, y: 510, links:['sw_b1','sw_b3'] },
+    { id:'sw_b3', x:2900, y: 510, links:['sw_b2','sw_b4'] },
+    { id:'sw_b4', x:3150, y: 510, links:['sw_b3'] },
+    { id:'sw_c1', x: 820, y:2590, links:['sw_c2'] },
+    { id:'sw_c2', x:1010, y:2590, links:['sw_c1','sw_c3'] },
+    { id:'sw_c3', x:1350, y:2590, links:['sw_c2'] },
+    { id:'sw_d1', x:2250, y:2490, links:['sw_d2'] },
+    { id:'sw_d2', x:2680, y:2490, links:['sw_d1','sw_d3'] },
+    { id:'sw_d3', x:3100, y:2490, links:['sw_d2'] },
+  ];
+  const CITY_SW_MAP = Object.fromEntries(CITY_SIDEWALK_NODES.map(n => [n.id, n]));
+
+  // NPC traffic routes — looping waypoint arrays. stop:true = intersection pause.
+  const CITY_TRAFFIC_ROUTES = [
+    { id:'rte_ue', waypoints:[
+      {x: 300,y:760},{x: 600,y:760,stop:true},{x:1000,y:760,stop:true},{x:1700,y:760},
+      {x:2300,y:760,stop:true},{x:2900,y:760},{x:3500,y:760,stop:true},{x:3860,y:760},
+      {x:3860,y:700},{x:3500,y:700,stop:true},{x:2900,y:700},{x:2300,y:700,stop:true},
+      {x:1700,y:700},{x:1000,y:700,stop:true},{x: 600,y:700,stop:true},{x: 300,y:700}
+    ]},
+    { id:'rte_uw', waypoints:[
+      {x:3860,y:700},{x:3500,y:700,stop:true},{x:2900,y:700},{x:2300,y:700,stop:true},
+      {x:1700,y:700},{x:1000,y:700,stop:true},{x: 600,y:700,stop:true},{x: 300,y:700},
+      {x: 300,y:760},{x: 600,y:760,stop:true},{x:1000,y:760,stop:true},{x:1700,y:760},
+      {x:2300,y:760,stop:true},{x:2900,y:760},{x:3500,y:760,stop:true},{x:3860,y:760}
+    ]},
+    { id:'rte_le', waypoints:[
+      {x: 300,y:1320},{x: 600,y:1320,stop:true},{x:1100,y:1320,stop:true},{x:1700,y:1320},
+      {x:2300,y:1320,stop:true},{x:2900,y:1320},{x:3500,y:1320,stop:true},{x:3860,y:1320},
+      {x:3860,y:1260},{x:3500,y:1260,stop:true},{x:2900,y:1260},{x:2300,y:1260,stop:true},
+      {x:1700,y:1260},{x:1100,y:1260,stop:true},{x: 600,y:1260,stop:true},{x: 300,y:1260}
+    ]},
+    { id:'rte_pa', waypoints:[
+      {x:1000,y:760,stop:true},{x:1700,y:760},{x:1700,y:700},{x:1000,y:700,stop:true}
+    ]},
+    { id:'rte_pb', waypoints:[
+      {x:2300,y:760,stop:true},{x:2900,y:760},{x:2900,y:700},{x:2300,y:700,stop:true}
+    ]},
+  ];
+
+  // Police station NPC patrol routes (interior pixel coords)
+  const POLICE_STATION_NPC_ROUTES = {
+    frontDesk:   [{x:520,y:610},{x:590,y:610}],
+    recordsHall: [{x:720,y:560},{x:850,y:560},{x:850,y:680},{x:720,y:680}],
+    hallway:     [{x:460,y:760},{x:680,y:760},{x:680,y:850},{x:460,y:850}],
+    upstairs:    [{x:520,y:440},{x:780,y:440},{x:780,y:540},{x:520,y:540}],
+  };
+
   let THEME_MUSIC = null;
   const SAVE_KEY = 'the_report_raven_hook_save_v1';
   const MUSIC_SETTINGS_KEY = 'the_report_music_settings_v1';
@@ -1292,7 +1384,9 @@
         { type: 'spritesheet', key: 'detective_sedan_damage_64', path: 'assets/vehicles/detective_sedan/detective_sedan_damage_64.png', fw: 128, fh: 128 },
         { type: 'spritesheet', key: 'detective_sedan_trunk_open_64', path: 'assets/vehicles/detective_sedan/detective_sedan_trunk_open_64.png', fw: 128, fh: 128 },
         { type: 'spritesheet', key: 'detective_sedan_driver_door_open_64', path: 'assets/vehicles/detective_sedan/detective_sedan_driver_door_open_64.png', fw: 128, fh: 128 },
-        { type: 'spritesheet', key: 'detective_sedan_smoke_fire_64', path: 'assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png', fw: 128, fh: 128 }
+        { type: 'spritesheet', key: 'detective_sedan_smoke_fire_64', path: 'assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png', fw: 128, fh: 128 },
+        ...CIVILIAN_ASSETS.map(a => ({ type:'spritesheet', key:a.key, path:a.path, fw:a.fw, fh:a.fh })),
+        ...TRAFFIC_VEHICLE_ASSETS.map(a => ({ type:'spritesheet', key:a.key, path:a.path, fw:a.fw, fh:a.fh }))
       ];
 
       this.assetErrors = [];
@@ -1350,6 +1444,7 @@
       this.input.keyboard.on('keydown-C', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
       this.input.keyboard.on('keydown-I', () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
       this.input.keyboard.on('keydown-P', () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
+      this.input.keyboard.on('keydown-N', () => this.toggleRouteDebug());
       this.input.keyboard.on('keydown-B', () => this.handleCarOrArrest());
       this.input.keyboard.on('keydown-M', () => {
         const on = toggleTheme(this);
@@ -1465,7 +1560,7 @@
       this.suspect = this.add.rectangle(-100, -100, 22, 28, COLORS.red).setDepth(28); this.physics.add.existing(this.suspect); this.physics.add.collider(this.suspect, this.walls); this.suspect.visible = false; this.suspectActive = false; this.suspectFacing = 'E';
       const ev = SPAWN_POINTS.find(s => s.id === 'stolen_cigarettes'); this.evidence = this.add.circle(ev.x, ev.y, 11, COLORS.yellow).setDepth(27); this.evidence.visible = false;
       const wt = SPAWN_POINTS.find(s => s.id === 'bennys_clerk'); this.witness = this.add.rectangle(wt.x, wt.y, 22, 28, COLORS.purple).setDepth(27); this.witness.visible = false;
-      this.civilians = []; for (let i=0;i<7;i++) { const s = SPAWN_POINTS[i%SPAWN_POINTS.length]; const c = this.add.circle((s.x||500)+Phaser.Math.Between(-60,60),(s.y||700)+Phaser.Math.Between(-60,60),8,0xbfc7d1).setDepth(20); this.physics.add.existing(c); c.nodeTarget = new Phaser.Math.Vector2(c.x+Phaser.Math.Between(-120,120), c.y+Phaser.Math.Between(-120,120)); this.civilians.push(c); this.physics.add.collider(c, this.walls); }
+      this.civilians = []; this.trafficCars = []; this.createCivilians(); this.createTrafficCars();
       this.createRamosCompanion(ps.x - 54, ps.y + 18);
     }
 
@@ -1746,7 +1841,7 @@
     }
     inputDir() { const kbL=this.keys.left.isDown||this.keys.arrowLeft.isDown, kbR=this.keys.right.isDown||this.keys.arrowRight.isDown, kbU=this.keys.up.isDown||this.keys.arrowUp.isDown, kbD=this.keys.down.isDown||this.keys.arrowDown.isDown; if (this.mobile.useStick && (Math.abs(this.mobile.analogX)>0.15 || Math.abs(this.mobile.analogY)>0.15)) return { left:this.mobile.analogX<-0.25||kbL, right:this.mobile.analogX>0.25||kbR, up:this.mobile.analogY<-0.25||kbU, down:this.mobile.analogY>0.25||kbD, ax:this.mobile.analogX, ay:this.mobile.analogY }; return { left:kbL||this.mobile.left, right:kbR||this.mobile.right, up:kbU||this.mobile.up, down:kbD||this.mobile.down, ax:0, ay:0 }; }
 
-    update(time, delta) { if (this.pauseMenuOpen) { setActorPauseVelocity(this); this.refreshCameraIgnores(); return; } const dt=delta/1000; this.shiftMinutes += dt*0.85; this.updateClosestZone(); if(this.inCar) this.updateCar(dt); else this.updatePlayer(dt); this.updateRamosCompanion(time, delta); this.updateCase(dt); this.updateCivilians(); this.updateHUD(); this.refreshCameraIgnores(); if(this.messageTimer>0) this.messageTimer-=delta; }
+    update(time, delta) { if (this.pauseMenuOpen) { setActorPauseVelocity(this); this.refreshCameraIgnores(); return; } const dt=delta/1000; this.shiftMinutes += dt*0.85; this.updateClosestZone(); if(this.inCar) this.updateCar(dt); else this.updatePlayer(dt); this.updateRamosCompanion(time, delta); this.updateCase(dt); this.updateCivilians(delta); this.updateTrafficCars(delta); this.updateHUD(); this.refreshCameraIgnores(); if(this.messageTimer>0) this.messageTimer-=delta; }
     updatePlayer() {
       const d=this.inputDir(); let vx=d.ax||0, vy=d.ay||0;
       if(!vx&&!vy){ if(d.left)vx-=1; if(d.right)vx+=1; if(d.up)vy-=1; if(d.down)vy+=1; }
@@ -1814,7 +1909,223 @@
       this.evidence.visible = true;
       this.witness.visible = true;
     }
-    updateCivilians() { for(const c of this.civilians){ if(!c.nodeTarget||dist(c,c.nodeTarget)<12) c.nodeTarget=new Phaser.Math.Vector2(clamp(c.x+Phaser.Math.Between(-150,150),80,WORLD_W-80),clamp(c.y+Phaser.Math.Between(-150,150),80,WORLD_H-80)); this.physics.moveTo(c,c.nodeTarget.x,c.nodeTarget.y,45); } }
+    updateCivilians(delta = 16) {
+      for (const civ of this.civilians) {
+        if (!civ.body) continue;
+        const bx = civ.body.x, by = civ.body.y;
+        if (civ.sprite) {
+          if (civ.sprite.setPosition) civ.sprite.setPosition(bx, by);
+          else { civ.sprite.x = bx; civ.sprite.y = by; }
+        }
+        if (civ.pauseTimer > 0) {
+          civ.pauseTimer -= delta;
+          if (civ.body.body) civ.body.body.setVelocity(0, 0);
+          if (civ.sprite?.anims?.isPlaying) civ.sprite.anims.stop();
+          if (civ.sprite?.setFrame && this.textures.exists(civ.assetKey)) {
+            civ.sprite.setFrame((NPC_DIR_ROW[civ.facing] ?? 0) * 4);
+          }
+          continue;
+        }
+        if (!civ.targetNodeId) {
+          const cur = CITY_SW_MAP[civ.nodeId];
+          if (!cur || !cur.links.length) { civ.pauseTimer = 1000; continue; }
+          const opts = cur.links.filter(l => l !== civ.prevNodeId);
+          civ.prevNodeId = civ.nodeId;
+          civ.targetNodeId = opts.length ? opts[Phaser.Math.Between(0, opts.length - 1)] : cur.links[0];
+        }
+        const tgt = CITY_SW_MAP[civ.targetNodeId];
+        if (!tgt) { civ.targetNodeId = null; continue; }
+        const dx = tgt.x - bx, dy = tgt.y - by, d = Math.hypot(dx, dy);
+        if (d < 14) {
+          civ.nodeId = civ.targetNodeId; civ.targetNodeId = null;
+          civ.pauseTimer = Phaser.Math.Between(400, 1800);
+          if (civ.body.body) civ.body.body.setVelocity(0, 0);
+          continue;
+        }
+        let slow = false;
+        for (const o of this.civilians) {
+          if (o === civ || !o.body) continue;
+          if (Math.hypot(o.body.x - bx, o.body.y - by) < 30) { slow = true; break; }
+        }
+        const spd = slow ? civ.speed * 0.35 : civ.speed;
+        if (civ.body.body) civ.body.body.setVelocity((dx / d) * spd, (dy / d) * spd);
+        const ang = Phaser.Math.RadToDeg(Math.atan2(dy, dx));
+        civ.facing = ['E','SE','S','SW','W','NW','N','NE'][Math.round(((ang + 360) % 360) / 45) % 8];
+        if (civ.sprite && this.textures.exists(civ.assetKey)) {
+          const animKey = `civ_walk_${civ.assetKey}_${civ.facing}`;
+          if (!this.anims.exists(animKey)) {
+            const row = NPC_DIR_ROW[civ.facing] ?? 0;
+            this.anims.create({ key: animKey, frames: this.anims.generateFrameNumbers(civ.assetKey, { start: row * 4, end: row * 4 + 3 }), frameRate: 8, repeat: -1 });
+          }
+          if (civ.sprite.anims && (civ.sprite.anims.currentAnim?.key !== animKey || !civ.sprite.anims.isPlaying)) {
+            civ.sprite.play(animKey, true);
+          }
+        }
+      }
+    }
+
+    createCivilians() {
+      const groups = [
+        ['sw_a1','sw_a2','sw_a3','sw_a4'],
+        ['sw_b1','sw_b2','sw_b3','sw_b4'],
+        ['sw_c1','sw_c2','sw_c3'],
+        ['sw_d1','sw_d2','sw_d3'],
+      ];
+      let ci = 0;
+      for (let g = 0; g < groups.length; g++) {
+        for (let i = 0; i < 3 && ci < MAX_CITY_CIVILIANS; i++, ci++) {
+          const nodeId = groups[g][i % groups[g].length];
+          const node = CITY_SW_MAP[nodeId];
+          if (!node) continue;
+          const assetDef = CIVILIAN_ASSETS[ci % CIVILIAN_ASSETS.length];
+          const body = this.add.rectangle(
+            node.x + Phaser.Math.Between(-18, 18),
+            node.y + Phaser.Math.Between(-6, 6),
+            18, 26, 0x00ff00, 0
+          ).setDepth(20);
+          this.physics.add.existing(body);
+          if (body.body) body.body.setCollideWorldBounds(true);
+          this.physics.add.collider(body, this.walls);
+          let sprite;
+          if (this.textures.exists(assetDef.key)) {
+            sprite = this.add.sprite(node.x, node.y, assetDef.key, 0)
+              .setOrigin(0.5, 0.88).setScale(CIV_CITY_SCALE).setDepth(21);
+          } else {
+            sprite = this.add.rectangle(node.x, node.y, 18, 28, 0xbfc7d1, 0.85).setDepth(21);
+          }
+          this.civilians.push({
+            body, sprite, assetKey: assetDef.key,
+            nodeId, targetNodeId: null, prevNodeId: null,
+            speed: Phaser.Math.Between(38, 54),
+            pauseTimer: Phaser.Math.Between(200, 900),
+            facing: 'S',
+          });
+        }
+      }
+    }
+
+    createTrafficCars() {
+      const cfgs = [
+        { vk:'blackthorne_regent',      ri:0, sw:0  },
+        { vk:'blackthorne_regent_taxi', ri:0, sw:5  },
+        { vk:'rustway_comet',           ri:2, sw:0  },
+        { vk:'fairline_metro',          ri:2, sw:6  },
+        { vk:'ironcrest_hauler',        ri:1, sw:3  },
+        { vk:'meridian_sentinel_patrol',ri:3, sw:0  },
+        { vk:'meridian_sentinel_patrol',ri:4, sw:0  },
+      ];
+      const total = Math.min(cfgs.length, MAX_CITY_TRAFFIC + MAX_POLICE_PATROLS);
+      for (let i = 0; i < total; i++) {
+        const cfg = cfgs[i];
+        const route = CITY_TRAFFIC_ROUTES[cfg.ri];
+        if (!route?.waypoints?.length) continue;
+        const wp = route.waypoints[cfg.sw % route.waypoints.length];
+        const body = this.add.rectangle(wp.x, wp.y, 36, 60, 0xff0000, 0).setDepth(22);
+        this.physics.add.existing(body);
+        if (body.body) { body.body.setCollideWorldBounds(true); }
+        let sprite;
+        if (this.textures.exists(cfg.vk)) {
+          sprite = this.add.sprite(wp.x, wp.y, cfg.vk, 0)
+            .setOrigin(0.5, 0.5).setScale(0.54).setDepth(23);
+        } else {
+          sprite = this.add.rectangle(wp.x, wp.y, 34, 58, 0x334466, 0.9)
+            .setStrokeStyle(2, 0x9db5c7, 0.7).setDepth(23);
+          sprite._isFallback = true;
+        }
+        this.trafficCars.push({
+          body, sprite, vehicleKey: cfg.vk, route,
+          wpIndex: (cfg.sw + 1) % route.waypoints.length,
+          heading: 0, maxSpeed: cfg.vk === 'ironcrest_hauler' ? 56 : cfg.vk === 'meridian_sentinel_patrol' ? 60 : 72,
+          waitTimer: 0, blockedTimer: 0, state: 'driving',
+        });
+      }
+    }
+
+    updateTrafficCars(delta = 16) {
+      if (!this.trafficCars?.length) return;
+      for (const car of this.trafficCars) {
+        if (!car.body) continue;
+        const bx = car.body.x, by = car.body.y;
+        if (car.sprite) {
+          if (car.sprite.setPosition) car.sprite.setPosition(bx, by);
+          else { car.sprite.x = bx; car.sprite.y = by; }
+        }
+        if (car.waitTimer > 0) {
+          car.waitTimer -= delta;
+          if (car.body.body) car.body.body.setVelocity(0, 0);
+          continue;
+        }
+        const wp = car.route.waypoints[car.wpIndex];
+        if (!wp) continue;
+        const dx = wp.x - bx, dy = wp.y - by, d = Math.hypot(dx, dy);
+        if (d < 20) {
+          if (wp.stop) car.waitTimer = Phaser.Math.Between(800, 1800);
+          car.wpIndex = (car.wpIndex + 1) % car.route.waypoints.length;
+          continue;
+        }
+        car.heading = Math.atan2(dy, dx);
+        let emergStop = false, slowDown = false;
+        for (const other of this.trafficCars) {
+          if (other === car || !other.body) continue;
+          const ox = other.body.x - bx, oy = other.body.y - by;
+          const od = Math.hypot(ox, oy);
+          if (od > 220) continue;
+          const dot = ox * Math.cos(car.heading) + oy * Math.sin(car.heading);
+          if (dot <= 0) continue;
+          if (od < 90)  { emergStop = true; break; }
+          if (od < 180) slowDown = true;
+        }
+        if (emergStop) {
+          if (car.body.body) car.body.body.setVelocity(0, 0);
+          car.blockedTimer += delta;
+          if (car.blockedTimer > 3200) {
+            car.wpIndex = (car.wpIndex + 2) % car.route.waypoints.length;
+            car.blockedTimer = 0;
+          }
+        } else {
+          car.blockedTimer = 0;
+          const spd = slowDown ? car.maxSpeed * 0.45 : car.maxSpeed;
+          if (car.body.body) car.body.body.setVelocity((dx / d) * spd, (dy / d) * spd);
+        }
+        if (car.sprite && !car.sprite._isFallback) {
+          car.sprite.setFrame(this.getVehicleFrameFromAngle(car.heading));
+        } else if (car.sprite?._isFallback) {
+          car.sprite.setRotation?.(car.heading + Math.PI / 2);
+        }
+      }
+    }
+
+    getVehicleFrameFromAngle(angle) {
+      const deg = Phaser.Math.RadToDeg(angle);
+      return Math.round(Phaser.Math.Wrap(deg + 90, 0, 360) / 5.625) % 64;
+    }
+
+    toggleRouteDebug() {
+      this.debug.routes = !this.debug.routes;
+      if (this.routeDebugGfx) { this.routeDebugGfx.destroy(); this.routeDebugGfx = null; }
+      if (!this.debug.routes) { this.message = 'Route debug off.'; this.messageTimer = 1200; return; }
+      const g = this.add.graphics().setDepth(999);
+      this.routeDebugGfx = g;
+      g.lineStyle(3, 0x4488ff, 0.82);
+      for (const n of CITY_SIDEWALK_NODES) {
+        g.fillStyle(0x2255ff, 0.9).fillCircle(n.x, n.y, 7);
+        for (const lid of n.links) {
+          const m = CITY_SW_MAP[lid]; if (!m) continue;
+          g.strokeLineShape(new Phaser.Geom.Line(n.x, n.y, m.x, m.y));
+        }
+      }
+      g.lineStyle(3, 0xffee22, 0.82);
+      for (const route of CITY_TRAFFIC_ROUTES) {
+        const wps = route.waypoints;
+        for (let i = 0; i < wps.length; i++) {
+          const w = wps[i], nw = wps[(i + 1) % wps.length];
+          g.fillStyle(w.stop ? 0xff6622 : 0xffee22, 0.9).fillCircle(w.x, w.y, w.stop ? 9 : 6);
+          g.strokeLineShape(new Phaser.Geom.Line(w.x, w.y, nw.x, nw.y));
+        }
+      }
+      this.message = 'N: route debug on. Blue=sidewalk, Yellow=road, Orange=stop.';
+      this.messageTimer = 3000;
+    }
     updateClosestZone() { const actor=this.inCar?this.car:this.player; this.closestZone=null; for(const z of INTERACTION_ZONES){ if(overlap(z,actor)){ this.closestZone=z; break; } } }
     getStrictHotspot(ids = []) {
       const b = this.playerBody.getBounds();
@@ -2288,6 +2599,13 @@
           });
         }
       });
+
+      // Police NPC walk sheets for station interiors (graceful fail on missing assets)
+      for (const pna of POLICE_NPC_ASSETS) {
+        if (!this.textures.exists(pna.key)) {
+          this.load.spritesheet(pna.key, A(pna.path), { frameWidth: pna.fw, frameHeight: pna.fh });
+        }
+      }
     }
 
     create() {
@@ -2358,6 +2676,8 @@
       }
 
       this.createRamosCompanion(startX - 64, startY + 18);
+      this.stationNpcs = [];
+      if (this.floorId === 'floor1') this.createStationPoliceNPCs();
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
@@ -2980,6 +3300,7 @@
 
       this.updatePlayerVisual(moving);
       this.updateRamosCompanion(time, delta);
+      this.updateStationPoliceNPCs(delta);
 
       if (this.checkElevatorDoorTransition()) return;
       this.checkAutoTransitions();
@@ -3100,6 +3421,10 @@
     handleInteract() {
       if (this.floorMenuOpen) return;
 
+      // Check for nearby station police NPC first
+      const nearNpc = this.getNearestStationNpc(80);
+      if (nearNpc) { this.promptText?.setText(`Officer: ${nearNpc.label}`); return; }
+
       if (this.isRamosNearPlayer() && (!GAME.ramos.introduced || !this.currentHotspot)) {
         if (this.ramosActionTalk()) return;
       }
@@ -3198,9 +3523,10 @@
         c.add([box, tx]);
       };
 
-      addOption(-55, '2 — OFFICES / CHIEF OFFICE', 'floor2');
-      addOption(5, 'B1 — RECORDS / EVIDENCE', 'b1');
-      addOption(65, 'B3 — MOTOR POOL', 'motorPool');
+      addOption(-80, '1 — LOBBY / FRONT DESK',      'floor1');
+      addOption(-25, '2 — OFFICES / CHIEF OFFICE', 'floor2');
+      addOption( 30, 'B1 — RECORDS / EVIDENCE',   'b1');
+      addOption( 85, 'B3 — MOTOR POOL',           'motorPool');
 
       this.floorMenu = c;
       this.registerStationUi(c);
@@ -3216,17 +3542,22 @@
         return;
       }
 
+      if (key === '1') {
+        this.changeStationFloor('floor1', 'elevator', 'Elevator: Floor 1 lobby.');
+        return;
+      }
+
       if (key === '2') {
         this.changeStationFloor('floor2', 'elevator', 'Elevator: Floor 2 offices.');
         return;
       }
 
-      if (key === '1' || key === 'b') {
+      if (key === '3' || key === 'b') {
         this.changeStationFloor('b1', 'elevator', 'Elevator: B1 records / evidence.');
         return;
       }
 
-      if (key === '3') {
+      if (key === '4') {
         this.changeStationFloor('motorPool', 'elevator', 'Elevator: B3 motor pool.');
         return;
       }
@@ -3250,6 +3581,98 @@
         message,
         fromAutoTransition: spawnKey && spawnKey.startsWith('stairs')
       });
+    }
+
+    createStationPoliceNPCs() {
+      if (this.stationNpcs?.length > 0) return;
+      const cfgs = [
+        { routeKey:'frontDesk',   assetKey:'rhpd_f_light_01', label:'Desk is open. Sign in at the front.' },
+        { routeKey:'recordsHall', assetKey:'rhpd_m_01',       label:'Records is down the hall, left side.' },
+        { routeKey:'hallway',     assetKey:'rhpd_f_dark_01',  label:'Keep moving. No loitering.' },
+        { routeKey:'upstairs',    assetKey:'rhpd_f_light_02', label:'Detectives are upstairs — Floor 2.' },
+      ];
+      for (let i = 0; i < Math.min(cfgs.length, MAX_STATION_POLICE); i++) {
+        const cfg = cfgs[i];
+        const route = POLICE_STATION_NPC_ROUTES[cfg.routeKey];
+        if (!route?.length) continue;
+        const start = route[0];
+        const body = this.add.rectangle(start.x, start.y, 28, 44, 0x0000ff, 0).setDepth(29);
+        this.physics.add.existing(body);
+        if (body.body) body.body.setCollideWorldBounds(true);
+        this.physics.add.collider(body, this.walls);
+        let sprite;
+        if (this.textures.exists(cfg.assetKey)) {
+          if (!this.anims.exists(`snpc_walk_south_${cfg.assetKey}`)) {
+            for (const [name, row] of [['south',0],['north',4],['west',2],['east',6]]) {
+              this.anims.create({
+                key: `snpc_walk_${name}_${cfg.assetKey}`,
+                frames: this.anims.generateFrameNumbers(cfg.assetKey, { start: row * 4, end: row * 4 + 3 }),
+                frameRate: 7, repeat: -1
+              });
+            }
+          }
+          sprite = this.add.sprite(start.x, start.y, cfg.assetKey, 0)
+            .setOrigin(0.5, 0.88).setScale(POLICE_NPC_SCALE).setDepth(30);
+        } else {
+          sprite = this.add.rectangle(start.x, start.y, 28, 50, 0x2255aa, 1)
+            .setStrokeStyle(2, 0x88bbff, 0.8).setDepth(30);
+        }
+        this.stationNpcs.push({
+          body, sprite, assetKey: cfg.assetKey,
+          route, routeIndex: 0,
+          facing: 'S',
+          pauseTimer: Phaser.Math.Between(600, 1600),
+          label: cfg.label,
+        });
+      }
+    }
+
+    updateStationPoliceNPCs(delta = 16) {
+      if (!this.stationNpcs?.length || this.floorMenuOpen) return;
+      for (const npc of this.stationNpcs) {
+        if (!npc.body) continue;
+        const bx = npc.body.x, by = npc.body.y;
+        if (npc.sprite?.setPosition) npc.sprite.setPosition(bx, by);
+        else if (npc.sprite) { npc.sprite.x = bx; npc.sprite.y = by; }
+        if (npc.pauseTimer > 0) {
+          npc.pauseTimer -= delta;
+          if (npc.body.body) npc.body.body.setVelocity(0, 0);
+          if (npc.sprite?.anims?.isPlaying) npc.sprite.anims.stop();
+          if (npc.sprite?.setFrame && this.textures.exists(npc.assetKey)) {
+            npc.sprite.setFrame((NPC_DIR_ROW[npc.facing] ?? 0) * 4);
+          }
+          continue;
+        }
+        const target = npc.route[npc.routeIndex];
+        if (!target) continue;
+        const dx = target.x - bx, dy = target.y - by, d = Math.hypot(dx, dy);
+        if (d < 10) {
+          npc.routeIndex = (npc.routeIndex + 1) % npc.route.length;
+          npc.pauseTimer = Phaser.Math.Between(800, 2400);
+          if (npc.body.body) npc.body.body.setVelocity(0, 0);
+          continue;
+        }
+        if (npc.body.body) npc.body.body.setVelocity((dx / d) * 68, (dy / d) * 68);
+        const ang = Phaser.Math.RadToDeg(Math.atan2(dy, dx));
+        npc.facing = ['E','SE','S','SW','W','NW','N','NE'][Math.round(((ang + 360) % 360) / 45) % 8];
+        if (npc.sprite?.anims && this.textures.exists(npc.assetKey)) {
+          const name = ({S:'south',SW:'west',W:'west',NW:'west',N:'north',NE:'east',E:'east',SE:'east'})[npc.facing] || 'south';
+          const key = `snpc_walk_${name}_${npc.assetKey}`;
+          if (npc.sprite.anims.currentAnim?.key !== key || !npc.sprite.anims.isPlaying) {
+            npc.sprite.play(key, true);
+          }
+        }
+      }
+    }
+
+    getNearestStationNpc(range = 80) {
+      if (!this.stationNpcs?.length || !this.playerBody) return null;
+      const px = this.playerBody.x, py = this.playerBody.y;
+      for (const npc of this.stationNpcs) {
+        if (!npc.body) continue;
+        if (Math.hypot(npc.body.x - px, npc.body.y - py) <= range) return npc;
+      }
+      return null;
     }
   }
 
@@ -3951,6 +4374,215 @@
       if (key === 'sel' && target.promptText?.setText) target.promptText.setText('SEL: station debug placeholder.');
       if (key === 'sta' && target.promptText?.setText) target.promptText.setText('STA: pause placeholder.');
     }
+  }
+
+
+  // NPC_TRAFFIC_POLICE_HARD_PATCH_001: hardened police station NPCs, sidewalk pedestrians, road traffic AI.
+  const RH_SIDEWALK_PATCH_NODES = [{"id": "sw_station_01", "x": 760, "y": 560, "links": ["sw_station_02"]}, {"id": "sw_station_02", "x": 940, "y": 560, "links": ["sw_station_01", "sw_station_03", "sw_station_cross"]}, {"id": "sw_station_03", "x": 1220, "y": 560, "links": ["sw_station_02", "sw_station_04"]}, {"id": "sw_station_04", "x": 1500, "y": 680, "links": ["sw_station_03", "sw_market_01"]}, {"id": "sw_market_01", "x": 2220, "y": 520, "links": ["sw_station_04", "sw_market_02"]}, {"id": "sw_market_02", "x": 2420, "y": 520, "links": ["sw_market_01", "sw_market_03", "sw_market_lot"]}, {"id": "sw_market_03", "x": 2860, "y": 520, "links": ["sw_market_02", "sw_market_04"]}, {"id": "sw_market_04", "x": 3240, "y": 520, "links": ["sw_market_03", "sw_gas_01"]}, {"id": "sw_gas_01", "x": 3700, "y": 770, "links": ["sw_market_04", "sw_oldtown_01"]}, {"id": "sw_market_lot", "x": 2420, "y": 690, "links": ["sw_market_02", "sw_market_alley"]}, {"id": "sw_market_alley", "x": 2700, "y": 690, "links": ["sw_market_lot", "sw_market_03"]}, {"id": "sw_civic_01", "x": 720, "y": 2580, "links": ["sw_civic_02"]}, {"id": "sw_civic_02", "x": 990, "y": 2580, "links": ["sw_civic_01", "sw_civic_03", "sw_civic_park"]}, {"id": "sw_civic_03", "x": 1360, "y": 2580, "links": ["sw_civic_02", "sw_civic_04"]}, {"id": "sw_civic_04", "x": 1680, "y": 2760, "links": ["sw_civic_03", "sw_oldtown_01"]}, {"id": "sw_civic_park", "x": 1000, "y": 2880, "links": ["sw_civic_02", "sw_civic_05"]}, {"id": "sw_civic_05", "x": 1420, "y": 3260, "links": ["sw_civic_park"]}, {"id": "sw_oldtown_01", "x": 2240, "y": 2520, "links": ["sw_gas_01", "sw_oldtown_02", "sw_civic_04"]}, {"id": "sw_oldtown_02", "x": 2700, "y": 2520, "links": ["sw_oldtown_01", "sw_oldtown_03", "sw_oldtown_alley"]}, {"id": "sw_oldtown_03", "x": 3160, "y": 2520, "links": ["sw_oldtown_02", "sw_oldtown_04"]}, {"id": "sw_oldtown_04", "x": 3660, "y": 2520, "links": ["sw_oldtown_03", "sw_oldtown_yard"]}, {"id": "sw_oldtown_alley", "x": 2720, "y": 3050, "links": ["sw_oldtown_02", "sw_oldtown_river"]}, {"id": "sw_oldtown_yard", "x": 3660, "y": 3060, "links": ["sw_oldtown_04", "sw_oldtown_river"]}, {"id": "sw_oldtown_river", "x": 3180, "y": 3340, "links": ["sw_oldtown_alley", "sw_oldtown_yard"]}, {"id": "sw_station_cross", "x": 1010, "y": 720, "links": ["sw_station_02", "sw_civic_01"]}];
+  const RH_SW_PATCH_MAP = Object.fromEntries(RH_SIDEWALK_PATCH_NODES.map(n => [n.id, n]));
+  const RH_ROAD_PATCH_NODES = [{"id": "rd_station_w", "x": 280, "y": 760, "lane": "eastbound", "links": ["rd_station_mid"]}, {"id": "rd_station_mid", "x": 960, "y": 760, "lane": "eastbound", "stop": true, "intersection": "int_station", "links": ["rd_market_w", "rd_civic_n"]}, {"id": "rd_market_w", "x": 1820, "y": 760, "lane": "eastbound", "links": ["rd_market_mid"]}, {"id": "rd_market_mid", "x": 2420, "y": 760, "lane": "eastbound", "stop": true, "intersection": "int_market", "links": ["rd_market_e", "rd_oldtown_n"]}, {"id": "rd_market_e", "x": 3500, "y": 760, "lane": "eastbound", "stop": true, "intersection": "int_gas", "links": ["rd_gas_s", "rd_market_return"]}, {"id": "rd_market_return", "x": 3840, "y": 700, "lane": "westbound", "links": ["rd_market_e_w"]}, {"id": "rd_market_e_w", "x": 3500, "y": 700, "lane": "westbound", "stop": true, "intersection": "int_gas", "links": ["rd_market_mid_w"]}, {"id": "rd_market_mid_w", "x": 2420, "y": 700, "lane": "westbound", "stop": true, "intersection": "int_market", "links": ["rd_market_w_w", "rd_oldtown_n"]}, {"id": "rd_market_w_w", "x": 1820, "y": 700, "lane": "westbound", "links": ["rd_station_mid_w"]}, {"id": "rd_station_mid_w", "x": 960, "y": 700, "lane": "westbound", "stop": true, "intersection": "int_station", "links": ["rd_station_w_w", "rd_civic_n"]}, {"id": "rd_station_w_w", "x": 280, "y": 700, "lane": "westbound", "links": ["rd_station_w"]}, {"id": "rd_civic_n", "x": 960, "y": 1320, "lane": "southbound", "stop": true, "intersection": "int_station_s", "links": ["rd_civic_mid"]}, {"id": "rd_civic_mid", "x": 960, "y": 2200, "lane": "southbound", "links": ["rd_civic_s"]}, {"id": "rd_civic_s", "x": 960, "y": 3320, "lane": "southbound", "stop": true, "intersection": "int_civic", "links": ["rd_civic_loop_e"]}, {"id": "rd_civic_loop_e", "x": 1680, "y": 3320, "lane": "eastbound", "links": ["rd_oldtown_s"]}, {"id": "rd_oldtown_n", "x": 2420, "y": 1320, "lane": "southbound", "stop": true, "intersection": "int_market_s", "links": ["rd_oldtown_mid"]}, {"id": "rd_oldtown_mid", "x": 2420, "y": 2200, "lane": "southbound", "links": ["rd_oldtown_s"]}, {"id": "rd_oldtown_s", "x": 2420, "y": 3320, "lane": "eastbound", "stop": true, "intersection": "int_oldtown", "links": ["rd_river_s"]}, {"id": "rd_river_s", "x": 3480, "y": 3320, "lane": "eastbound", "stop": true, "intersection": "int_river", "links": ["rd_river_n"]}, {"id": "rd_river_n", "x": 3480, "y": 1320, "lane": "northbound", "stop": true, "intersection": "int_gas_s", "links": ["rd_gas_s"]}, {"id": "rd_gas_s", "x": 3480, "y": 900, "lane": "northbound", "links": ["rd_market_e_w"]}];
+  const RH_RD_PATCH_MAP = Object.fromEntries(RH_ROAD_PATCH_NODES.map(n => [n.id, n]));
+  const RH_INTERSECTION_PATCH = {"int_station": {"box": {"x": 860, "y": 660, "w": 220, "h": 220}}, "int_market": {"box": {"x": 2320, "y": 660, "w": 240, "h": 240}}, "int_gas": {"box": {"x": 3390, "y": 660, "w": 250, "h": 250}}, "int_station_s": {"box": {"x": 860, "y": 1220, "w": 220, "h": 220}}, "int_market_s": {"box": {"x": 2320, "y": 1220, "w": 240, "h": 240}}, "int_civic": {"box": {"x": 860, "y": 3220, "w": 260, "h": 260}}, "int_oldtown": {"box": {"x": 2320, "y": 3220, "w": 260, "h": 260}}, "int_river": {"box": {"x": 3380, "y": 3220, "w": 260, "h": 260}}, "int_gas_s": {"box": {"x": 3380, "y": 1220, "w": 260, "h": 260}}};
+  for (const v of Object.values(RH_INTERSECTION_PATCH)) { v.occupiedBy = null; }
+  const RH_TRAFFIC_SPAWNS = [{"key": "blackthorne_regent", "start": "rd_station_w", "police": false, "maxSpeed": 78}, {"key": "blackthorne_regent_taxi", "start": "rd_market_w", "police": false, "maxSpeed": 74}, {"key": "rustway_comet", "start": "rd_market_e_w", "police": false, "maxSpeed": 72}, {"key": "fairline_metro", "start": "rd_civic_n", "police": false, "maxSpeed": 76}, {"key": "ironcrest_hauler", "start": "rd_oldtown_n", "police": false, "maxSpeed": 60}, {"key": "blackthorne_regent", "start": "rd_oldtown_s", "police": false, "maxSpeed": 72}, {"key": "meridian_sentinel_patrol", "start": "rd_station_mid_w", "police": true, "maxSpeed": 64}, {"key": "meridian_sentinel_patrol", "start": "rd_river_s", "police": true, "maxSpeed": 64}];
+
+  function rhPickNextRoadNode(car) {
+    const cur = RH_RD_PATCH_MAP[car.currentNodeId];
+    if (!cur || !cur.links || !cur.links.length) return car.currentNodeId;
+    let opts = cur.links.filter(id => id !== car.prevNodeId);
+    if (!opts.length) opts = cur.links.slice();
+    return opts[Phaser.Math.Between(0, opts.length - 1)];
+  }
+  function rhAngleToFrame(angle) {
+    const deg = Phaser.Math.RadToDeg(angle);
+    return Math.round(Phaser.Math.Wrap(deg + 90, 0, 360) / 5.625) % 64;
+  }
+  function rhSameLaneAhead(car, other) {
+    if (!car || !other || car === other) return false;
+    const ax = Math.cos(car.heading || 0), ay = Math.sin(car.heading || 0);
+    const dx = other.body.x - car.body.x, dy = other.body.y - car.body.y;
+    const ahead = dx * ax + dy * ay;
+    const side = Math.abs(dx * -ay + dy * ax);
+    return ahead > 0 && ahead < 240 && side < 58;
+  }
+  function rhIntersectionClear(scene, intersectionId, car) {
+    if (!intersectionId) return true;
+    const int = RH_INTERSECTION_PATCH[intersectionId];
+    if (!int) return true;
+    const box = int.box;
+    const rect = new Phaser.Geom.Rectangle(box.x, box.y, box.w, box.h);
+    if (int.occupiedBy === car.trafficId) return true;
+    if (int.occupiedBy) {
+      const holder = scene.trafficCars?.find(c => c.trafficId === int.occupiedBy);
+      if (!holder || !Phaser.Geom.Rectangle.Contains(rect, holder.body.x, holder.body.y)) int.occupiedBy = null;
+    }
+    if (!int.occupiedBy) { int.occupiedBy = car.trafficId; return true; }
+    return false;
+  }
+  function rhReleaseIntersection(car) {
+    for (const int of Object.values(RH_INTERSECTION_PATCH)) {
+      if (int.occupiedBy !== car.trafficId) continue;
+      const b = int.box;
+      if (!Phaser.Geom.Rectangle.Contains(new Phaser.Geom.Rectangle(b.x,b.y,b.w,b.h), car.body.x, car.body.y)) int.occupiedBy = null;
+    }
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    GameScene.prototype.createCivilians = function() {
+      this.civilians = [];
+      const starts = ['sw_station_01','sw_station_02','sw_station_03','sw_market_01','sw_market_02','sw_market_lot','sw_civic_01','sw_civic_02','sw_civic_park','sw_oldtown_01','sw_oldtown_alley','sw_oldtown_river'];
+      for (let i=0; i<Math.min(starts.length, MAX_CITY_CIVILIANS); i++) {
+        const node = RH_SW_PATCH_MAP[starts[i]]; if (!node) continue;
+        const assetDef = CIVILIAN_ASSETS[i % CIVILIAN_ASSETS.length];
+        const body = this.add.rectangle(node.x, node.y, 20, 28, 0x00ff00, 0).setDepth(29);
+        this.physics.add.existing(body);
+        if (body.body) { body.body.setCollideWorldBounds(true); body.body.setSize(18, 22); }
+        if (this.walls) this.physics.add.collider(body, this.walls);
+        let sprite;
+        if (this.textures.exists(assetDef.key)) {
+          if (!this.anims.exists(`rh_civ_walk_s_${assetDef.key}`)) {
+            for (const [suffix,row] of [['s',0],['sw',1],['w',2],['nw',3],['n',4],['ne',5],['e',6],['se',7]]) {
+              this.anims.create({ key:`rh_civ_walk_${suffix}_${assetDef.key}`, frames:this.anims.generateFrameNumbers(assetDef.key, { start:row*4, end:row*4+3 }), frameRate:7, repeat:-1 });
+            }
+          }
+          sprite = this.add.sprite(node.x, node.y, assetDef.key, 0).setOrigin(0.5,0.88).setScale(CIV_CITY_SCALE).setDepth(30);
+        } else {
+          sprite = this.add.rectangle(node.x, node.y, 22, 34, 0xd6d0c8, 1).setStrokeStyle(2, 0x332b25, 0.7).setDepth(30);
+          sprite._isFallback = true;
+        }
+        this.civilians.push({ body, sprite, assetKey:assetDef.key, nodeId:starts[i], targetNodeId:null, prevNodeId:null, speed:Phaser.Math.Between(42,62), pauseTimer:Phaser.Math.Between(250,1400), facing:'S' });
+      }
+    };
+
+    GameScene.prototype.updateCivilians = function(delta=16) {
+      if (!this.civilians?.length) return;
+      for (const civ of this.civilians) {
+        if (!civ.body) continue;
+        const bx=civ.body.x, by=civ.body.y;
+        civ.sprite?.setPosition?.(bx, by);
+        if (civ.pauseTimer > 0) {
+          civ.pauseTimer -= delta; civ.body.body?.setVelocity(0,0);
+          if (civ.sprite?.anims?.isPlaying) civ.sprite.anims.stop();
+          if (civ.sprite?.setFrame && !civ.sprite._isFallback && this.textures.exists(civ.assetKey)) civ.sprite.setFrame((NPC_DIR_ROW[civ.facing] ?? 0) * 4);
+          continue;
+        }
+        if (!civ.targetNodeId) {
+          const cur = RH_SW_PATCH_MAP[civ.nodeId];
+          if (!cur || !cur.links?.length) { civ.pauseTimer=800; continue; }
+          let opts = cur.links.filter(id => id !== civ.prevNodeId);
+          if (!opts.length) opts = cur.links.slice();
+          civ.prevNodeId = civ.nodeId;
+          civ.targetNodeId = opts[Phaser.Math.Between(0, opts.length-1)];
+        }
+        const tgt = RH_SW_PATCH_MAP[civ.targetNodeId]; if (!tgt) { civ.targetNodeId=null; continue; }
+        const dx=tgt.x-bx, dy=tgt.y-by, d=Math.hypot(dx,dy);
+        if (d < 14) { civ.nodeId=civ.targetNodeId; civ.targetNodeId=null; civ.pauseTimer=Phaser.Math.Between(600,2200); civ.body.body?.setVelocity(0,0); continue; }
+        let crowdSlow=false;
+        for (const other of this.civilians) { if (other!==civ && other.body && Math.hypot(other.body.x-bx, other.body.y-by)<34) { crowdSlow=true; break; } }
+        const spd = crowdSlow ? civ.speed*0.35 : civ.speed;
+        civ.body.body?.setVelocity((dx/d)*spd, (dy/d)*spd);
+        const ang=Phaser.Math.RadToDeg(Math.atan2(dy,dx));
+        civ.facing=['E','SE','S','SW','W','NW','N','NE'][Math.round(((ang+360)%360)/45)%8];
+        if (civ.sprite?.anims && !civ.sprite._isFallback && this.textures.exists(civ.assetKey)) {
+          const suffix=({S:'s',SW:'sw',W:'w',NW:'nw',N:'n',NE:'ne',E:'e',SE:'se'})[civ.facing] || 's';
+          const animKey=`rh_civ_walk_${suffix}_${civ.assetKey}`;
+          if (this.anims.exists(animKey) && (civ.sprite.anims.currentAnim?.key!==animKey || !civ.sprite.anims.isPlaying)) civ.sprite.play(animKey, true);
+        }
+      }
+    };
+
+    GameScene.prototype.createTrafficCars = function() {
+      this.trafficCars = []; this.rhTrafficSeq = 0;
+      for (const spawn of RH_TRAFFIC_SPAWNS.slice(0, MAX_CITY_TRAFFIC + MAX_POLICE_PATROLS)) {
+        const node = RH_RD_PATCH_MAP[spawn.start]; if (!node) continue;
+        const body = this.add.rectangle(node.x, node.y, 42, 64, 0xff0000, 0).setDepth(33);
+        this.physics.add.existing(body);
+        if (body.body) { body.body.setCollideWorldBounds(true); body.body.setSize(36,56); }
+        let sprite;
+        if (this.textures.exists(spawn.key)) sprite = this.add.sprite(node.x,node.y,spawn.key,0).setOrigin(0.5,0.5).setScale(0.54).setDepth(spawn.police?36:34);
+        else { sprite = this.add.rectangle(node.x,node.y,34,58,spawn.police?0x234d9a:0x564238,1).setStrokeStyle(2,0xf0f0f0,0.75).setDepth(spawn.police?36:34); sprite._isFallback=true; }
+        const nextId = rhPickNextRoadNode({ currentNodeId: spawn.start, prevNodeId:null });
+        this.trafficCars.push({ trafficId:`traffic_${++this.rhTrafficSeq}`, body, sprite, vehicleKey:spawn.key, currentNodeId:spawn.start, prevNodeId:null, targetNodeId:nextId, heading:0, speed:0, maxSpeed:spawn.maxSpeed||72, accel:0.07, brake:0.16, waitTimer:Phaser.Math.Between(0,900), blockedTimer:0, state:'driving', isPolicePatrol:!!spawn.police });
+      }
+    };
+
+    GameScene.prototype.updateTrafficCars = function(delta=16) {
+      if (!this.trafficCars?.length) return;
+      for (const car of this.trafficCars) {
+        if (!car.body) continue;
+        const cur=RH_RD_PATCH_MAP[car.currentNodeId], tgt=RH_RD_PATCH_MAP[car.targetNodeId];
+        if (!tgt) { car.targetNodeId=rhPickNextRoadNode(car); continue; }
+        car.sprite?.setPosition?.(car.body.x, car.body.y);
+        rhReleaseIntersection(car);
+        if (car.waitTimer > 0) { car.waitTimer-=delta; car.speed=Math.max(0,car.speed-car.brake*delta); car.body.body?.setVelocity(0,0); car.state='stopped_at_intersection'; continue; }
+        const dx=tgt.x-car.body.x, dy=tgt.y-car.body.y, d=Math.hypot(dx,dy);
+        if (d < 22) {
+          car.prevNodeId=car.currentNodeId; car.currentNodeId=car.targetNodeId;
+          const reached=RH_RD_PATCH_MAP[car.currentNodeId];
+          if (reached?.stop) { car.waitTimer=Phaser.Math.Between(850,1900); car.speed=0; }
+          car.targetNodeId=rhPickNextRoadNode(car); car.body.body?.setVelocity(0,0); continue;
+        }
+        car.heading=Math.atan2(dy,dx);
+        const nearStop=!!tgt.intersection && d<150;
+        const canEnter=!tgt.intersection || d>105 || rhIntersectionClear(this,tgt.intersection,car);
+        let nearestAhead=null;
+        for (const other of this.trafficCars) { if (rhSameLaneAhead(car,other)) { const od=Math.hypot(other.body.x-car.body.x, other.body.y-car.body.y); if (!nearestAhead || od<nearestAhead.dist) nearestAhead={car:other, dist:od}; } }
+        let desired=car.maxSpeed;
+        if (nearStop) desired=Math.min(desired,36);
+        if (!canEnter) desired=0;
+        if (nearestAhead) { if (nearestAhead.dist<90) desired=0; else if (nearestAhead.dist<140) desired=Math.min(desired,18); else if (nearestAhead.dist<220) desired=Math.min(desired,car.maxSpeed*0.45); }
+        if (desired<=0) { car.speed=Math.max(0,car.speed-car.brake*delta); car.blockedTimer+=delta; car.state=tgt.intersection?'yielding':'blocked'; }
+        else { car.speed += (desired-car.speed)*Phaser.Math.Clamp(car.accel*(delta/16),0.02,0.18); car.blockedTimer=Math.max(0,car.blockedTimer-delta); car.state=nearStop?'slowing':'driving'; }
+        if (car.blockedTimer>4200 && cur) { car.body.setPosition(cur.x+Phaser.Math.Between(-16,16), cur.y+Phaser.Math.Between(-16,16)); car.targetNodeId=rhPickNextRoadNode(car); car.blockedTimer=0; car.waitTimer=Phaser.Math.Between(300,900); continue; }
+        if (d>0) car.body.body?.setVelocity((dx/d)*car.speed, (dy/d)*car.speed);
+        if (car.sprite && !car.sprite._isFallback) car.sprite.setFrame(rhAngleToFrame(car.heading)); else car.sprite?.setRotation?.(car.heading+Math.PI/2);
+      }
+    };
+
+    GameScene.prototype.toggleRouteDebug = function() {
+      this.debug.routes=!this.debug.routes;
+      if (this.routeDebugGfx) { this.routeDebugGfx.destroy(); this.routeDebugGfx=null; }
+      if (!this.debug.routes) { this.message='Route debug off.'; this.messageTimer=1200; return; }
+      const g=this.add.graphics().setDepth(999); this.routeDebugGfx=g;
+      g.lineStyle(3,0x4488ff,0.82);
+      for (const n of RH_SIDEWALK_PATCH_NODES) { g.fillStyle(0x2255ff,0.9).fillCircle(n.x,n.y,7); for (const lid of n.links||[]) { const m=RH_SW_PATCH_MAP[lid]; if(m) g.strokeLineShape(new Phaser.Geom.Line(n.x,n.y,m.x,m.y)); } }
+      g.lineStyle(3,0xffee22,0.82);
+      for (const n of RH_ROAD_PATCH_NODES) { g.fillStyle(n.stop?0xff6622:0xffee22,0.9).fillCircle(n.x,n.y,n.stop?9:6); for (const lid of n.links||[]) { const m=RH_RD_PATCH_MAP[lid]; if(m) g.strokeLineShape(new Phaser.Geom.Line(n.x,n.y,m.x,m.y)); } }
+      g.lineStyle(2,0xff9a3d,0.65); for (const int of Object.values(RH_INTERSECTION_PATCH)) { const b=int.box; g.strokeRect(b.x,b.y,b.w,b.h); }
+      this.message='N: route debug on. Blue=sidewalk, Yellow=road, Orange=stop/intersection.'; this.messageTimer=3200;
+    };
+  }
+
+  if (typeof PoliceStationScene !== 'undefined') {
+    const __rhOrigStationCreate = PoliceStationScene.prototype.create;
+    PoliceStationScene.prototype.create = function() {
+      __rhOrigStationCreate.apply(this, arguments);
+      if (!this.stationNpcs || this.stationNpcs.length < 2) { this.stationNpcs=[]; this.createStationPoliceNPCs(); }
+    };
+    PoliceStationScene.prototype.createStationPoliceNPCs = function() {
+      if (this.stationNpcs?.length > 0) return;
+      const floor2=this.floorId==='floor2';
+      const cfgs=floor2?[
+        {routeKey:'upstairs', assetKey:'rhpd_f_light_02', label:'Detectives are upstairs. Keep it quiet.'},
+        {routeKey:'recordsHall', assetKey:'rhpd_m_01', label:'Chief is expecting your report.'}
+      ]:[
+        {routeKey:'frontDesk', assetKey:'rhpd_f_light_01', label:'Desk is open. Sign in at the front.'},
+        {routeKey:'recordsHall', assetKey:'rhpd_m_01', label:'Records is down the hall, left side.'},
+        {routeKey:'hallway', assetKey:'rhpd_f_dark_01', label:'Keep moving. No loitering.'},
+        {routeKey:'upstairs', assetKey:'rhpd_f_light_02', label:'Detectives are upstairs — Floor 2.'}
+      ];
+      for (let i=0; i<Math.min(cfgs.length,MAX_STATION_POLICE); i++) {
+        const cfg=cfgs[i], route=POLICE_STATION_NPC_ROUTES[cfg.routeKey]; if(!route?.length) continue;
+        const start=route[0], body=this.add.rectangle(start.x,start.y,30,44,0x0000ff,0).setDepth(29);
+        this.physics.add.existing(body); if(body.body){body.body.setCollideWorldBounds(true); body.body.setSize(24,36);} if(this.walls) this.physics.add.collider(body,this.walls);
+        let sprite;
+        if (this.textures.exists(cfg.assetKey)) {
+          if (!this.anims.exists(`rh_snpc_walk_south_${cfg.assetKey}`)) for (const [name,row] of [['south',0],['north',4],['west',2],['east',6]]) this.anims.create({key:`rh_snpc_walk_${name}_${cfg.assetKey}`, frames:this.anims.generateFrameNumbers(cfg.assetKey,{start:row*4,end:row*4+3}), frameRate:7, repeat:-1});
+          sprite=this.add.sprite(start.x,start.y,cfg.assetKey,0).setOrigin(0.5,0.88).setScale(POLICE_NPC_SCALE).setDepth(30);
+        } else { sprite=this.add.rectangle(start.x,start.y,30,52,0x2255aa,1).setStrokeStyle(2,0x88bbff,0.9).setDepth(30); sprite._isFallback=true; }
+        this.stationNpcs.push({body,sprite,assetKey:cfg.assetKey,route,routeIndex:0,facing:'S',pauseTimer:Phaser.Math.Between(600,1600),label:cfg.label});
+      }
+    };
   }
 
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });

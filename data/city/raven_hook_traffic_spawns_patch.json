@@ -1,0 +1,50 @@
+[
+  {
+    "key": "blackthorne_regent",
+    "start": "rd_station_w",
+    "police": false,
+    "maxSpeed": 78
+  },
+  {
+    "key": "blackthorne_regent_taxi",
+    "start": "rd_market_w",
+    "police": false,
+    "maxSpeed": 74
+  },
+  {
+    "key": "rustway_comet",
+    "start": "rd_market_e_w",
+    "police": false,
+    "maxSpeed": 72
+  },
+  {
+    "key": "fairline_metro",
+    "start": "rd_civic_n",
+    "police": false,
+    "maxSpeed": 76
+  },
+  {
+    "key": "ironcrest_hauler",
+    "start": "rd_oldtown_n",
+    "police": false,
+    "maxSpeed": 60
+  },
+  {
+    "key": "blackthorne_regent",
+    "start": "rd_oldtown_s",
+    "police": false,
+    "maxSpeed": 72
+  },
+  {
+    "key": "meridian_sentinel_patrol",
+    "start": "rd_station_mid_w",
+    "police": true,
+    "maxSpeed": 64
+  },
+  {
+    "key": "meridian_sentinel_patrol",
+    "start": "rd_river_s",
+    "police": true,
+    "maxSpeed": 64
+  }
+]
