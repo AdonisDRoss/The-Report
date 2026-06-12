@@ -40,7 +40,7 @@
   // GIT_MAPPED_STANDARD_128_SPRITES_PATCH: Ramos walk path mapped to existing Git movement sheet; city actor action sheets standardized to 128x128 frames.
   // RAMOS_SCALE_CAR_B_FIX: city Ramos scaled to Malcolm movement height, station Ramos scaled up, B button enters/exits car near sedan.
   // X_CAR_ENTRY_RAMOS_CUT_FIX: X enters/exits car near sedan; Ramos sheets recut per frame to remove duplicate/bleed sprites.
-  // ASSET_SCALE_LOCK_PATCH_001: all human and vehicle assets use locked display scale. GTA_STYLE_PLAYER_CAR_HANDLING_PATCH_001: player car drift physics and top-down detective sedan. RUNTIME_VEHICLE_LIGHTS_PATCH_001: adds runtime headlights and police strobes. SINGLE_TOPDOWN_TRAFFIC_PATCH_001: NPC cars use single top-down sprites and code rotation. WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001: adds map overlay and replaces fallback boxes after lazy loading. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
+  // BLACK_SCREEN_SCALE_LOCK_HOTFIX_001: moved SCALE_LOCK before first use. // ASSET_SCALE_LOCK_PATCH_001: all human and vehicle assets use locked display scale. GTA_STYLE_PLAYER_CAR_HANDLING_PATCH_001: player car drift physics and top-down detective sedan. RUNTIME_VEHICLE_LIGHTS_PATCH_001: adds runtime headlights and police strobes. SINGLE_TOPDOWN_TRAFFIC_PATCH_001: NPC cars use single top-down sprites and code rotation. WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001: adds map overlay and replaces fallback boxes after lazy loading. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -654,6 +654,19 @@
 
   const CAR_INTERACT_RANGE = 320;
 
+  const SCALE_LOCK = {
+    cityHumanHeight: 56,
+    cityHumanScale96: 0.58,
+    cityHumanScale128: 0.44,
+    stationHumanHeight: 112,
+    stationHumanScale128: 0.88,
+    stationHumanScale192: 0.58,
+    policeStationScale192: 0.65,
+    malcolmShootCityScale: 0.44,
+    ramosCityScale: 0.44,
+    civilianCityScale: 0.44
+  };
+
   const PLAYER_ASSET = {
     key: 'main_detective',
     path: 'assets/characters/main_detective/main_detective_movement_8dir_96x96_transparent.png',
@@ -955,18 +968,6 @@
   // Mirrors Eddie Cross layout: S=0 SW=1 W=2 NW=3 N=4 NE=5 E=6 SE=7
   const NPC_DIR_ROW = { S:0, SW:1, W:2, NW:3, N:4, NE:5, E:6, SE:7 };
 
-  const SCALE_LOCK = {
-    cityHumanHeight: 56,
-    cityHumanScale96: 0.58,
-    cityHumanScale128: 0.44,
-    stationHumanHeight: 112,
-    stationHumanScale128: 0.88,
-    stationHumanScale192: 0.58,
-    policeStationScale192: 0.65,
-    malcolmShootCityScale: 0.44,
-    ramosCityScale: 0.44,
-    civilianCityScale: 0.44
-  };
 
   const CIV_CITY_SCALE   = SCALE_LOCK.civilianCityScale;   // 128 × 0.44 ≈ 56 px — matches Ramos city height
   const POLICE_NPC_SCALE = SCALE_LOCK.policeStationScale192;   // 192 × 0.65 ≈ 125 px — matches Malcolm station height
