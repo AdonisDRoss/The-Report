@@ -40,7 +40,7 @@
   // GIT_MAPPED_STANDARD_128_SPRITES_PATCH: Ramos walk path mapped to existing Git movement sheet; city actor action sheets standardized to 128x128 frames.
   // RAMOS_SCALE_CAR_B_FIX: city Ramos scaled to Malcolm movement height, station Ramos scaled up, B button enters/exits car near sedan.
   // X_CAR_ENTRY_RAMOS_CUT_FIX: X enters/exits car near sedan; Ramos sheets recut per frame to remove duplicate/bleed sprites.
-  // WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001: adds map overlay and replaces fallback boxes after lazy loading. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
+  // ASSET_SCALE_LOCK_PATCH_001: all human and vehicle assets use locked display scale. GTA_STYLE_PLAYER_CAR_HANDLING_PATCH_001: player car drift physics and top-down detective sedan. RUNTIME_VEHICLE_LIGHTS_PATCH_001: adds runtime headlights and police strobes. SINGLE_TOPDOWN_TRAFFIC_PATCH_001: NPC cars use single top-down sprites and code rotation. WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001: adds map overlay and replaces fallback boxes after lazy loading. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -660,7 +660,7 @@
     fallbackPath: 'assets/characters/main_detective/main_detective_movement_8dir_96x96.png',
     frameWidth: 96,
     frameHeight: 96,
-    scale: 0.58,
+    scale: SCALE_LOCK.cityHumanScale96,
     originY: 0.72
   };
 
@@ -680,8 +680,8 @@
     path: 'assets/characters/main_detective/malcolm_shoot_6x4_128.png',
     frameWidth: 128,
     frameHeight: 128,
-    scale: 0.64,
-    stationScale: 0.72,
+    scale: SCALE_LOCK.malcolmShootCityScale,
+    stationScale: SCALE_LOCK.stationHumanScale128,
     originY: 0.84,
     cols: 6
   };
@@ -693,8 +693,8 @@
     path: 'assets/characters/npcs/partners/ramos/ramos_movement_8dir_96x96.png', // Git file name; sheet is 1024x512 with 128x128 frames.
     frameWidth: 128,
     frameHeight: 128,
-    scale: 0.44,        // city scale: matches Malcolm city movement height
-    stationScale: 0.88, // station scale: bigger inside interiors
+    scale: SCALE_LOCK.ramosCityScale,        // city scale: matches Malcolm city movement height
+    stationScale: SCALE_LOCK.stationHumanScale128, // station scale: bigger inside interiors
     originY: 0.84,
     cols: 8
   };
@@ -704,8 +704,8 @@
     path: 'assets/characters/npcs/partners/ramos/ramos_talk_6x4_128.png',
     frameWidth: 128,
     frameHeight: 128,
-    scale: 0.44,
-    stationScale: 0.88,
+    scale: SCALE_LOCK.ramosCityScale,
+    stationScale: SCALE_LOCK.stationHumanScale128,
     originY: 0.84,
     cols: 6
   };
@@ -715,8 +715,8 @@
     path: 'assets/characters/npcs/partners/ramos/ramos_shoot_6x4_128.png',
     frameWidth: 128,
     frameHeight: 128,
-    scale: 0.44,
-    stationScale: 0.88,
+    scale: SCALE_LOCK.ramosCityScale,
+    stationScale: SCALE_LOCK.stationHumanScale128,
     originY: 0.84,
     cols: 6
   };
@@ -901,11 +901,75 @@
     { key:'ironcrest_hauler',         path:'assets/vehicles/ironcrest/hauler/ironcrest_hauler_clean_64.png',               fw:128, fh:128 },
     { key:'meridian_sentinel_patrol', path:'assets/vehicles/police_cruiser/meridian_sentinel_patrol_clean_64.png',         fw:128, fh:128 },
   ];
+
+
+  const PLAYER_CAR_SINGLE_ASSET = {
+    key: 'meridian_sentinel_lx_top',
+    path: 'assets/vehicles_single/meridian_sentinel_lx_top.png',
+    w: 80,
+    h: 132
+  };
+
+  const PLAYER_CAR_HANDLING = {
+    maxSpeed: 310,
+    reverseMaxSpeed: 120,
+    accel: 420,
+    brake: 520,
+    drag: 0.965,
+    turnRate: 2.7,
+    grip: 0.88,
+    handbrakeGrip: 0.72,
+    handbrakeTurnBoost: 1.55,
+    minTurnSpeed: 18
+  };
+
+  const SINGLE_VEHICLE_ASSETS = [
+    { key:'meridian_sentinel_patrol_top', path:'assets/vehicles_single/meridian_sentinel_patrol_top.png', w:76, h:124 },
+    { key:'blackthorne_regent_top', path:'assets/vehicles_single/blackthorne_regent_top.png', w:72, h:120 },
+    { key:'blackthorne_regent_taxi_top', path:'assets/vehicles_single/blackthorne_regent_taxi_top.png', w:72, h:120 },
+    { key:'rustway_comet_top', path:'assets/vehicles_single/rustway_comet_top.png', w:68, h:112 },
+    { key:'fairline_metro_top', path:'assets/vehicles_single/fairline_metro_top.png', w:66, h:108 },
+    { key:'ironcrest_hauler_top', path:'assets/vehicles_single/ironcrest_hauler_top.png', w:82, h:132 },
+    { key:'halcyon_crown_imperial_top', path:'assets/vehicles_single/halcyon_crown_imperial_top.png', w:80, h:132 },
+    { key:'sterling_diplomat_top', path:'assets/vehicles_single/sterling_diplomat_top.png', w:80, h:132 },
+    { key:'solara_mirage_top', path:'assets/vehicles_single/solara_mirage_top.png', w:76, h:124 },
+    { key:'northstar_vantage_top', path:'assets/vehicles_single/northstar_vantage_top.png', w:78, h:128 },
+  ];
+
+  const SINGLE_VEHICLE_MODEL_TO_TOP = {
+    meridian_sentinel_patrol: 'meridian_sentinel_patrol_top',
+    blackthorne_regent: 'blackthorne_regent_top',
+    blackthorne_regent_taxi: 'blackthorne_regent_taxi_top',
+    rustway_comet: 'rustway_comet_top',
+    fairline_metro: 'fairline_metro_top',
+    ironcrest_hauler: 'ironcrest_hauler_top',
+    halcyon_crown_imperial: 'halcyon_crown_imperial_top',
+    sterling_diplomat: 'sterling_diplomat_top',
+    solara_mirage: 'solara_mirage_top',
+    northstar_vantage: 'northstar_vantage_top',
+  };
+
+  const SINGLE_VEHICLE_TOP_META = Object.fromEntries(SINGLE_VEHICLE_ASSETS.map(v => [v.key, v]));
+
   // 8-dir row index for walk sheets (8 rows × 4 cols = 32 frames).
   // Mirrors Eddie Cross layout: S=0 SW=1 W=2 NW=3 N=4 NE=5 E=6 SE=7
   const NPC_DIR_ROW = { S:0, SW:1, W:2, NW:3, N:4, NE:5, E:6, SE:7 };
-  const CIV_CITY_SCALE   = 0.44;   // 128 × 0.44 ≈ 56 px — matches Ramos city height
-  const POLICE_NPC_SCALE = 0.65;   // 192 × 0.65 ≈ 125 px — matches Malcolm station height
+
+  const SCALE_LOCK = {
+    cityHumanHeight: 56,
+    cityHumanScale96: 0.58,
+    cityHumanScale128: 0.44,
+    stationHumanHeight: 112,
+    stationHumanScale128: 0.88,
+    stationHumanScale192: 0.58,
+    policeStationScale192: 0.65,
+    malcolmShootCityScale: 0.44,
+    ramosCityScale: 0.44,
+    civilianCityScale: 0.44
+  };
+
+  const CIV_CITY_SCALE   = SCALE_LOCK.civilianCityScale;   // 128 × 0.44 ≈ 56 px — matches Ramos city height
+  const POLICE_NPC_SCALE = SCALE_LOCK.policeStationScale192;   // 192 × 0.65 ≈ 125 px — matches Malcolm station height
 
   // Pedestrian sidewalk graph — safe zones between building edges and road lanes
   const CITY_SIDEWALK_NODES = [
@@ -1380,6 +1444,7 @@
       const files = [
         { type: 'image', key: GROUND_ASSET.key, path: GROUND_ASSET.path },
         { type: 'image', key: MAP_OVERLAY_ASSET.key, path: MAP_OVERLAY_ASSET.path },
+        { type: 'image', key: PLAYER_CAR_SINGLE_ASSET.key, path: PLAYER_CAR_SINGLE_ASSET.path },
         { type: 'spritesheet', key: PLAYER_ASSET.key, path: PLAYER_ASSET.path, fw: PLAYER_ASSET.frameWidth, fh: PLAYER_ASSET.frameHeight },
         { type: 'spritesheet', key: MALCOLM_SHOOT_ASSET.key, path: MALCOLM_SHOOT_ASSET.path, fw: MALCOLM_SHOOT_ASSET.frameWidth, fh: MALCOLM_SHOOT_ASSET.frameHeight },
         { type: 'spritesheet', key: EDDIE_CROSS_ASSET.key, path: EDDIE_CROSS_ASSET.path, fw: EDDIE_CROSS_ASSET.frameWidth, fh: EDDIE_CROSS_ASSET.frameHeight },
@@ -1395,7 +1460,8 @@
         { type: 'spritesheet', key: 'detective_sedan_smoke_fire_64', path: 'assets/vehicles/detective_sedan/detective_sedan_smoke_fire_64.png', fw: 128, fh: 128 },
         ...CIVILIAN_ASSETS.map(a => ({ type:'spritesheet', key:a.key, path:a.path, fw:a.fw, fh:a.fh })),
         ...POLICE_NPC_ASSETS.map(a => ({ type:'spritesheet', key:a.key, path:a.path, fw:a.fw, fh:a.fh })),
-        ...TRAFFIC_VEHICLE_ASSETS.map(a => ({ type:'spritesheet', key:a.key, path:a.path, fw:a.fw, fh:a.fh }))
+        ...TRAFFIC_VEHICLE_ASSETS.map(a => ({ type:'spritesheet', key:a.key, path:a.path, fw:a.fw, fh:a.fh })),
+        ...SINGLE_VEHICLE_ASSETS.map(a => ({ type:'image', key:a.key, path:a.path }))
       ];
 
       this.assetErrors = [];
@@ -4599,6 +4665,690 @@
     PoliceStationScene.prototype.create = function() {
       __rhOrigStationCreate.apply(this, arguments);
       if (!this.stationNpcs || this.stationNpcs.length < 2) { this.stationNpcs=[]; this.createStationPoliceNPCs(); }
+    };
+  }
+
+
+  // SINGLE_TOPDOWN_TRAFFIC_PATCH_001:
+  // NPC traffic now uses one top-down vehicle PNG per model and rotates the sprite.
+  // No 64-frame traffic setFrame() calls are used here.
+
+  function rhTopKeyForVehicle(modelKey) {
+    return (typeof SINGLE_VEHICLE_MODEL_TO_TOP !== 'undefined' && SINGLE_VEHICLE_MODEL_TO_TOP[modelKey]) || `${modelKey}_top`;
+  }
+
+  function rhVehicleMetaFor(modelKey) {
+    const topKey = rhTopKeyForVehicle(modelKey);
+    return (typeof SINGLE_VEHICLE_TOP_META !== 'undefined' && SINGLE_VEHICLE_TOP_META[topKey]) || { key: topKey, w: 72, h: 120 };
+  }
+
+  function rhEnsureTopVehicleCanvas(scene, modelKey) {
+    const meta = rhVehicleMetaFor(modelKey);
+    const key = meta.key;
+    if (scene.textures.exists(key)) return key;
+
+    const tex = scene.textures.createCanvas(key, 128, 128);
+    const ctx = tex.getContext();
+    ctx.clearRect(0, 0, 128, 128);
+
+    const isPolice = modelKey.includes('patrol') || key.includes('patrol');
+    const isTaxi = modelKey.includes('taxi') || key.includes('taxi');
+    const isTruck = modelKey.includes('hauler') || key.includes('hauler');
+
+    let body = '#3f3026';
+    let roof = '#1c2026';
+    if (modelKey.includes('rustway')) { body = '#9b4f29'; roof = '#382820'; }
+    if (modelKey.includes('fairline')) { body = '#2c5888'; roof = '#182432'; }
+    if (isTruck) { body = '#666b68'; roof = '#252827'; }
+    if (isTaxi) { body = '#d59b24'; roof = '#70440f'; }
+    if (isPolice) { body = '#e7e2d6'; roof = '#111923'; }
+
+    function rr(x, y, w, h, r, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.fillStyle = fill; ctx.fill();
+      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+    }
+
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath(); ctx.ellipse(64, 70, 29, 51, 0, 0, Math.PI * 2); ctx.fill();
+
+    rr(41, 16, 46, 96, 12, body, '#080808');
+
+    if (isPolice) {
+      ctx.fillStyle = '#111923'; ctx.fillRect(42, 17, 44, 18); ctx.fillRect(42, 88, 44, 24); ctx.fillRect(42, 53, 44, 22);
+      ctx.fillStyle = '#18191b'; rr(47, 28, 34, 8, 3, '#18191b', null);
+      ctx.fillStyle = '#004cff'; ctx.fillRect(49, 30, 13, 4);
+      ctx.fillStyle = '#ff2020'; ctx.fillRect(66, 30, 13, 4);
+    } else if (isTaxi) {
+      ctx.fillStyle = '#fff0a0'; rr(48, 37, 32, 8, 2, '#fff0a0', '#4a3108');
+    } else {
+      ctx.fillStyle = roof; ctx.fillRect(45, 18, 38, 13); ctx.fillRect(46, 55, 36, 21);
+    }
+
+    if (isTruck) {
+      ctx.fillStyle = '#242424'; ctx.fillRect(44, 62, 40, 42);
+    }
+
+    ctx.fillStyle = 'rgba(75,115,130,0.82)';
+    ctx.beginPath(); ctx.moveTo(47, 33); ctx.lineTo(81, 33); ctx.lineTo(86, 51); ctx.lineTo(42, 51); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(45,65,75,0.8)';
+    ctx.beginPath(); ctx.moveTo(43, 79); ctx.lineTo(85, 79); ctx.lineTo(80, 98); ctx.lineTo(48, 98); ctx.closePath(); ctx.fill();
+
+    ctx.fillStyle = '#08080a';
+    rr(34, 30, 8, 23, 3, '#08080a', null); rr(88, 30, 8, 23, 3, '#08080a', null);
+    rr(34, 78, 8, 23, 3, '#08080a', null); rr(88, 78, 8, 23, 3, '#08080a', null);
+
+    ctx.fillStyle = '#ffe08a'; ctx.fillRect(44, 13, 10, 5); ctx.fillRect(74, 13, 10, 5);
+    ctx.fillStyle = '#b8221f'; ctx.fillRect(43, 109, 10, 5); ctx.fillRect(75, 109, 10, 5);
+
+    tex.refresh();
+    return key;
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    GameScene.prototype.createTrafficCars = function() {
+      this.trafficCars = [];
+      this.rhTrafficSeq = 0;
+      const spawns = (typeof RH_TRAFFIC_SPAWNS !== 'undefined') ? RH_TRAFFIC_SPAWNS : [
+        { key:'blackthorne_regent', start:'rd_station_w', police:false, maxSpeed:78 },
+        { key:'blackthorne_regent_taxi', start:'rd_market_w', police:false, maxSpeed:74 },
+        { key:'rustway_comet', start:'rd_market_e_w', police:false, maxSpeed:72 },
+        { key:'fairline_metro', start:'rd_civic_n', police:false, maxSpeed:76 },
+        { key:'ironcrest_hauler', start:'rd_oldtown_n', police:false, maxSpeed:60 },
+        { key:'meridian_sentinel_patrol', start:'rd_station_mid_w', police:true, maxSpeed:64 }
+      ];
+      for (const spawn of spawns.slice(0, MAX_CITY_TRAFFIC + MAX_POLICE_PATROLS)) {
+        const node = (typeof RH_RD_PATCH_MAP !== 'undefined' && RH_RD_PATCH_MAP[spawn.start]) || null;
+        if (!node) continue;
+
+        const body = this.add.rectangle(node.x, node.y, 42, 64, 0xff0000, 0).setDepth(33);
+        this.physics.add.existing(body);
+        if (body.body) {
+          body.body.setCollideWorldBounds(true);
+          body.body.setSize(36, 56);
+        }
+
+        const topKey = rhEnsureTopVehicleCanvas(this, spawn.key);
+        const meta = rhVehicleMetaFor(spawn.key);
+        const sprite = this.add.image(node.x, node.y, topKey)
+          .setOrigin(0.5, 0.5)
+          .setDepth(spawn.police ? 36 : 34);
+        sprite.setDisplaySize(meta.w || 72, meta.h || 120);
+        sprite.setRotation(0);
+
+        const nextId = (typeof rhPickNextRoadNode === 'function')
+          ? rhPickNextRoadNode({ currentNodeId: spawn.start, prevNodeId: null })
+          : spawn.start;
+
+        this.trafficCars.push({
+          trafficId: `traffic_${++this.rhTrafficSeq}`,
+          body, sprite,
+          vehicleKey: spawn.key,
+          topTextureKey: topKey,
+          currentNodeId: spawn.start,
+          prevNodeId: null,
+          targetNodeId: nextId,
+          heading: -Math.PI / 2,
+          speed: 0,
+          maxSpeed: spawn.maxSpeed || 72,
+          accel: 0.07,
+          brake: 0.16,
+          waitTimer: Phaser.Math.Between(0, 900),
+          blockedTimer: 0,
+          state: 'driving',
+          isPolicePatrol: !!spawn.police,
+          singleTopDown: true
+        });
+      }
+    };
+
+    GameScene.prototype.updateTrafficCars = function(delta = 16) {
+      if (!this.trafficCars?.length) return;
+      for (const car of this.trafficCars) {
+        if (!car.body) continue;
+        const cur = (typeof RH_RD_PATCH_MAP !== 'undefined' && RH_RD_PATCH_MAP[car.currentNodeId]) || null;
+        const tgt = (typeof RH_RD_PATCH_MAP !== 'undefined' && RH_RD_PATCH_MAP[car.targetNodeId]) || null;
+        if (!tgt) {
+          if (typeof rhPickNextRoadNode === 'function') car.targetNodeId = rhPickNextRoadNode(car);
+          continue;
+        }
+
+        car.sprite?.setPosition?.(car.body.x, car.body.y);
+        if (typeof rhReleaseIntersection === 'function') rhReleaseIntersection(car);
+
+        if (car.waitTimer > 0) {
+          car.waitTimer -= delta;
+          car.speed = Math.max(0, car.speed - car.brake * delta);
+          car.body.body?.setVelocity(0, 0);
+          car.state = 'stopped_at_intersection';
+          continue;
+        }
+
+        const dx = tgt.x - car.body.x;
+        const dy = tgt.y - car.body.y;
+        const distN = Math.hypot(dx, dy);
+
+        if (distN < 22) {
+          car.prevNodeId = car.currentNodeId;
+          car.currentNodeId = car.targetNodeId;
+          const reached = RH_RD_PATCH_MAP[car.currentNodeId];
+          if (reached?.stop) {
+            car.waitTimer = Phaser.Math.Between(850, 1900);
+            car.speed = 0;
+          }
+          if (typeof rhPickNextRoadNode === 'function') car.targetNodeId = rhPickNextRoadNode(car);
+          car.body.body?.setVelocity(0, 0);
+          continue;
+        }
+
+        car.heading = Math.atan2(dy, dx);
+
+        const nearStop = !!tgt.intersection && distN < 150;
+        const canEnter = !tgt.intersection || distN > 105 ||
+          (typeof rhIntersectionClear === 'function' ? rhIntersectionClear(this, tgt.intersection, car) : true);
+
+        let nearestAhead = null;
+        if (typeof rhSameLaneAhead === 'function') {
+          for (const other of this.trafficCars) {
+            if (rhSameLaneAhead(car, other)) {
+              const od = Math.hypot(other.body.x - car.body.x, other.body.y - car.body.y);
+              if (!nearestAhead || od < nearestAhead.dist) nearestAhead = { car: other, dist: od };
+            }
+          }
+        }
+
+        let desired = car.maxSpeed;
+        if (nearStop) desired = Math.min(desired, 36);
+        if (!canEnter) desired = 0;
+        if (nearestAhead) {
+          if (nearestAhead.dist < 90) desired = 0;
+          else if (nearestAhead.dist < 140) desired = Math.min(desired, 18);
+          else if (nearestAhead.dist < 220) desired = Math.min(desired, car.maxSpeed * 0.45);
+        }
+
+        if (desired <= 0) {
+          car.speed = Math.max(0, car.speed - car.brake * delta);
+          car.blockedTimer += delta;
+          car.state = tgt.intersection ? 'yielding' : 'blocked';
+        } else {
+          car.speed += (desired - car.speed) * Phaser.Math.Clamp(car.accel * (delta / 16), 0.02, 0.18);
+          car.blockedTimer = Math.max(0, car.blockedTimer - delta);
+          car.state = nearStop ? 'slowing' : 'driving';
+        }
+
+        if (car.blockedTimer > 4200 && cur) {
+          car.body.setPosition(cur.x + Phaser.Math.Between(-16, 16), cur.y + Phaser.Math.Between(-16, 16));
+          if (typeof rhPickNextRoadNode === 'function') car.targetNodeId = rhPickNextRoadNode(car);
+          car.blockedTimer = 0;
+          car.waitTimer = Phaser.Math.Between(300, 900);
+          continue;
+        }
+
+        if (distN > 0) car.body.body?.setVelocity((dx / distN) * car.speed, (dy / distN) * car.speed);
+
+        // The single sprite points NORTH/UP. Phaser angle 0 is EAST/RIGHT, so add PI/2.
+        if (car.sprite) {
+          car.sprite.setRotation(car.heading + Math.PI / 2);
+          if (car.sprite.setFrame && car.sprite.texture?.key?.includes('_64')) {
+            // Safety: never frame-swap traffic again if an old sheet sneaks in.
+            car.sprite.setFrame(0);
+          }
+        }
+      }
+    };
+
+    const __oldRefreshWorldNpcSprites = GameScene.prototype.refreshWorldNpcSprites;
+    GameScene.prototype.refreshWorldNpcSprites = function() {
+      if (typeof __oldRefreshWorldNpcSprites === 'function') __oldRefreshWorldNpcSprites.call(this);
+      if (!this.trafficCars?.length) return;
+      for (const car of this.trafficCars) {
+        if (!car || !car.body) continue;
+        const desiredKey = rhEnsureTopVehicleCanvas(this, car.vehicleKey);
+        if (!car.sprite || car.sprite.texture?.key !== desiredKey || car.sprite.setFrame) {
+          const x = car.body.x, y = car.body.y, rot = car.heading || 0;
+          car.sprite?.destroy?.();
+          const meta = rhVehicleMetaFor(car.vehicleKey);
+          car.sprite = this.add.image(x, y, desiredKey).setOrigin(0.5, 0.5).setDepth(car.isPolicePatrol ? 36 : 34);
+          car.sprite.setDisplaySize(meta.w || 72, meta.h || 120);
+          car.sprite.setRotation(rot + Math.PI / 2);
+        }
+      }
+    };
+  }
+
+
+  // RUNTIME_VEHICLE_LIGHTS_PATCH_001:
+  // Draws headlights and police strobes with Phaser Graphics at runtime.
+  // No light sprites or lightbar animations are used.
+
+  function rhHex(color) {
+    if (typeof color === 'number') return color;
+    if (!color) return 0xffffff;
+    return Number(String(color).replace('#', '0x'));
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    const __rhLightsOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __rhLightsOldCreate.apply(this, arguments);
+      if (!this.vehicleLightGraphics) {
+        this.vehicleLightGraphics = this.add.graphics().setDepth(28);
+        try {
+          this.vehicleLightGraphics.setBlendMode(Phaser.BlendModes.ADD);
+        } catch (e) {
+          try { this.vehicleLightGraphics.setBlendMode('ADD'); } catch (_) {}
+        }
+      }
+    };
+
+    const __rhLightsOldUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __rhLightsOldUpdate.call(this, time, delta);
+      if (this.scene?.isActive && !this.scene.isActive()) return;
+      if (this.pauseMenuOpen) return;
+      this.renderVehicleLights(time || 0);
+    };
+
+    GameScene.prototype.renderVehicleLights = function(time = 0) {
+      if (!this.vehicleLightGraphics) {
+        this.vehicleLightGraphics = this.add.graphics().setDepth(28);
+        try { this.vehicleLightGraphics.setBlendMode(Phaser.BlendModes.ADD); }
+        catch (e) { try { this.vehicleLightGraphics.setBlendMode('ADD'); } catch (_) {} }
+      }
+      const g = this.vehicleLightGraphics;
+      g.clear();
+
+      // NPC traffic lights.
+      if (this.trafficCars?.length) {
+        for (const car of this.trafficCars) {
+          if (!car?.body) continue;
+          this.drawVehicleLights(car, time);
+        }
+      }
+
+      // Player/unmarked car lights, low alpha so it does not overpower the scene.
+      if (this.car) {
+        const carLike = {
+          body: this.car,
+          heading: this.car.heading || 0,
+          vehicleKey: 'player_detective_sedan',
+          isPolicePatrol: false,
+          playerVehicle: true
+        };
+        this.drawVehicleLights(carLike, time, true);
+      }
+    };
+
+    GameScene.prototype.drawVehicleLights = function(car, time = 0, isPlayerCar = false) {
+      if (!this.vehicleLightGraphics) return;
+      const g = this.vehicleLightGraphics;
+      const x = car.body.x ?? car.x ?? 0;
+      const y = car.body.y ?? car.y ?? 0;
+      const heading = Number.isFinite(car.heading) ? car.heading : 0;
+
+      // Headlights: two forward soft cones from car front.
+      const alpha = isPlayerCar ? 0.13 : 0.20;
+      this.drawHeadlightCone(g, x, y, heading, -0.11, isPlayerCar ? 185 : 210, 0.40, 0xfff7c8, alpha);
+      this.drawHeadlightCone(g, x, y, heading,  0.11, isPlayerCar ? 185 : 210, 0.40, 0xfff7c8, alpha);
+
+      // Small bulb glows at front points.
+      const fx = Math.cos(heading), fy = Math.sin(heading);
+      const sx = -Math.sin(heading), sy = Math.cos(heading);
+      const leftX = x + fx * 42 + sx * -12;
+      const leftY = y + fy * 42 + sy * -12;
+      const rightX = x + fx * 42 + sx * 12;
+      const rightY = y + fy * 42 + sy * 12;
+      g.fillStyle(0xfff6c8, isPlayerCar ? 0.28 : 0.42);
+      g.fillCircle(leftX, leftY, 4);
+      g.fillCircle(rightX, rightY, 4);
+
+      if (car.vehicleKey === 'meridian_sentinel_patrol' || car.isPolicePatrol === true) {
+        this.drawPoliceStrobe(g, x, y, heading, time, car);
+      }
+    };
+
+    GameScene.prototype.drawHeadlightCone = function(g, x, y, heading, offsetAngle, distance, spread, color, alpha) {
+      const total = heading + offsetAngle;
+      const fx = Math.cos(heading), fy = Math.sin(heading);
+      const sx = -Math.sin(heading), sy = Math.cos(heading);
+
+      // Origin at front bumper, separated slightly by offset.
+      const sideOffset = offsetAngle < 0 ? -12 : 12;
+      const ox = x + fx * 42 + sx * sideOffset;
+      const oy = y + fy * 42 + sy * sideOffset;
+
+      // Layered cone slices simulate a gradient without canvas gradients.
+      const layers = [
+        { r: distance,     a: alpha * 0.18, spread: spread * 1.15 },
+        { r: distance*0.7, a: alpha * 0.28, spread: spread },
+        { r: distance*0.4, a: alpha * 0.38, spread: spread * 0.72 }
+      ];
+
+      for (const layer of layers) {
+        g.fillStyle(color, layer.a);
+        g.beginPath();
+        g.moveTo(ox, oy);
+        g.slice(ox, oy, layer.r, total - layer.spread / 2, total + layer.spread / 2, false);
+        g.closePath();
+        g.fillPath();
+      }
+    };
+
+    GameScene.prototype.drawPoliceStrobe = function(g, x, y, heading, time = 0, car) {
+      const fx = Math.cos(heading), fy = Math.sin(heading);
+      const sx = -Math.sin(heading), sy = Math.cos(heading);
+
+      // Lightbar is slightly behind the vehicle front in top-down art.
+      const roofX = x + fx * -4;
+      const roofY = y + fy * -4;
+
+      const redX = roofX + sx * -10;
+      const redY = roofY + sy * -10;
+      const blueX = roofX + sx * 10;
+      const blueY = roofY + sy * 10;
+
+      const cycle = Math.sin(time * 0.025);
+      const redAlpha = cycle > 0 ? 0.95 : 0.18;
+      const blueAlpha = cycle > 0 ? 0.18 : 0.95;
+
+      this.drawStrobeBloom(g, redX, redY, 0xff1010, redAlpha);
+      this.drawStrobeBloom(g, blueX, blueY, 0x205cff, blueAlpha);
+    };
+
+    GameScene.prototype.drawStrobeBloom = function(g, x, y, color, alpha) {
+      // Broad environment bloom.
+      g.fillStyle(color, 0.13 * alpha);
+      g.fillCircle(x, y, 66);
+      g.fillStyle(color, 0.20 * alpha);
+      g.fillCircle(x, y, 42);
+      // Hot colored core.
+      g.fillStyle(color, 0.72 * alpha);
+      g.fillCircle(x, y, 12);
+      // White-hot bulb center.
+      g.fillStyle(0xffffff, 0.65 * alpha);
+      g.fillCircle(x, y, 5);
+    };
+  }
+
+
+  // GTA_STYLE_PLAYER_CAR_HANDLING_PATCH_001:
+  // Malcolm's car uses GTA2-inspired 2D inertia: heading != movement vector, grip controls slide.
+
+  if (typeof GameScene !== 'undefined') {
+    const __gtaCarOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __gtaCarOldCreate.apply(this, arguments);
+      this.playerCarHandling = Object.assign({}, PLAYER_CAR_HANDLING);
+      if (this.input?.keyboard && !this.handbrakeKey) {
+        this.handbrakeKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+      }
+      this.setupPlayerTopDownCarSprite?.();
+      this.resetPlayerCarPhysicsState?.();
+    };
+
+    GameScene.prototype.setupPlayerTopDownCarSprite = function() {
+      if (!this.car) return;
+      if (!this.carSingleSprite && this.textures.exists(PLAYER_CAR_SINGLE_ASSET.key)) {
+        // Hide old layered 64-frame art but keep the car physics container/body.
+        if (this.carFallback) this.carFallback.setVisible(false);
+        if (this.carShadowSprite) this.carShadowSprite.setVisible(false);
+        if (this.carBaseSprite) this.carBaseSprite.setVisible(false);
+        if (this.carLightsSprite) this.carLightsSprite.setVisible(false);
+        if (this.carDamageSprite) this.carDamageSprite.setVisible(false);
+        if (this.carSmokeSprite) this.carSmokeSprite.setVisible(false);
+
+        this.carSingleSprite = this.add.image(0, 0, PLAYER_CAR_SINGLE_ASSET.key)
+          .setOrigin(0.5, 0.5)
+          .setDisplaySize(PLAYER_CAR_SINGLE_ASSET.w, PLAYER_CAR_SINGLE_ASSET.h);
+        this.car.add(this.carSingleSprite);
+        this.car.body?.setSize?.(42, 72);
+      }
+      if (this.carSingleSprite) {
+        this.carSingleSprite.setVisible(true);
+      }
+    };
+
+    GameScene.prototype.resetPlayerCarPhysicsState = function() {
+      if (!this.car) return;
+      this.car.velocityX = this.car.velocityX ?? this.car.vx ?? 0;
+      this.car.velocityY = this.car.velocityY ?? this.car.vy ?? 0;
+      this.car.speed = this.car.speed ?? 0;
+      this.car.isHandbraking = false;
+      if (!Number.isFinite(this.car.heading)) this.car.heading = -Math.PI / 2;
+    };
+
+    const __gtaCarOldSyncVehicleSprites = GameScene.prototype.syncVehicleSprites;
+    GameScene.prototype.syncVehicleSprites = function() {
+      // If the top-down player car asset is available, use it and do not frame-swap old 64-frame art.
+      this.setupPlayerTopDownCarSprite?.();
+      if (this.carSingleSprite && this.textures.exists(PLAYER_CAR_SINGLE_ASSET.key)) {
+        if (this.carFallback) this.carFallback.setVisible(false);
+        if (this.carShadowSprite) this.carShadowSprite.setVisible(false);
+        if (this.carBaseSprite) this.carBaseSprite.setVisible(false);
+        if (this.carLightsSprite) this.carLightsSprite.setVisible(false);
+        if (this.carDamageSprite) this.carDamageSprite.setVisible(false);
+        if (this.carSmokeSprite) this.carSmokeSprite.setVisible(false);
+        this.carSingleSprite.setVisible(true);
+        this.car.setRotation((this.car.heading || 0) + Math.PI / 2);
+        return;
+      }
+      if (typeof __gtaCarOldSyncVehicleSprites === 'function') {
+        __gtaCarOldSyncVehicleSprites.call(this);
+      }
+    };
+
+    GameScene.prototype.readPlayerCarInput = function() {
+      const d = this.inputDir ? this.inputDir() : {};
+      let throttle = 0;
+      let steering = 0;
+
+      if (d.up || d.ay < -0.25) throttle = 1;
+      if (d.down || d.ay > 0.25) throttle = -1;
+      if (d.left || d.ax < -0.25) steering = -1;
+      if (d.right || d.ax > 0.25) steering = 1;
+
+      const handbrake = !!(this.handbrakeKey?.isDown);
+      return { throttle, steering, handbrake };
+    };
+
+    GameScene.prototype.updateCar = function(dt) {
+      if (!this.car) return;
+      // Existing scene passes seconds; guard in case a future call passes ms.
+      if (dt > 1) dt = dt / 1000;
+      dt = Phaser.Math.Clamp(dt || 0, 0, 0.05);
+
+      this.setupPlayerTopDownCarSprite?.();
+      this.resetPlayerCarPhysicsState?.();
+
+      const h = this.playerCarHandling || PLAYER_CAR_HANDLING;
+      const input = this.readPlayerCarInput();
+      const car = this.car;
+
+      const prevX = car.x;
+      const prevY = car.y;
+      car.prevX = prevX;
+      car.prevY = prevY;
+
+      let vx = Number.isFinite(car.velocityX) ? car.velocityX : (car.vx || 0);
+      let vy = Number.isFinite(car.velocityY) ? car.velocityY : (car.vy || 0);
+      let heading = Number.isFinite(car.heading) ? car.heading : -Math.PI / 2;
+
+      const fx = Math.cos(heading);
+      const fy = Math.sin(heading);
+
+      // Project current movement onto the nose direction.
+      let forwardSpeed = vx * fx + vy * fy;
+
+      if (input.throttle > 0 && GAME.car.fuel > 0) {
+        forwardSpeed += h.accel * dt;
+        GAME.car.fuel = Math.max(0, GAME.car.fuel - dt * (0.65 + Math.abs(forwardSpeed) / 410));
+      } else if (input.throttle < 0) {
+        forwardSpeed -= h.brake * dt;
+      } else {
+        forwardSpeed *= Math.pow(h.drag, dt * 60);
+      }
+
+      forwardSpeed = Phaser.Math.Clamp(forwardSpeed, -h.reverseMaxSpeed, h.maxSpeed);
+
+      if (Math.abs(forwardSpeed) > h.minTurnSpeed) {
+        const turnDirection = forwardSpeed >= 0 ? 1 : -1;
+        let turnPower = h.turnRate;
+        if (input.handbrake) turnPower *= h.handbrakeTurnBoost;
+        heading += input.steering * turnPower * dt * turnDirection;
+      }
+
+      const dfx = Math.cos(heading);
+      const dfy = Math.sin(heading);
+      const desiredVX = dfx * forwardSpeed;
+      const desiredVY = dfy * forwardSpeed;
+
+      const grip = input.handbrake ? h.handbrakeGrip : h.grip;
+      // Frame-rate adjusted interpolation for stable feel.
+      const blend = 1 - Math.pow(grip, dt * 60);
+      vx = vx + (desiredVX - vx) * blend;
+      vy = vy + (desiredVY - vy) * blend;
+
+      const maxVel = h.maxSpeed * 1.08;
+      const speedMag = Math.hypot(vx, vy);
+      if (speedMag > maxVel) {
+        vx = (vx / speedMag) * maxVel;
+        vy = (vy / speedMag) * maxVel;
+      }
+
+      car.heading = heading;
+      car.velocityX = vx;
+      car.velocityY = vy;
+      car.vx = vx;
+      car.vy = vy;
+      car.speed = forwardSpeed;
+      car.isHandbraking = input.handbrake;
+      car.isBraking = input.throttle < 0 || input.handbrake;
+
+      if (car.body) {
+        car.body.setVelocity(vx, vy);
+      }
+
+      // Top-down single sprite points NORTH/UP; Phaser angle 0 is EAST/RIGHT.
+      car.setRotation(heading + Math.PI / 2);
+
+      // Player car light engine uses car.heading directly.
+      const movingSpeed = Math.hypot(vx, vy);
+      const targetZoom = movingSpeed > 220 ? 1.65 : (movingSpeed > 120 ? 1.78 : 1.9);
+      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.045));
+
+      this.lastCarPhysicsDebug = {
+        speed: Math.round(movingSpeed),
+        forwardSpeed: Math.round(forwardSpeed),
+        grip: input.handbrake ? h.handbrakeGrip : h.grip,
+        vx: Math.round(vx),
+        vy: Math.round(vy),
+        headingDeg: Math.round(Phaser.Math.RadToDeg(heading))
+      };
+    };
+
+    GameScene.prototype.carHitWall = function() {
+      if (!this.car) return;
+      const vx = this.car.velocityX ?? this.car.vx ?? 0;
+      const vy = this.car.velocityY ?? this.car.vy ?? 0;
+      const spd = Math.hypot(vx, vy);
+
+      if (Number.isFinite(this.car.prevX) && Number.isFinite(this.car.prevY)) {
+        this.car.setPosition(this.car.prevX, this.car.prevY);
+      }
+
+      if (spd > 80) {
+        GAME.car.damage = Math.min(100, GAME.car.damage + Math.round(spd / 85));
+      }
+
+      if (spd > 150 && GAME.ramos?.inCar) {
+        const lines = ['¡Mierda, Malcolm!', '¡Cuidado!', 'Malcolm, slow down before you kill us.'];
+        this.message = lines[Phaser.Math.Between(0, lines.length - 1)];
+        this.messageTimer = 2200;
+      } else if (spd > 170) {
+        this.message = 'Hard impact.';
+        this.messageTimer = 1200;
+      }
+
+      this.car.velocityX = vx * -0.15;
+      this.car.velocityY = vy * -0.15;
+      this.car.vx = this.car.velocityX;
+      this.car.vy = this.car.velocityY;
+      this.car.speed = (this.car.speed || 0) * 0.35;
+      this.car.body?.setVelocity(this.car.velocityX, this.car.velocityY);
+      this.syncVehicleSprites?.();
+    };
+
+    const __gtaCarOldUpdateHUD = GameScene.prototype.updateHUD;
+    GameScene.prototype.updateHUD = function() {
+      if (typeof __gtaCarOldUpdateHUD === 'function') __gtaCarOldUpdateHUD.call(this);
+      if (this.debug?.collision && this.lastCarPhysicsDebug && this.carText) {
+        const p = this.lastCarPhysicsDebug;
+        this.carText.setText(
+          this.carText.text +
+          ` | GTA SPEED ${p.speed} FS ${p.forwardSpeed} GRIP ${p.grip} VX ${p.vx} VY ${p.vy} HDG ${p.headingDeg}`
+        );
+      }
+    };
+  }
+
+
+  // ASSET_SCALE_LOCK_PATCH_001:
+  // Keeps Malcolm, Ramos, civilians, and police/cars in one consistent visible scale family.
+  if (typeof GameScene !== 'undefined') {
+    const __scaleOldRefresh = GameScene.prototype.refreshWorldNpcSprites;
+    GameScene.prototype.refreshWorldNpcSprites = function() {
+      if (typeof __scaleOldRefresh === 'function') __scaleOldRefresh.call(this);
+      if (this.civilians?.length) {
+        for (const civ of this.civilians) {
+          if (civ?.sprite?.setScale && !civ.sprite._isFallback) civ.sprite.setScale(CIV_CITY_SCALE);
+        }
+      }
+      if (this.trafficCars?.length) {
+        for (const car of this.trafficCars) {
+          if (!car?.sprite || !car.vehicleKey) continue;
+          const topKey = (typeof rhTopKeyForVehicle === 'function') ? rhTopKeyForVehicle(car.vehicleKey) : null;
+          const meta = topKey && SINGLE_VEHICLE_TOP_META ? SINGLE_VEHICLE_TOP_META[topKey] : null;
+          if (meta && car.sprite.setDisplaySize) car.sprite.setDisplaySize(meta.w || 72, meta.h || 120);
+        }
+      }
+    };
+
+    const __scaleOldEnsurePlayer = GameScene.prototype.ensurePlayerSprite;
+    GameScene.prototype.ensurePlayerSprite = function() {
+      if (typeof __scaleOldEnsurePlayer === 'function') __scaleOldEnsurePlayer.call(this);
+      if (this.playerSprite?.setScale && this.playerSprite.texture?.key === PLAYER_ASSET.key) {
+        this.playerSprite.setScale(PLAYER_ASSET.scale);
+      }
+    };
+  }
+
+  if (typeof PoliceStationScene !== 'undefined') {
+    const __scaleOldCreateStationPolice = PoliceStationScene.prototype.createStationPoliceNPCs;
+    PoliceStationScene.prototype.createStationPoliceNPCs = function() {
+      if (typeof __scaleOldCreateStationPolice === 'function') __scaleOldCreateStationPolice.call(this);
+      if (this.stationNpcs?.length) {
+        for (const npc of this.stationNpcs) {
+          if (npc?.sprite?.setScale && !npc.sprite._isFallback) npc.sprite.setScale(POLICE_NPC_SCALE);
+        }
+      }
+    };
+
+    const __scaleOldCreateRamos = PoliceStationScene.prototype.createRamosCompanion;
+    PoliceStationScene.prototype.createRamosCompanion = function(x, y) {
+      if (typeof __scaleOldCreateRamos === 'function') __scaleOldCreateRamos.call(this, x, y);
+      if (this.ramosSprite?.setScale && !this.ramosSprite._isFallback) {
+        this.ramosSprite.setScale(RAMOS_WALK_ASSET.stationScale || RAMOS_WALK_ASSET.scale);
+      }
     };
   }
 
