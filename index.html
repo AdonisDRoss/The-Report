@@ -9432,6 +9432,385 @@
     };
   }
 
+
+  // USER_REQUESTED_IN_CAR_DIAMOND_002:
+  // Preserve reverted on-foot controls. Replace only the active in-car mobile layer.
+  // In car: X = gas, Y = reverse, A = handbrake, B = enter/exit only.
+  // Raw x/y/a/b/z mobile flags are never used for driving while in car.
+  Object.assign(MOBILE_INPUT_STATE, {
+    driveGas: false,
+    driveBrake: false,
+    driveHandbrake: false,
+    driveSteerX: 0,
+    driveSteerY: 0,
+    carGas: false,
+    carBrake: false,
+    carHandbrake: false,
+    carSteerX: 0,
+    carSteerY: 0,
+    z: false
+  });
+
+  function rhRequestedClearRawMobileButtons() {
+    MOBILE_INPUT_STATE.x = false;
+    MOBILE_INPUT_STATE.y = false;
+    MOBILE_INPUT_STATE.a = false;
+    MOBILE_INPUT_STATE.b = false;
+    MOBILE_INPUT_STATE.z = false;
+    MOBILE_INPUT_STATE.carGas = false;
+    MOBILE_INPUT_STATE.carBrake = false;
+    MOBILE_INPUT_STATE.carHandbrake = false;
+  }
+
+  function rhRequestedClearDriveButtons() {
+    MOBILE_INPUT_STATE.driveGas = false;
+    MOBILE_INPUT_STATE.driveBrake = false;
+    MOBILE_INPUT_STATE.driveHandbrake = false;
+    rhRequestedClearRawMobileButtons();
+  }
+
+  function rhRequestedClearDriveSteer() {
+    MOBILE_INPUT_STATE.carSteerX = 0;
+    MOBILE_INPUT_STATE.carSteerY = 0;
+    MOBILE_INPUT_STATE.driveSteerX = 0;
+    MOBILE_INPUT_STATE.driveSteerY = 0;
+  }
+
+  function rhRequestedClearAllDriveState() {
+    rhRequestedClearDriveButtons();
+    rhRequestedClearDriveSteer();
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    const __requestedCarCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __requestedCarCreate.apply(this, arguments);
+
+      if (this.input?.keyboard) {
+        this.keyRequestedGas = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+        this.keyRequestedBrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
+        this.keyRequestedHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.keyRequestedExit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+        this.keyRequestedSpaceHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.keyRequestedLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+        this.keyRequestedRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+        this.keyRequestedUp = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+        this.keyRequestedDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+        this.keyRequestedW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.keyRequestedS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+      }
+
+      // Disable older in-car light/exit aliases so A cannot toggle lights and B exits only through this final layer.
+      this.headlightToggleKey = null;
+      this.carHeadlightKey = null;
+      this.keyCarLights = null;
+      this.keyFinalLights = null;
+      this.keyDriveLights = null;
+      this.keyCleanLights = null;
+      this.carEnterExitKey = null;
+      this.keyCarExit = null;
+      this.keyFinalExit = null;
+      this.keyDriveExit = null;
+      this.keyCleanExit = null;
+
+      // Repoint legacy drive aliases to the requested meanings.
+      this.accelerateButtonKey = this.keyRequestedGas;
+      this.carAccelKey = this.keyRequestedGas;
+      this.carBrakeKey = this.keyRequestedBrake;
+      this.handbrakeKey = this.keyRequestedHandbrake;
+      this.carHandbrakeKey = this.keyRequestedHandbrake;
+    };
+
+    const __requestedHandleInteract = GameScene.prototype.handleInteract;
+    GameScene.prototype.handleInteract = function() {
+      const wasInCar = !!this.inCar;
+      const result = __requestedHandleInteract.apply(this, arguments);
+      if (wasInCar !== !!this.inCar) rhRequestedClearAllDriveState();
+      return result;
+    };
+
+    GameScene.prototype.readPlayerCarInput = function() {
+      const m = this.mobile || MOBILE_INPUT_STATE || {};
+
+      let steering = 0;
+      const sx = Number.isFinite(m.driveSteerX) ? m.driveSteerX : (Number.isFinite(m.carSteerX) ? m.carSteerX : 0);
+      if (Math.abs(sx || 0) > 0.025) {
+        const raw = Phaser.Math.Clamp(sx || 0, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
+      } else {
+        if (this.keyRequestedLeft?.isDown) steering -= 1;
+        if (this.keyRequestedRight?.isDown) steering += 1;
+      }
+
+      let throttle = 0;
+      if (m.driveGas || this.keyRequestedGas?.isDown || this.keyRequestedUp?.isDown || this.keyRequestedW?.isDown) throttle = 1;
+      if (m.driveBrake || this.keyRequestedBrake?.isDown || this.keyRequestedDown?.isDown || this.keyRequestedS?.isDown) throttle = -1;
+
+      const handbrake = !!(m.driveHandbrake || this.keyRequestedHandbrake?.isDown || this.keyRequestedSpaceHandbrake?.isDown);
+      return { throttle, steering: Phaser.Math.Clamp(steering, -1, 1), handbrake };
+    };
+
+    const __requestedCarUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      if (this.inCar) {
+        rhRequestedClearRawMobileButtons();
+        this.headlightToggleKey = null;
+        this.carHeadlightKey = null;
+        this.keyCarLights = null;
+        this.keyFinalLights = null;
+        this.keyDriveLights = null;
+        this.keyCleanLights = null;
+        this.carEnterExitKey = null;
+        this.keyCarExit = null;
+        this.keyFinalExit = null;
+        this.keyDriveExit = null;
+        this.keyCleanExit = null;
+      }
+
+      __requestedCarUpdate.call(this, time, delta);
+
+      if (this.inCar && this.keyRequestedExit && Phaser.Input.Keyboard.JustDown(this.keyRequestedExit)) {
+        rhRequestedClearAllDriveState();
+        this.handleCarOrArrest?.();
+      }
+    };
+  }
+
+  if (typeof MobileControlsScene !== 'undefined') {
+    const __requestedFootDrawControls = MobileControlsScene.prototype.drawControls;
+    const __requestedFootSetControl = MobileControlsScene.prototype.setControl;
+    const __requestedFootFireAction = MobileControlsScene.prototype.fireAction;
+    const __requestedFootReleasePointer = MobileControlsScene.prototype.releasePointer;
+    const __requestedFootUpdate = MobileControlsScene.prototype.update;
+
+    MobileControlsScene.prototype.isRequestedDrivingMode = function() {
+      const target = this.getTargetScene?.();
+      return !!(target?.scene?.key === 'GameScene' && target.inCar);
+    };
+
+    MobileControlsScene.prototype.drawRequestedCarControls = function() {
+      this.children.removeAll(true);
+      this.input.topOnly = true;
+      this.activePointerControls = new Map();
+      this.dynamicStickPointerId = null;
+      this.dynamicStickCenter = null;
+      this._requestedControlMode = 'car';
+
+      if (this._requestedMoveHandler) this.input.off('pointermove', this._requestedMoveHandler);
+      if (this._requestedUpHandler) this.input.off('pointerup', this._requestedUpHandler);
+      if (this._requestedUpOutsideHandler) this.input.off('pointerupoutside', this._requestedUpOutsideHandler);
+
+      const isDriving = () => this.isRequestedDrivingMode();
+
+      const visualButton = (x, y, label, color, radius = 32, depth = 9100, font = '18px') => {
+        const c = this.add.container(x, y).setScrollFactor(0).setDepth(depth);
+        const bg = this.add.circle(0, 0, radius, color, 0.86).setStrokeStyle(2, 0xffffff, 0.74);
+        const tx = this.add.text(0, -8, label, {
+          fontFamily: 'Courier New',
+          fontSize: font,
+          color: '#fff',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+        c.add([bg, tx]);
+        return c;
+      };
+
+      const addCarButtonZone = (x, y, radius, semanticKey) => {
+        const z = this.add.zone(x, y, radius * 2, radius * 2)
+          .setScrollFactor(0)
+          .setDepth(10100)
+          .setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
+
+        z.on('pointerdown', (pointer) => {
+          if (!isDriving()) return;
+          rhRequestedClearRawMobileButtons();
+
+          if (semanticKey === 'driveGas') MOBILE_INPUT_STATE.driveGas = true;
+          else if (semanticKey === 'driveBrake') MOBILE_INPUT_STATE.driveBrake = true;
+          else if (semanticKey === 'driveHandbrake') MOBILE_INPUT_STATE.driveHandbrake = true;
+          else if (semanticKey === 'exit') {
+            rhRequestedClearAllDriveState();
+            this.activePointerControls.set(pointer.id, ['exit']);
+            this.fireAction('b');
+            return;
+          }
+
+          this.activePointerControls.set(pointer.id, [semanticKey]);
+        });
+
+        z.on('pointerup', (pointer) => this.releasePointer(pointer));
+        z.on('pointerout', (pointer) => this.releasePointer(pointer));
+        return z;
+      };
+
+      // Left-side driving touch zone. Touch/drag creates a temporary steering origin.
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
+      this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
+        .setScrollFactor(0)
+        .setDepth(5005)
+        .setInteractive();
+
+      this.dynamicStickVisual = this.add.container(0, 0).setScrollFactor(0).setDepth(5006).setVisible(false);
+      this.dynamicStickOuter = this.add.circle(0, 0, stick.maxRadius, 0x0b111a, 0.15).setStrokeStyle(4, 0xffffff, 0.28);
+      this.dynamicStickInner = this.add.circle(0, 0, 42, 0x8ac7ff, 0.07).setStrokeStyle(2, 0x9bd4ff, 0.22);
+      this.dynamicStickKnob = this.add.circle(0, 0, 22, 0x9bd4ff, 0.30).setStrokeStyle(2, 0xffffff, 0.42);
+      this.dynamicStickLabel = this.add.text(0, -9, 'STEER', {
+        fontFamily: 'Courier New',
+        fontSize: '12px',
+        color: '#d7ecff',
+        stroke: '#000',
+        strokeThickness: 2
+      }).setOrigin(0.5).setAlpha(0.70);
+      this.dynamicStickVisual.add([this.dynamicStickOuter, this.dynamicStickInner, this.dynamicStickKnob, this.dynamicStickLabel]);
+
+      this.updateRequestedStickFromPointer = (pointer) => {
+        if (!this.dynamicStickCenter) {
+          this.dynamicStickCenter = { x: pointer.x, y: pointer.y };
+          this.dynamicStickVisual.setPosition(pointer.x, pointer.y).setVisible(true);
+        }
+
+        let dx = pointer.x - this.dynamicStickCenter.x;
+        let dy = pointer.y - this.dynamicStickCenter.y;
+        const mag = Math.hypot(dx, dy);
+        const r = stick.maxRadius || 96;
+        if (mag > r) { dx = (dx / mag) * r; dy = (dy / mag) * r; }
+
+        MOBILE_INPUT_STATE.driveSteerX = Phaser.Math.Clamp(dx / r, -1, 1);
+        MOBILE_INPUT_STATE.driveSteerY = Phaser.Math.Clamp(dy / r, -1, 1);
+        MOBILE_INPUT_STATE.carSteerX = MOBILE_INPUT_STATE.driveSteerX;
+        MOBILE_INPUT_STATE.carSteerY = MOBILE_INPUT_STATE.driveSteerY;
+        this.dynamicStickKnob.setPosition(dx, dy);
+      };
+
+      this.dynamicStickZone.on('pointerdown', (pointer) => {
+        if (!isDriving()) return;
+        this.dynamicStickPointerId = pointer.id;
+        this.dynamicStickCenter = { x: pointer.x, y: pointer.y };
+        this.activePointerControls.set(pointer.id, ['dynamicStick']);
+        this.dynamicStickVisual.setPosition(pointer.x, pointer.y).setVisible(true);
+        this.dynamicStickKnob.setPosition(0, 0);
+        rhRequestedClearDriveSteer();
+        this.updateRequestedStickFromPointer(pointer);
+      });
+
+      this._requestedMoveHandler = (pointer) => {
+        if (this.dynamicStickPointerId === pointer.id && this.updateRequestedStickFromPointer) {
+          this.updateRequestedStickFromPointer(pointer);
+        }
+      };
+      this._requestedUpHandler = (pointer) => this.releasePointer(pointer);
+      this._requestedUpOutsideHandler = (pointer) => this.releasePointer(pointer);
+      this.input.on('pointermove', this._requestedMoveHandler);
+      this.input.on('pointerup', this._requestedUpHandler);
+      this.input.on('pointerupoutside', this._requestedUpOutsideHandler);
+
+      // Rebuilt in-car diamond, moved up and clear of the bottom edge.
+      //      X gas
+      // B exit   A handbrake
+      //      Y reverse
+      const baseX = VIEW_W - 112;
+      const baseY = VIEW_H - 310;
+      const radius = 32;
+      const buttons = [
+        { x: baseX,      y: baseY,       label: 'X', color: 0x1f314d, state: 'driveGas' },
+        { x: baseX,      y: baseY + 124, label: 'Y', color: 0x4d3b1f, state: 'driveBrake' },
+        { x: baseX + 62, y: baseY + 62,  label: 'A', color: 0x1f4d2f, state: 'driveHandbrake' },
+        { x: baseX - 72, y: baseY + 62,  label: 'B', color: 0x4d1f1f, state: 'exit' }
+      ];
+
+      for (const b of buttons) {
+        visualButton(b.x, b.y, b.label, b.color, radius, 9100);
+        addCarButtonZone(b.x, b.y, radius + 9, b.state);
+      }
+
+      // Middle buttons are visual-only in car mode so they cannot steal right-side button touches.
+      visualButton(Math.floor(VIEW_W * 0.46), VIEW_H - 132, 'SEL', 0x263241, 20, 9000, '10px');
+      visualButton(Math.floor(VIEW_W * 0.55), VIEW_H - 132, 'STA', 0x263241, 20, 9000, '10px');
+
+      this.events.on('shutdown', () => resetMobileInputState());
+    };
+
+    MobileControlsScene.prototype.drawControls = function() {
+      __requestedFootDrawControls.call(this);
+      this._requestedControlMode = 'foot';
+    };
+
+    MobileControlsScene.prototype.releasePointer = function(pointer) {
+      if (this._requestedControlMode !== 'car') {
+        return __requestedFootReleasePointer.call(this, pointer);
+      }
+
+      const keys = this.activePointerControls.get(pointer.id);
+      if (!keys) return;
+
+      for (const key of keys) {
+        if (key === 'dynamicStick') {
+          this.dynamicStickPointerId = null;
+          this.dynamicStickCenter = null;
+          this.dynamicStickVisual?.setVisible(false);
+          this.dynamicStickKnob?.setPosition(0, 0);
+          rhRequestedClearDriveSteer();
+        } else if (key === 'driveGas') {
+          MOBILE_INPUT_STATE.driveGas = false;
+        } else if (key === 'driveBrake') {
+          MOBILE_INPUT_STATE.driveBrake = false;
+        } else if (key === 'driveHandbrake') {
+          MOBILE_INPUT_STATE.driveHandbrake = false;
+        } else if (key === 'exit') {
+          rhRequestedClearAllDriveState();
+        }
+      }
+
+      this.activePointerControls.delete(pointer.id);
+    };
+
+    MobileControlsScene.prototype.setControl = function(key, value) {
+      if (this._requestedControlMode !== 'car') {
+        return __requestedFootSetControl.call(this, key, value);
+      }
+      if (key in MOBILE_INPUT_STATE) MOBILE_INPUT_STATE[key] = !!value;
+    };
+
+    MobileControlsScene.prototype.fireAction = function(key) {
+      if (this._requestedControlMode !== 'car') {
+        return __requestedFootFireAction.call(this, key);
+      }
+
+      const target = this.getTargetScene?.();
+      if (!target) return;
+
+      if (target.scene?.key === 'GameScene' && target.inCar) {
+        if (key === 'b') {
+          rhRequestedClearAllDriveState();
+          target.handleCarOrArrest?.();
+        }
+        // X/Y/A are held semantic driving states only.
+        return;
+      }
+    };
+
+    MobileControlsScene.prototype.update = function(time, delta) {
+      const driving = this.isRequestedDrivingMode?.();
+
+      if (driving && this._requestedControlMode !== 'car') {
+        this.drawRequestedCarControls();
+        return;
+      }
+
+      if (!driving && this._requestedControlMode === 'car') {
+        rhRequestedClearAllDriveState();
+        __requestedFootDrawControls.call(this);
+        this._requestedControlMode = 'foot';
+        return;
+      }
+
+      if (this._requestedControlMode !== 'car' && typeof __requestedFootUpdate === 'function') {
+        __requestedFootUpdate.call(this, time, delta);
+      }
+    };
+  }
+
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
 </script>
