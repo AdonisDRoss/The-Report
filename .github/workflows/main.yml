@@ -6,7 +6,7 @@ on:
       zip_name:
         description: "Patch ZIP filename in repo root"
         required: true
-        default: "the_report_playthrough_part1_core.zip"
+        default: "the_report_playthrough_part2_vehicle_archive.zip"
 
 permissions:
   contents: write
@@ -35,7 +35,7 @@ jobs:
       - name: Backup current index
         run: |
           if [ -f index.html ]; then
-            cp index.html "index_backup_before_patch.html"
+            cp index.html "index_backup_before_part2.html"
           fi
 
       - name: Unzip patch
@@ -55,8 +55,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add index.html index_backup_before_patch.html assets data docs README_FULL_PLAYTHROUGH_PACKAGE.txt README_INSTALL_PART1_FIRST.txt README_INSTALL_PART2_SECOND.txt README_GTA_STYLE_PLAYER_CAR_HANDLING_PATCH.txt README_RUNTIME_VEHICLE_LIGHTS_PATCH.txt README_SCALED_ASSETS_MASTER_PATCH.txt README_SINGLE_TOPDOWN_TRAFFIC_PATCH.txt README_WORLD_OVERLAY_PATCH.txt || true
+          git add assets data docs README_INSTALL_PART2_SECOND.txt index_backup_before_part2.html || true
 
-          git commit -m "Install The Report patch ZIP" || echo "No changes to commit"
+          git commit -m "Install The Report vehicle archive assets" || echo "No changes to commit"
 
           git push
