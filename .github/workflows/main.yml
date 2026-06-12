@@ -6,7 +6,7 @@ on:
       zip_name:
         description: "Patch ZIP filename in repo root"
         required: true
-        default: "the_report_playthrough_part2_vehicle_archive.zip"
+        default: "vehicle_skids_damage_ai_collision_patch.zip"
 
 permissions:
   contents: write
