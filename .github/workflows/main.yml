@@ -6,7 +6,7 @@ on:
       zip_name:
         description: "Patch ZIP filename in repo root"
         required: true
-        default: "vehicle_skids_damage_ai_collision_patch.zip"
+        default: "car_sprite_visibility_player_scale_fix.zip"
 
 permissions:
   contents: write
