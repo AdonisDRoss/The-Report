@@ -1,0 +1,16 @@
+{
+  "id": "ironcrest_hauler",
+  "type": "single_topdown_vehicle",
+  "sprite": "assets/vehicles_single/ironcrest_hauler_top.png",
+  "canvas": {
+    "width": 192,
+    "height": 192
+  },
+  "orientation": "north_up",
+  "phaserDisplay": {
+    "width": 82,
+    "height": 132
+  },
+  "rotationRule": "sprite.setRotation(car.heading + Math.PI / 2)",
+  "notes": "Fictional 1985 Ironcrest Hauler white work pickup. White-body-safe extraction used to preserve paint while removing checkerboard."
+}

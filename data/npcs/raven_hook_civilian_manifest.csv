@@ -1,0 +1,10 @@
+id,label,source,sourceW,sourceH,sourceCols,sourceRows,output,frames
+civilian_adult_male_black_01,Adult Black Male Brown Jacket,/mnt/data/pixel_art_walking_animation_sprite_sheet.png,1086,1448,4,6,assets/characters/civilians/civilian_adult_male_black_01/civilian_adult_male_black_01_walk_4x8_128.png,32
+civilian_elder_female_black_01,Elder Black Female Dark Outfit,/mnt/data/pixel_art_sprite_sheet_of_woman.png,887,1774,4,8,assets/characters/civilians/civilian_elder_female_black_01/civilian_elder_female_black_01_walk_4x8_128.png,32
+civilian_adult_female_blonde_01,Adult Blonde Female Tan Coat,/mnt/data/pixel_art_sprite_sheet_of_woman_walking.png,1448,1086,4,4,assets/characters/civilians/civilian_adult_female_blonde_01/civilian_adult_female_blonde_01_walk_4x8_128.png,32
+civilian_teen_male_denim_01,Teen Male Denim,/mnt/data/pixel_character_sprite_sheet_of_a_teenager.png,887,1774,5,8,assets/characters/civilians/civilian_teen_male_denim_01/civilian_teen_male_denim_01_walk_4x8_128.png,32
+civilian_adult_male_tan_jacket_01,Adult White Male Tan Jacket,/mnt/data/isometric_character_animation_sprite_sheet.png,1024,1536,5,6,assets/characters/civilians/civilian_adult_male_tan_jacket_01/civilian_adult_male_tan_jacket_01_walk_4x8_128.png,32
+civilian_adult_female_tan_jacket_01,Adult Dark-Haired Female Tan Jacket,/mnt/data/walking_animation_sprite_sheet.png,1024,1536,5,7,assets/characters/civilians/civilian_adult_female_tan_jacket_01/civilian_adult_female_tan_jacket_01_walk_4x8_128.png,32
+civilian_elder_male_cap_01,Elder Male Cap Brown Coat,/mnt/data/old_man_sprite_sheet_for_animation.png,1024,1536,5,6,assets/characters/civilians/civilian_elder_male_cap_01/civilian_elder_male_cap_01_walk_4x8_128.png,32
+civilian_teen_female_denim_01,Teen Female Denim,/mnt/data/pixel_art_walking_animation_sheet.png,1024,1536,4,6,assets/characters/civilians/civilian_teen_female_denim_01/civilian_teen_female_denim_01_walk_4x8_128.png,32
+civilian_teen_male_blue_jacket_02,Teen Male Blue Jacket,/mnt/data/pixel_character_sprite_sheet_grid.png,1024,1536,5,6,assets/characters/civilians/civilian_teen_male_blue_jacket_02/civilian_teen_male_blue_jacket_02_walk_4x8_128.png,32

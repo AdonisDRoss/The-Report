@@ -1,0 +1,16 @@
+{
+  "id": "blackthorne_regent_taxi",
+  "type": "single_topdown_vehicle",
+  "sprite": "assets/vehicles_single/blackthorne_regent_taxi_top.png",
+  "canvas": {
+    "width": 192,
+    "height": 192
+  },
+  "orientation": "north_up",
+  "phaserDisplay": {
+    "width": 72,
+    "height": 120
+  },
+  "rotationRule": "sprite.setRotation(car.heading + Math.PI / 2)",
+  "notes": "Fictional 1985 Blackthorne Regent Taxi. Single top-down sprite for traffic. Recut from uploaded top-down source."
+}

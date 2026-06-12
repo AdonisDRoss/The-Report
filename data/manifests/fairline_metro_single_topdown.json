@@ -1,0 +1,16 @@
+{
+  "id": "fairline_metro",
+  "type": "single_topdown_vehicle",
+  "sprite": "assets/vehicles_single/fairline_metro_top.png",
+  "canvas": {
+    "width": 192,
+    "height": 192
+  },
+  "orientation": "north_up",
+  "phaserDisplay": {
+    "width": 66,
+    "height": 108
+  },
+  "rotationRule": "sprite.setRotation(car.heading + Math.PI / 2)",
+  "notes": "Fictional 1984 Fairline Metro compact economy hatchback. Single top-down sprite for city traffic."
+}

@@ -1,0 +1,10 @@
+{
+  "split_reason": "GitHub mobile upload limit is 25 MB.",
+  "install_order": [
+    "the_report_playthrough_part1_core.zip",
+    "the_report_playthrough_part2_vehicle_archive.zip"
+  ],
+  "part1": "core playable build and final single top-down vehicles",
+  "part2": "legacy 64-frame vehicle archive / backup assets",
+  "test_url": "https://adonisdross.github.io/The-Report/?v=full-playthrough-split-1"
+}

@@ -1,0 +1,130 @@
+{
+  "scale_lock": {
+    "city_human_visible_height_px": 56,
+    "malcolm_walk": {
+      "frame": "96x96",
+      "scale": 0.58,
+      "display_height": 56
+    },
+    "malcolm_shoot": {
+      "frame": "128x128",
+      "scale": 0.44,
+      "display_height": 56
+    },
+    "ramos_walk_talk_shoot": {
+      "frame": "128x128",
+      "city_scale": 0.44,
+      "city_display_height": 56,
+      "station_scale": 0.88,
+      "station_display_height": 112
+    },
+    "civilians": {
+      "frame": "128x128",
+      "scale": 0.44,
+      "display_height": 56
+    },
+    "station_police": {
+      "frame": "256x192 approx",
+      "scale": 0.65,
+      "target_height": 125,
+      "note": "Interior station scale follows existing Malcolm station scene scale."
+    },
+    "cars_single_topdown": [
+      {
+        "model": "meridian_sentinel_lx",
+        "key": "meridian_sentinel_lx_top",
+        "path": "assets/vehicles_single/meridian_sentinel_lx_top.png",
+        "w": 80,
+        "h": 132,
+        "role": "Malcolm player detective sedan"
+      },
+      {
+        "model": "meridian_sentinel_patrol",
+        "key": "meridian_sentinel_patrol_top",
+        "path": "assets/vehicles_single/meridian_sentinel_patrol_top.png",
+        "w": 76,
+        "h": 124,
+        "role": "marked police patrol"
+      },
+      {
+        "model": "blackthorne_regent",
+        "key": "blackthorne_regent_top",
+        "path": "assets/vehicles_single/blackthorne_regent_top.png",
+        "w": 72,
+        "h": 120,
+        "role": "civilian sedan"
+      },
+      {
+        "model": "blackthorne_regent_taxi",
+        "key": "blackthorne_regent_taxi_top",
+        "path": "assets/vehicles_single/blackthorne_regent_taxi_top.png",
+        "w": 72,
+        "h": 120,
+        "role": "taxi"
+      },
+      {
+        "model": "rustway_comet",
+        "key": "rustway_comet_top",
+        "path": "assets/vehicles_single/rustway_comet_top.png",
+        "w": 68,
+        "h": 112,
+        "role": "rusty suspect compact"
+      },
+      {
+        "model": "fairline_metro",
+        "key": "fairline_metro_top",
+        "path": "assets/vehicles_single/fairline_metro_top.png",
+        "w": 66,
+        "h": 108,
+        "role": "small commuter hatchback"
+      },
+      {
+        "model": "ironcrest_hauler",
+        "key": "ironcrest_hauler_top",
+        "path": "assets/vehicles_single/ironcrest_hauler_top.png",
+        "w": 82,
+        "h": 132,
+        "role": "work pickup"
+      },
+      {
+        "model": "halcyon_crown_imperial",
+        "key": "halcyon_crown_imperial_top",
+        "path": "assets/vehicles_single/halcyon_crown_imperial_top.png",
+        "w": 80,
+        "h": 132,
+        "role": "luxury/courthouse sedan"
+      },
+      {
+        "model": "sterling_diplomat",
+        "key": "sterling_diplomat_top",
+        "path": "assets/vehicles_single/sterling_diplomat_top.png",
+        "w": 80,
+        "h": 132,
+        "role": "official town car"
+      },
+      {
+        "model": "solara_mirage",
+        "key": "solara_mirage_top",
+        "path": "assets/vehicles_single/solara_mirage_top.png",
+        "w": 76,
+        "h": 124,
+        "role": "sports coupe"
+      },
+      {
+        "model": "northstar_vantage",
+        "key": "northstar_vantage_top",
+        "path": "assets/vehicles_single/northstar_vantage_top.png",
+        "w": 78,
+        "h": 128,
+        "role": "muscle/performance coupe"
+      }
+    ]
+  },
+  "rules": [
+    "Cars use single top-down sprites, not 64-frame sheets.",
+    "Car sprites point north/up and rotate with sprite.setRotation(car.heading + Math.PI / 2).",
+    "Humans in city use Malcolm/Ramos 56px visual height family.",
+    "Malcolm shooting uses the same city scale as Ramos talk/walk/shoot.",
+    "Civilians use the same city scale as Malcolm and Ramos."
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "id": "meridian_sentinel_lx",
+  "role": "malcolm_unmarked_detective_sedan",
+  "type": "single_topdown_vehicle",
+  "sprite": "assets/vehicles_single/meridian_sentinel_lx_top.png",
+  "canvas": {
+    "width": 192,
+    "height": 192
+  },
+  "orientation": "north_up",
+  "phaserDisplay": {
+    "width": 80,
+    "height": 132
+  },
+  "runtimeLights": {
+    "dashRedBlueVisibleInSprite": true,
+    "headlights": "runtime Phaser graphics",
+    "sirens": "runtime Phaser graphics, no roof lightbar"
+  },
+  "rotationRule": "sprite.setRotation(car.heading + Math.PI / 2)",
+  "notes": "Malcolm King's unmarked 1984 Meridian Sentinel LX with dash red/blue lights visible through windshield."
+}

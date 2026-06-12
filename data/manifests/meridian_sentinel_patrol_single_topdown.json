@@ -1,0 +1,7 @@
+{
+  "id": "meridian_sentinel_patrol",
+  "sprite": "assets/vehicles_single/meridian_sentinel_patrol_top.png",
+  "frame": { "type": "single_topdown", "width": 192, "height": 192, "points": "north_up" },
+  "phaserDisplay": { "width": 76, "height": 124 },
+  "rotationRule": "sprite.setRotation(car.heading + Math.PI / 2)"
+}

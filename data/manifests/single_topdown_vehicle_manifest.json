@@ -1,0 +1,11 @@
+{
+  "note": "Single top-down vehicle sprites point north/up and are rotated in code. NPC traffic no longer uses 64-frame sheets.",
+  "paths": [
+    "assets/vehicles_single/meridian_sentinel_patrol_top.png",
+    "assets/vehicles_single/blackthorne_regent_top.png",
+    "assets/vehicles_single/blackthorne_regent_taxi_top.png",
+    "assets/vehicles_single/rustway_comet_top.png",
+    "assets/vehicles_single/fairline_metro_top.png",
+    "assets/vehicles_single/ironcrest_hauler_top.png"
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "id": "sterling_diplomat",
+  "type": "single_topdown_vehicle",
+  "sprite": "assets/vehicles_single/sterling_diplomat_top.png",
+  "canvas": {
+    "width": 192,
+    "height": 192
+  },
+  "orientation": "north_up",
+  "phaserDisplay": {
+    "width": 80,
+    "height": 132
+  },
+  "rotationRule": "sprite.setRotation(car.heading + Math.PI / 2)",
+  "notes": "Fictional 1984 Sterling Diplomat executive town car. Single top-down sprite for official/city hall traffic."
+}

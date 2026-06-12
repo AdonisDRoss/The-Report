@@ -1,0 +1,674 @@
+[
+  {
+    "outFrame": 0,
+    "sourceRow": 0,
+    "sourceCol": 0,
+    "sourceBox": [
+      0,
+      0,
+      205,
+      256
+    ],
+    "trim": [
+      77,
+      28,
+      93,
+      202
+    ],
+    "scaled": [
+      47,
+      104
+    ]
+  },
+  {
+    "outFrame": 1,
+    "sourceRow": 0,
+    "sourceCol": 1,
+    "sourceBox": [
+      205,
+      0,
+      205,
+      256
+    ],
+    "trim": [
+      54,
+      28,
+      93,
+      202
+    ],
+    "scaled": [
+      47,
+      104
+    ]
+  },
+  {
+    "outFrame": 2,
+    "sourceRow": 0,
+    "sourceCol": 3,
+    "sourceBox": [
+      614,
+      0,
+      205,
+      256
+    ],
+    "trim": [
+      5,
+      28,
+      194,
+      204
+    ],
+    "scaled": [
+      98,
+      104
+    ]
+  },
+  {
+    "outFrame": 3,
+    "sourceRow": 0,
+    "sourceCol": 4,
+    "sourceBox": [
+      819,
+      0,
+      205,
+      256
+    ],
+    "trim": [
+      0,
+      28,
+      77,
+      203
+    ],
+    "scaled": [
+      39,
+      104
+    ]
+  },
+  {
+    "outFrame": 4,
+    "sourceRow": 1,
+    "sourceCol": 0,
+    "sourceBox": [
+      0,
+      256,
+      205,
+      256
+    ],
+    "trim": [
+      91,
+      18,
+      76,
+      197
+    ],
+    "scaled": [
+      40,
+      104
+    ]
+  },
+  {
+    "outFrame": 5,
+    "sourceRow": 1,
+    "sourceCol": 1,
+    "sourceBox": [
+      205,
+      256,
+      205,
+      256
+    ],
+    "trim": [
+      62,
+      18,
+      79,
+      194
+    ],
+    "scaled": [
+      42,
+      104
+    ]
+  },
+  {
+    "outFrame": 6,
+    "sourceRow": 1,
+    "sourceCol": 3,
+    "sourceBox": [
+      614,
+      256,
+      205,
+      256
+    ],
+    "trim": [
+      8,
+      17,
+      84,
+      194
+    ],
+    "scaled": [
+      45,
+      104
+    ]
+  },
+  {
+    "outFrame": 7,
+    "sourceRow": 1,
+    "sourceCol": 4,
+    "sourceBox": [
+      819,
+      256,
+      205,
+      256
+    ],
+    "trim": [
+      0,
+      17,
+      71,
+      191
+    ],
+    "scaled": [
+      38,
+      104
+    ]
+  },
+  {
+    "outFrame": 8,
+    "sourceRow": 2,
+    "sourceCol": 0,
+    "sourceBox": [
+      0,
+      512,
+      205,
+      256
+    ],
+    "trim": [
+      93,
+      0,
+      63,
+      250
+    ],
+    "scaled": [
+      26,
+      104
+    ]
+  },
+  {
+    "outFrame": 9,
+    "sourceRow": 2,
+    "sourceCol": 1,
+    "sourceBox": [
+      205,
+      512,
+      205,
+      256
+    ],
+    "trim": [
+      62,
+      0,
+      70,
+      250
+    ],
+    "scaled": [
+      29,
+      104
+    ]
+  },
+  {
+    "outFrame": 10,
+    "sourceRow": 2,
+    "sourceCol": 3,
+    "sourceBox": [
+      614,
+      512,
+      205,
+      256
+    ],
+    "trim": [
+      13,
+      0,
+      78,
+      250
+    ],
+    "scaled": [
+      32,
+      104
+    ]
+  },
+  {
+    "outFrame": 11,
+    "sourceRow": 2,
+    "sourceCol": 4,
+    "sourceBox": [
+      819,
+      512,
+      205,
+      256
+    ],
+    "trim": [
+      0,
+      0,
+      68,
+      250
+    ],
+    "scaled": [
+      28,
+      104
+    ]
+  },
+  {
+    "outFrame": 12,
+    "sourceRow": 3,
+    "sourceCol": 0,
+    "sourceBox": [
+      0,
+      768,
+      205,
+      256
+    ],
+    "trim": [
+      78,
+      0,
+      90,
+      250
+    ],
+    "scaled": [
+      37,
+      104
+    ]
+  },
+  {
+    "outFrame": 13,
+    "sourceRow": 3,
+    "sourceCol": 1,
+    "sourceBox": [
+      205,
+      768,
+      205,
+      256
+    ],
+    "trim": [
+      56,
+      0,
+      88,
+      250
+    ],
+    "scaled": [
+      36,
+      104
+    ]
+  },
+  {
+    "outFrame": 14,
+    "sourceRow": 3,
+    "sourceCol": 3,
+    "sourceBox": [
+      614,
+      768,
+      205,
+      256
+    ],
+    "trim": [
+      8,
+      0,
+      191,
+      250
+    ],
+    "scaled": [
+      79,
+      104
+    ]
+  },
+  {
+    "outFrame": 15,
+    "sourceRow": 3,
+    "sourceCol": 4,
+    "sourceBox": [
+      819,
+      768,
+      205,
+      256
+    ],
+    "trim": [
+      0,
+      0,
+      77,
+      250
+    ],
+    "scaled": [
+      32,
+      104
+    ]
+  },
+  {
+    "outFrame": 16,
+    "sourceRow": 4,
+    "sourceCol": 0,
+    "sourceBox": [
+      0,
+      1024,
+      205,
+      256
+    ],
+    "trim": [
+      78,
+      0,
+      79,
+      250
+    ],
+    "scaled": [
+      32,
+      104
+    ]
+  },
+  {
+    "outFrame": 17,
+    "sourceRow": 4,
+    "sourceCol": 1,
+    "sourceBox": [
+      205,
+      1024,
+      205,
+      256
+    ],
+    "trim": [
+      56,
+      0,
+      86,
+      250
+    ],
+    "scaled": [
+      35,
+      104
+    ]
+  },
+  {
+    "outFrame": 18,
+    "sourceRow": 4,
+    "sourceCol": 3,
+    "sourceBox": [
+      614,
+      1024,
+      205,
+      256
+    ],
+    "trim": [
+      5,
+      0,
+      194,
+      250
+    ],
+    "scaled": [
+      80,
+      104
+    ]
+  },
+  {
+    "outFrame": 19,
+    "sourceRow": 4,
+    "sourceCol": 4,
+    "sourceBox": [
+      819,
+      1024,
+      205,
+      256
+    ],
+    "trim": [
+      0,
+      0,
+      76,
+      250
+    ],
+    "scaled": [
+      31,
+      104
+    ]
+  },
+  {
+    "outFrame": 20,
+    "sourceRow": 5,
+    "sourceCol": 0,
+    "sourceBox": [
+      0,
+      1280,
+      205,
+      256
+    ],
+    "trim": [
+      78,
+      0,
+      77,
+      109
+    ],
+    "scaled": [
+      73,
+      104
+    ]
+  },
+  {
+    "outFrame": 21,
+    "sourceRow": 5,
+    "sourceCol": 1,
+    "sourceBox": [
+      205,
+      1280,
+      205,
+      256
+    ],
+    "trim": [
+      50,
+      0,
+      93,
+      106
+    ],
+    "scaled": [
+      91,
+      104
+    ]
+  },
+  {
+    "outFrame": 22,
+    "sourceRow": 5,
+    "sourceCol": 3,
+    "sourceBox": [
+      614,
+      1280,
+      205,
+      256
+    ],
+    "trim": [
+      3,
+      0,
+      196,
+      100
+    ],
+    "scaled": [
+      109,
+      56
+    ]
+  },
+  {
+    "outFrame": 23,
+    "sourceRow": 5,
+    "sourceCol": 4,
+    "sourceBox": [
+      819,
+      1280,
+      205,
+      256
+    ],
+    "trim": [
+      0,
+      0,
+      76,
+      102
+    ],
+    "scaled": [
+      77,
+      104
+    ]
+  },
+  {
+    "outFrame": 24,
+    "sourceRow": 4,
+    "sourceCol": 0,
+    "sourceBox": [
+      0,
+      1024,
+      205,
+      256
+    ],
+    "trim": [
+      78,
+      0,
+      79,
+      250
+    ],
+    "scaled": [
+      32,
+      104
+    ]
+  },
+  {
+    "outFrame": 25,
+    "sourceRow": 4,
+    "sourceCol": 1,
+    "sourceBox": [
+      205,
+      1024,
+      205,
+      256
+    ],
+    "trim": [
+      56,
+      0,
+      86,
+      250
+    ],
+    "scaled": [
+      35,
+      104
+    ]
+  },
+  {
+    "outFrame": 26,
+    "sourceRow": 4,
+    "sourceCol": 3,
+    "sourceBox": [
+      614,
+      1024,
+      205,
+      256
+    ],
+    "trim": [
+      5,
+      0,
+      194,
+      250
+    ],
+    "scaled": [
+      80,
+      104
+    ]
+  },
+  {
+    "outFrame": 27,
+    "sourceRow": 4,
+    "sourceCol": 4,
+    "sourceBox": [
+      819,
+      1024,
+      205,
+      256
+    ],
+    "trim": [
+      0,
+      0,
+      76,
+      250
+    ],
+    "scaled": [
+      31,
+      104
+    ]
+  },
+  {
+    "outFrame": 28,
+    "sourceRow": 5,
+    "sourceCol": 0,
+    "sourceBox": [
+      0,
+      1280,
+      205,
+      256
+    ],
+    "trim": [
+      78,
+      0,
+      77,
+      109
+    ],
+    "scaled": [
+      73,
+      104
+    ]
+  },
+  {
+    "outFrame": 29,
+    "sourceRow": 5,
+    "sourceCol": 1,
+    "sourceBox": [
+      205,
+      1280,
+      205,
+      256
+    ],
+    "trim": [
+      50,
+      0,
+      93,
+      106
+    ],
+    "scaled": [
+      91,
+      104
+    ]
+  },
+  {
+    "outFrame": 30,
+    "sourceRow": 5,
+    "sourceCol": 3,
+    "sourceBox": [
+      614,
+      1280,
+      205,
+      256
+    ],
+    "trim": [
+      3,
+      0,
+      196,
+      100
+    ],
+    "scaled": [
+      109,
+      56
+    ]
+  },
+  {
+    "outFrame": 31,
+    "sourceRow": 5,
+    "sourceCol": 4,
+    "sourceBox": [
+      819,
+      1280,
+      205,
+      256
+    ],
+    "trim": [
+      0,
+      0,
+      76,
+      102
+    ],
+    "scaled": [
+      77,
+      104
+    ]
+  }
+]

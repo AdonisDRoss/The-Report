@@ -1,0 +1,16 @@
+{
+  "id": "halcyon_crown_imperial",
+  "type": "single_topdown_vehicle",
+  "sprite": "assets/vehicles_single/halcyon_crown_imperial_top.png",
+  "canvas": {
+    "width": 192,
+    "height": 192
+  },
+  "orientation": "north_up",
+  "phaserDisplay": {
+    "width": 80,
+    "height": 132
+  },
+  "rotationRule": "sprite.setRotation(car.heading + Math.PI / 2)",
+  "notes": "Fictional 1986 Halcyon Crown Imperial large luxury sedan. Single top-down sprite for courthouse/city hall luxury traffic."
+}

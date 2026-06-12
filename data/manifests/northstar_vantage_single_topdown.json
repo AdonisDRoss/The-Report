@@ -1,0 +1,16 @@
+{
+  "id": "northstar_vantage",
+  "type": "single_topdown_vehicle",
+  "sprite": "assets/vehicles_single/northstar_vantage_top.png",
+  "canvas": {
+    "width": 192,
+    "height": 192
+  },
+  "orientation": "north_up",
+  "phaserDisplay": {
+    "width": 78,
+    "height": 128
+  },
+  "rotationRule": "sprite.setRotation(car.heading + Math.PI / 2)",
+  "notes": "Fictional 1985 Northstar Vantage performance coupe. Single top-down sprite for street-racer/suspect traffic."
+}
