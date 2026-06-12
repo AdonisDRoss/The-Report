@@ -40,7 +40,13 @@
   // GIT_MAPPED_STANDARD_128_SPRITES_PATCH: Ramos walk path mapped to existing Git movement sheet; city actor action sheets standardized to 128x128 frames.
   // RAMOS_SCALE_CAR_B_FIX: city Ramos scaled to Malcolm movement height, station Ramos scaled up, B button enters/exits car near sedan.
   // X_CAR_ENTRY_RAMOS_CUT_FIX: X enters/exits car near sedan; Ramos sheets recut per frame to remove duplicate/bleed sprites.
-  // BLACK_SCREEN_SCALE_LOCK_HOTFIX_001: moved SCALE_LOCK before first use. // ASSET_SCALE_LOCK_PATCH_001: all human and vehicle assets use locked display scale. GTA_STYLE_PLAYER_CAR_HANDLING_PATCH_001: player car drift physics and top-down detective sedan. RUNTIME_VEHICLE_LIGHTS_PATCH_001: adds runtime headlights and police strobes. SINGLE_TOPDOWN_TRAFFIC_PATCH_001: NPC cars use single top-down sprites and code rotation. WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001: adds map overlay and replaces fallback boxes after lazy loading. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
+  // BLACK_SCREEN_SCALE_LOCK_HOTFIX_001: moved SCALE_LOCK before first use. // CAR_SPRITE_VISIBILITY_PLAYER_SCALE_FIX_001: guarantees car sprites show and scales Malcolm car smaller.
+  // WEATHER_RAIN_LIGHTNING_PATCH_001: heavy angled rain, lightning flash, camera shake on outdoor city scene.
+  // MODULAR_VEHICLE_WEAPONS_RADAR_AI_PATCH_001: projectile pipeline, AI radar/evasion, modular impact helpers.
+  // VEHICLE_SKIDS_DAMAGE_AI_COLLISION_PATCH_001: persistent skids, bumper momentum transfer, damage/sparks, smoother AI.
+  // HEAVY_VEHICLE_MOMENTUM_PATCH_001: mass, angular inertia, drift, body roll, skids, impact shake.
+  // CAR_CONTROL_HEADLIGHT_SPRITE_GUARD_PATCH_001: fixes disappearing car sprites; X accelerate, A brake, Y headlights, Z handbrake.
+  // ASSET_SCALE_LOCK_PATCH_001: all human and vehicle assets use locked display scale. GTA_STYLE_PLAYER_CAR_HANDLING_PATCH_001: player car drift physics and top-down detective sedan. RUNTIME_VEHICLE_LIGHTS_PATCH_001: adds runtime headlights and police strobes. SINGLE_TOPDOWN_TRAFFIC_PATCH_001: NPC cars use single top-down sprites and code rotation. WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001: adds map overlay and replaces fallback boxes after lazy loading. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
@@ -5349,6 +5355,1783 @@
       if (typeof __scaleOldCreateRamos === 'function') __scaleOldCreateRamos.call(this, x, y);
       if (this.ramosSprite?.setScale && !this.ramosSprite._isFallback) {
         this.ramosSprite.setScale(RAMOS_WALK_ASSET.stationScale || RAMOS_WALK_ASSET.scale);
+      }
+    };
+  }
+
+
+  // CAR_CONTROL_HEADLIGHT_SPRITE_GUARD_PATCH_001:
+  // Fixes disappearing vehicle sprites by using distinct fallback texture keys.
+  // Adds car controls: X accelerate, A brake/reverse, Z handbrake, Y headlights toggle.
+
+  if (typeof MOBILE_INPUT_STATE !== 'undefined') {
+    MOBILE_INPUT_STATE.z = false;
+  }
+
+  function resetMobileInputState() {
+    for (const key of ['up','down','left','right','a','b','x','y','z','sel','sta']) {
+      if (key in MOBILE_INPUT_STATE) MOBILE_INPUT_STATE[key] = false;
+    }
+    MOBILE_INPUT_STATE.analogX = 0;
+    MOBILE_INPUT_STATE.analogY = 0;
+    MOBILE_INPUT_STATE.z = false;
+  }
+
+  function rhCreateFallbackTopCarTexture(scene, key, modelKey, meta = {}) {
+    const fallbackKey = `${key}__fallback_canvas`;
+    if (scene.textures.exists(fallbackKey)) return fallbackKey;
+
+    const tex = scene.textures.createCanvas(fallbackKey, 128, 128);
+    const ctx = tex.getContext();
+    ctx.clearRect(0, 0, 128, 128);
+
+    const isPolice = String(modelKey).includes('patrol') || String(key).includes('patrol');
+    const isTaxi = String(modelKey).includes('taxi') || String(key).includes('taxi');
+    const isTruck = String(modelKey).includes('hauler') || String(key).includes('hauler');
+    const isPlayer = String(modelKey).includes('sentinel_lx') || String(key).includes('sentinel_lx');
+
+    let body = '#3f3026', roof = '#1c2026';
+    if (String(modelKey).includes('rustway')) { body = '#9b4f29'; roof = '#382820'; }
+    if (String(modelKey).includes('fairline')) { body = '#2c5888'; roof = '#182432'; }
+    if (String(modelKey).includes('northstar')) { body = '#172b56'; roof = '#0c101a'; }
+    if (String(modelKey).includes('solara')) { body = '#671818'; roof = '#1a1113'; }
+    if (String(modelKey).includes('sterling')) { body = '#101217'; roof = '#07080a'; }
+    if (String(modelKey).includes('halcyon')) { body = '#5b2028'; roof = '#171013'; }
+    if (isTruck) { body = '#6a6d68'; roof = '#252827'; }
+    if (isTaxi) { body = '#d59b24'; roof = '#70440f'; }
+    if (isPolice) { body = '#e7e2d6'; roof = '#111923'; }
+    if (isPlayer) { body = '#15191f'; roof = '#07090e'; }
+
+    function rr(x, y, w, h, r, fill, stroke) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      ctx.fillStyle = fill;
+      ctx.fill();
+      if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 2; ctx.stroke(); }
+    }
+
+    ctx.fillStyle = 'rgba(0,0,0,0.35)';
+    ctx.beginPath(); ctx.ellipse(64, 70, isTruck ? 34 : 29, isTruck ? 56 : 51, 0, 0, Math.PI * 2); ctx.fill();
+
+    rr(isTruck ? 37 : 41, 16, isTruck ? 54 : 46, 96, 12, body, '#080808');
+    ctx.fillStyle = roof;
+    ctx.fillRect(45, 18, 38, 13);
+    ctx.fillRect(46, 55, 36, 21);
+
+    if (isPolice) {
+      ctx.fillStyle = '#111923';
+      ctx.fillRect(42, 17, 44, 18);
+      ctx.fillRect(42, 88, 44, 24);
+      ctx.fillRect(42, 53, 44, 22);
+      ctx.fillStyle = '#004cff'; ctx.fillRect(49, 30, 13, 4);
+      ctx.fillStyle = '#ff2020'; ctx.fillRect(66, 30, 13, 4);
+    }
+
+    if (isPlayer) {
+      // Dash red/blue lights inside front windshield. Runtime code controls the actual bloom.
+      ctx.fillStyle = '#1a1e25'; ctx.fillRect(46, 27, 36, 10);
+      ctx.fillStyle = '#ff2020'; ctx.fillRect(52, 29, 9, 4);
+      ctx.fillStyle = '#245cff'; ctx.fillRect(67, 29, 9, 4);
+    }
+
+    if (isTaxi) {
+      ctx.fillStyle = '#fff0a0'; rr(48, 37, 32, 8, 2, '#fff0a0', '#4a3108');
+    }
+
+    ctx.fillStyle = '#080808';
+    ctx.fillRect(35, 25, 8, 18); ctx.fillRect(85, 25, 8, 18);
+    ctx.fillRect(35, 86, 8, 20); ctx.fillRect(85, 86, 8, 20);
+    ctx.fillStyle = '#bfc5c7';
+    ctx.fillRect(47, 14, 34, 3);
+    ctx.fillRect(47, 110, 34, 3);
+
+    tex.refresh();
+    return fallbackKey;
+  }
+
+  function rhEnsureTopVehicleCanvas(scene, modelKey) {
+    const meta = rhVehicleMetaFor(modelKey);
+    const key = meta.key;
+    if (scene.textures.exists(key)) return key;
+    return rhCreateFallbackTopCarTexture(scene, key, modelKey, meta);
+  }
+
+  function rhEnsurePlayerCarTexture(scene) {
+    const key = PLAYER_CAR_SINGLE_ASSET.key;
+    if (scene.textures.exists(key)) return key;
+    return rhCreateFallbackTopCarTexture(scene, key, 'meridian_sentinel_lx', PLAYER_CAR_SINGLE_ASSET);
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    const __carControlOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __carControlOldCreate.apply(this, arguments);
+
+      if (this.input?.keyboard) {
+        this.accelerateButtonKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+        this.headlightToggleKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
+        this.handbrakeKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+        this.handbrakeSpaceKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+      }
+
+      if (this.mobile) this.mobile.z = false;
+
+      GAME.car.visualState.lightsOn = false;
+      this.playerHeadlightsOn = false;
+      this.npcTrafficHeadlightsOn = false;
+
+      this.setupPlayerTopDownCarSprite?.();
+      this.refreshWorldNpcSprites?.();
+    };
+
+    GameScene.prototype.togglePlayerHeadlights = function() {
+      GAME.car.visualState.lightsOn = !GAME.car.visualState.lightsOn;
+      this.playerHeadlightsOn = GAME.car.visualState.lightsOn;
+      this.message = GAME.car.visualState.lightsOn ? 'Headlights on.' : 'Headlights off.';
+      this.messageTimer = 1200;
+    };
+
+    // Mobile action patch:
+    // In car: X/A/Z are held driving buttons, Y toggles headlights, B exits car.
+    // On foot: preserve old A/B/X/Y behavior.
+    const __carControlOldHandleMobileAction = GameScene.prototype.handleMobileAction;
+    GameScene.prototype.handleMobileAction = function(prop) {
+      if (this.inCar) {
+        if (prop === 'y') { this.togglePlayerHeadlights(); return; }
+        if (prop === 'x' || prop === 'a' || prop === 'z') return;
+        if (prop === 'b') { this.handleCarOrArrest?.(); return; }
+      }
+      if (typeof __carControlOldHandleMobileAction === 'function') return __carControlOldHandleMobileAction.call(this, prop);
+    };
+
+    // Robust player car sprite guard. Never leave Malcolm's car invisible if real texture is late/missing.
+    GameScene.prototype.setupPlayerTopDownCarSprite = function() {
+      if (!this.car) return;
+      const desiredKey = rhEnsurePlayerCarTexture(this);
+
+      const wrongTexture = !this.carSingleSprite || this.carSingleSprite.texture?.key !== desiredKey || this.carSingleSprite.destroyed;
+      if (wrongTexture) {
+        this.carSingleSprite?.destroy?.();
+        this.carSingleSprite = this.add.image(0, 0, desiredKey)
+          .setOrigin(0.5, 0.5)
+          .setDisplaySize(PLAYER_CAR_SINGLE_ASSET.w, PLAYER_CAR_SINGLE_ASSET.h);
+        this.car.add(this.carSingleSprite);
+      }
+
+      if (this.carFallback) this.carFallback.setVisible(false);
+      if (this.carShadowSprite) this.carShadowSprite.setVisible(false);
+      if (this.carBaseSprite) this.carBaseSprite.setVisible(false);
+      if (this.carLightsSprite) this.carLightsSprite.setVisible(false);
+      if (this.carDamageSprite) this.carDamageSprite.setVisible(false);
+      if (this.carSmokeSprite) this.carSmokeSprite.setVisible(false);
+
+      this.carSingleSprite.setVisible(true).setAlpha(1).setDepth(1);
+      this.car.body?.setSize?.(42, 72);
+      this.car.setRotation((this.car.heading || -Math.PI / 2) + Math.PI / 2);
+    };
+
+    // Final traffic sprite refresh. This bypasses older 64-frame traffic replacement code that could destroy/recreate sprites mid-load.
+    GameScene.prototype.refreshWorldNpcSprites = function() {
+      if (this.civilians?.length) {
+        for (const civ of this.civilians) {
+          if (!civ || !civ.body || !civ.assetKey) continue;
+          if (this.textures.exists(civ.assetKey)) {
+            if (!civ.sprite || civ.sprite._isFallback || civ.sprite.texture?.key !== civ.assetKey || civ.sprite.destroyed) {
+              civ.sprite?.destroy?.();
+              civ.sprite = this.add.sprite(civ.body.x, civ.body.y, civ.assetKey, 0)
+                .setOrigin(0.5, 0.88)
+                .setScale(CIV_CITY_SCALE)
+                .setDepth(30);
+            }
+            civ.sprite.setVisible(true).setAlpha(1).setScale(CIV_CITY_SCALE);
+          }
+        }
+      }
+
+      if (this.trafficCars?.length) {
+        for (const car of this.trafficCars) {
+          if (!car || !car.body || !car.vehicleKey) continue;
+          const desiredKey = rhEnsureTopVehicleCanvas(this, car.vehicleKey);
+          const meta = rhVehicleMetaFor(car.vehicleKey);
+
+          if (!car.sprite || car.sprite.destroyed || car.sprite.texture?.key !== desiredKey || car.sprite.setFrame) {
+            const x = car.body.x, y = car.body.y, rot = car.heading || -Math.PI / 2;
+            car.sprite?.destroy?.();
+            car.sprite = this.add.image(x, y, desiredKey)
+              .setOrigin(0.5, 0.5)
+              .setDepth(car.isPolicePatrol ? 36 : 34);
+            car.sprite.setDisplaySize(meta.w || 72, meta.h || 120);
+            car.sprite.setRotation(rot + Math.PI / 2);
+          }
+
+          car.sprite.setVisible(true).setAlpha(1);
+          car.sprite.setPosition(car.body.x, car.body.y);
+          car.sprite.setDisplaySize(meta.w || 72, meta.h || 120);
+          car.sprite.setRotation((car.heading || -Math.PI / 2) + Math.PI / 2);
+        }
+      }
+
+      this.setupPlayerTopDownCarSprite?.();
+    };
+
+    // New in-car control mapping:
+    // X/mobile X = accelerate, A/mobile A = brake/reverse, Z/mobile Z or keyboard SPACE = handbrake.
+    // D-pad / W/S / arrows remain as fallback driving controls.
+    GameScene.prototype.readPlayerCarInput = function() {
+      const d = this.inputDir ? this.inputDir() : {};
+      const m = this.mobile || MOBILE_INPUT_STATE || {};
+
+      const xAccel = !!(m.x || this.accelerateButtonKey?.isDown);
+      const aBrake = !!m.a;
+
+      let throttle = 0;
+      let steering = 0;
+
+      if (xAccel || d.up || d.ay < -0.25) throttle = 1;
+      if (aBrake || d.down || d.ay > 0.25) throttle = -1;
+
+      if (d.left || d.ax < -0.25) steering = -1;
+      if (d.right || d.ax > 0.25) steering = 1;
+
+      const handbrake = !!(m.z || this.handbrakeKey?.isDown || this.handbrakeSpaceKey?.isDown);
+      return { throttle, steering, handbrake };
+    };
+
+    const __carControlOldUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __carControlOldUpdate.call(this, time, delta);
+      if (this.inCar && this.headlightToggleKey && Phaser.Input.Keyboard.JustDown(this.headlightToggleKey)) {
+        this.togglePlayerHeadlights();
+      }
+      if (this.inCar) this.setupPlayerTopDownCarSprite?.();
+    };
+
+    // Override vehicle lights: headlights default off. Y toggles player headlights.
+    // Police strobes still render for patrol cars.
+    GameScene.prototype.renderVehicleLights = function(time = 0) {
+      if (!this.vehicleLightGraphics) {
+        this.vehicleLightGraphics = this.add.graphics().setDepth(28);
+        try { this.vehicleLightGraphics.setBlendMode(Phaser.BlendModes.ADD); }
+        catch (e) { try { this.vehicleLightGraphics.setBlendMode('ADD'); } catch (_) {} }
+      }
+
+      const g = this.vehicleLightGraphics;
+      g.clear();
+
+      if (this.trafficCars?.length) {
+        for (const car of this.trafficCars) {
+          if (!car?.body) continue;
+          // Patrol strobes stay on; traffic headlights stay off by default.
+          if (car.isPolicePatrol === true) this.drawPoliceStrobe(g, car.body.x, car.body.y, car.heading || 0, time, car);
+        }
+      }
+
+      if (this.car && GAME.car.visualState.lightsOn) {
+        const carLike = {
+          body: this.car,
+          heading: this.car.heading || 0,
+          vehicleKey: 'player_detective_sedan',
+          isPolicePatrol: false,
+          playerVehicle: true
+        };
+        this.drawVehicleLights(carLike, time, true);
+      }
+    };
+  }
+
+  if (typeof MobileControlsScene !== 'undefined') {
+    const __carControlOldDrawControls = MobileControlsScene.prototype.drawControls;
+    MobileControlsScene.prototype.drawControls = function() {
+      __carControlOldDrawControls.call(this);
+
+      // Extra handbrake button. Held state is read by GameScene.readPlayerCarInput().
+      const x = VIEW_W - 230;
+      const y = VIEW_H - 384;
+      const c = this.add.container(x, y).setScrollFactor(0).setDepth(5000);
+      const bg = this.add.circle(0, 0, 28, 0x402050, 0.84).setStrokeStyle(2, 0xffffff, 0.65);
+      const tx = this.add.text(0, -8, 'Z', {
+        fontFamily: 'Courier New',
+        fontSize: '18px',
+        color: '#fff',
+        stroke: '#000',
+        strokeThickness: 3
+      }).setOrigin(0.5);
+      c.add([bg, tx]);
+      c.setSize(74, 74);
+      c.setInteractive(new Phaser.Geom.Circle(0, 0, 46), Phaser.Geom.Circle.Contains);
+      c.on('pointerdown', (pointer) => {
+        this.setControl('z', true);
+        this.activePointerControls.set(pointer.id, ['z']);
+      });
+      c.on('pointerup', (pointer) => this.releasePointer(pointer));
+      c.on('pointerout', (pointer) => this.releasePointer(pointer));
+    };
+
+    const __carControlOldGlobalFireAction = MobileControlsScene.prototype.fireAction;
+    MobileControlsScene.prototype.fireAction = function(key) {
+      const target = this.getTargetScene?.();
+      if (target?.scene?.key === 'GameScene' && target.inCar) {
+        if (key === 'y') { target.togglePlayerHeadlights?.(); return; }
+        if (key === 'x' || key === 'a' || key === 'z') return;
+        if (key === 'b') { target.handleCarOrArrest?.(); return; }
+      }
+      return __carControlOldGlobalFireAction.call(this, key);
+    };
+  }
+
+
+  // HEAVY_VEHICLE_MOMENTUM_PATCH_001:
+  // Adds mass, angular inertia, centrifugal drift, body roll, skid marks, brake-light delay, and impact shake.
+  // Applies to Malcolm's controllable car only. NPC traffic remains node-based.
+
+  if (typeof PLAYER_CAR_HEAVY_HANDLING === 'undefined') {
+    var PLAYER_CAR_HEAVY_HANDLING = {
+      mass: 1850,
+      engineForce: 960000,
+      brakingForce: 1180000,
+      reverseForce: 520000,
+      rollingResistance: 0.92,
+      maxSpeed: 320,
+      reverseMaxSpeed: 120,
+      steeringPower: 3.15,
+      angularDamping: 0.84,
+      angularGripAtSpeed: 0.76,
+      gripBase: 0.91,
+      gripMin: 0.64,
+      handbrakeGripMin: 0.46,
+      handbrakeTurnBoost: 1.75,
+      minTurnSpeed: 18,
+      skidThreshold: 74,
+      impactShakeMassScale: 0.0009
+    };
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    GameScene.prototype.ensureHeavyVehicleEffects = function() {
+      if (!this.carSkidGraphics) {
+        this.carSkidGraphics = this.add.graphics().setDepth(26);
+      }
+      if (!this.carBrakeLightGraphics) {
+        this.carBrakeLightGraphics = this.add.graphics().setDepth(38);
+        try { this.carBrakeLightGraphics.setBlendMode(Phaser.BlendModes.ADD); }
+        catch (e) { try { this.carBrakeLightGraphics.setBlendMode('ADD'); } catch (_) {} }
+      }
+      if (!this.skidMarks) this.skidMarks = [];
+      if (!Number.isFinite(this.brakeLightLevel)) this.brakeLightLevel = 0;
+    };
+
+    GameScene.prototype.updateHeavyBrakeLights = function(dt, braking) {
+      this.ensureHeavyVehicleEffects();
+      const target = braking ? 1 : 0;
+      const rate = braking ? 8.5 : 5.0; // delayed fade, not instant.
+      this.brakeLightLevel += (target - this.brakeLightLevel) * Math.min(1, dt * rate);
+
+      const g = this.carBrakeLightGraphics;
+      g.clear();
+      if (!this.inCar || !this.car || this.brakeLightLevel < 0.05) return;
+
+      const heading = this.car.heading || 0;
+      const bx = Math.cos(heading + Math.PI) * 43;
+      const by = Math.sin(heading + Math.PI) * 43;
+      const sideX = Math.cos(heading + Math.PI / 2) * 16;
+      const sideY = Math.sin(heading + Math.PI / 2) * 16;
+      const alpha = 0.25 + this.brakeLightLevel * 0.55;
+      const x1 = this.car.x + bx + sideX;
+      const y1 = this.car.y + by + sideY;
+      const x2 = this.car.x + bx - sideX;
+      const y2 = this.car.y + by - sideY;
+
+      g.fillStyle(0xff1010, alpha);
+      g.fillCircle(x1, y1, 5 + 3 * this.brakeLightLevel);
+      g.fillCircle(x2, y2, 5 + 3 * this.brakeLightLevel);
+    };
+
+    GameScene.prototype.addHeavySkidMark = function(speed, lateralSlip, handbrake) {
+      this.ensureHeavyVehicleEffects();
+      if (!this.car || speed < 65) return;
+      if (!handbrake && Math.abs(lateralSlip) < PLAYER_CAR_HEAVY_HANDLING.skidThreshold) return;
+
+      const heading = this.car.heading || 0;
+      const rearX = this.car.x + Math.cos(heading + Math.PI) * 43;
+      const rearY = this.car.y + Math.sin(heading + Math.PI) * 43;
+      const sideX = Math.cos(heading + Math.PI / 2) * 15;
+      const sideY = Math.sin(heading + Math.PI / 2) * 15;
+
+      this.skidMarks.push({
+        x1: rearX + sideX,
+        y1: rearY + sideY,
+        x2: rearX - sideX,
+        y2: rearY - sideY,
+        life: handbrake ? 5.8 : 3.2,
+        width: handbrake ? 5 : 3,
+        alpha: handbrake ? 0.42 : 0.26
+      });
+
+      if (this.skidMarks.length > 190) this.skidMarks.splice(0, this.skidMarks.length - 190);
+    };
+
+    GameScene.prototype.renderHeavySkidMarks = function(dt) {
+      this.ensureHeavyVehicleEffects();
+      const g = this.carSkidGraphics;
+      g.clear();
+      if (!this.skidMarks?.length) return;
+
+      for (let i = this.skidMarks.length - 1; i >= 0; i--) {
+        const m = this.skidMarks[i];
+        m.life -= dt;
+        if (m.life <= 0) {
+          this.skidMarks.splice(i, 1);
+          continue;
+        }
+        const fade = Math.min(1, m.life / 2.5);
+        g.lineStyle(m.width, 0x070707, m.alpha * fade);
+        g.beginPath();
+        g.moveTo(m.x1, m.y1);
+        g.lineTo(m.x2, m.y2);
+        g.strokePath();
+      }
+    };
+
+    GameScene.prototype.updateHeavyBodyRollVisual = function(dt, lateralSlip, angularVelocity, speed) {
+      if (!this.carSingleSprite) return;
+      const rollForce = Phaser.Math.Clamp((angularVelocity * speed * 0.075) + (lateralSlip * 0.018), -7, 7);
+      this.car.currentBodyRoll = Phaser.Math.Linear(this.car.currentBodyRoll || 0, rollForce, Math.min(1, dt * 7));
+      // Local X shift because the sprite lives inside the rotating car container.
+      this.carSingleSprite.setPosition(Phaser.Math.Clamp(this.car.currentBodyRoll, -6, 6), 0);
+    };
+
+    // Replacement car physics: mass-scaled force + angular inertia + speed/mass grip loss.
+    GameScene.prototype.updateCar = function(dt) {
+      if (!this.car) return;
+      if (dt > 1) dt = dt / 1000;
+      dt = Phaser.Math.Clamp(dt || 0, 0, 0.05);
+
+      this.setupPlayerTopDownCarSprite?.();
+      this.resetPlayerCarPhysicsState?.();
+      this.ensureHeavyVehicleEffects();
+
+      const h = PLAYER_CAR_HEAVY_HANDLING;
+      const input = this.readPlayerCarInput ? this.readPlayerCarInput() : { throttle: 0, steering: 0, handbrake: false };
+      const car = this.car;
+
+      const prevX = car.x;
+      const prevY = car.y;
+      car.prevX = prevX;
+      car.prevY = prevY;
+
+      let vx = Number.isFinite(car.velocityX) ? car.velocityX : (car.vx || 0);
+      let vy = Number.isFinite(car.velocityY) ? car.velocityY : (car.vy || 0);
+      let heading = Number.isFinite(car.heading) ? car.heading : -Math.PI / 2;
+      let angularVelocity = Number.isFinite(car.angularVelocity) ? car.angularVelocity : 0;
+
+      const forwardX = Math.cos(heading);
+      const forwardY = Math.sin(heading);
+      const sideX = Math.cos(heading + Math.PI / 2);
+      const sideY = Math.sin(heading + Math.PI / 2);
+
+      let forwardSpeed = vx * forwardX + vy * forwardY;
+      const lateralSpeed = vx * sideX + vy * sideY;
+      const speedMag = Math.hypot(vx, vy);
+
+      // F = ma. Larger mass = slower response.
+      let appliedForce = 0;
+      if (input.throttle > 0 && GAME.car.fuel > 0) {
+        appliedForce = h.engineForce;
+        GAME.car.fuel = Math.max(0, GAME.car.fuel - dt * (0.45 + speedMag / 440));
+      } else if (input.throttle < 0) {
+        appliedForce = forwardSpeed > 12 ? -h.brakingForce : -h.reverseForce;
+      }
+
+      forwardSpeed += (appliedForce / h.mass) * dt;
+      forwardSpeed *= Math.pow(h.rollingResistance, dt * 60);
+      forwardSpeed = Phaser.Math.Clamp(forwardSpeed, -h.reverseMaxSpeed, h.maxSpeed);
+
+      // Steering builds angular velocity instead of immediately rotating.
+      if (Math.abs(forwardSpeed) > h.minTurnSpeed) {
+        const reverseFlip = forwardSpeed >= 0 ? 1 : -1;
+        const speedSteerFactor = Phaser.Math.Clamp(Math.abs(forwardSpeed) / 175, 0.25, 1.0);
+        let torque = input.steering * h.steeringPower * speedSteerFactor * reverseFlip;
+        if (input.handbrake) torque *= h.handbrakeTurnBoost;
+        angularVelocity += torque * dt / (h.mass / 1550);
+      }
+
+      const angularDamping = input.handbrake ? 0.90 : h.angularDamping;
+      angularVelocity *= Math.pow(angularDamping, dt * 60);
+      angularVelocity = Phaser.Math.Clamp(angularVelocity, -3.1, 3.1);
+      heading += angularVelocity * dt;
+
+      // Mass/speed drops side grip. Handbrake drops it further.
+      const momentumFactor = (Math.abs(forwardSpeed) * (h.mass / 1000)) / 900;
+      let grip = h.gripBase - momentumFactor;
+      grip = Math.max(input.handbrake ? h.handbrakeGripMin : h.gripMin, grip);
+
+      const newForwardX = Math.cos(heading);
+      const newForwardY = Math.sin(heading);
+      const desiredVX = newForwardX * forwardSpeed;
+      const desiredVY = newForwardY * forwardSpeed;
+
+      const blend = 1 - Math.pow(grip, dt * 60);
+      vx = vx + (desiredVX - vx) * blend;
+      vy = vy + (desiredVY - vy) * blend;
+
+      const maxVel = h.maxSpeed * 1.12;
+      const velMag = Math.hypot(vx, vy);
+      if (velMag > maxVel) {
+        vx = (vx / velMag) * maxVel;
+        vy = (vy / velMag) * maxVel;
+      }
+
+      car.heading = heading;
+      car.angularVelocity = angularVelocity;
+      car.velocityX = vx;
+      car.velocityY = vy;
+      car.vx = vx;
+      car.vy = vy;
+      car.speed = forwardSpeed;
+      car.isHandbraking = input.handbrake;
+      car.isBraking = input.throttle < 0;
+
+      if (car.body) car.body.setVelocity(vx, vy);
+      car.setRotation(heading + Math.PI / 2);
+
+      // Heavy-feel visuals.
+      const lateralSlip = vx * Math.cos(heading + Math.PI / 2) + vy * Math.sin(heading + Math.PI / 2);
+      this.addHeavySkidMark(Math.hypot(vx, vy), lateralSlip, input.handbrake);
+      this.renderHeavySkidMarks(dt);
+      this.updateHeavyBrakeLights(dt, input.throttle < 0);
+      this.updateHeavyBodyRollVisual(dt, lateralSlip, angularVelocity, Math.hypot(vx, vy));
+
+      const movingSpeed = Math.hypot(vx, vy);
+      const targetZoom = movingSpeed > 240 ? 1.60 : (movingSpeed > 135 ? 1.76 : 1.90);
+      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.045));
+
+      this.lastCarPhysicsDebug = {
+        speed: Math.round(movingSpeed),
+        forwardSpeed: Math.round(forwardSpeed),
+        grip: Math.round(grip * 100) / 100,
+        mass: h.mass,
+        angularVelocity: Math.round(angularVelocity * 100) / 100,
+        lateralSlip: Math.round(lateralSlip),
+        headingDeg: Math.round(Phaser.Math.RadToDeg(heading))
+      };
+    };
+
+    // More forceful wall impact response.
+    GameScene.prototype.carHitWall = function() {
+      if (!this.car) return;
+      const h = PLAYER_CAR_HEAVY_HANDLING;
+      const vx = this.car.velocityX ?? this.car.vx ?? 0;
+      const vy = this.car.velocityY ?? this.car.vy ?? 0;
+      const spd = Math.hypot(vx, vy);
+      const impact = spd * (h.mass / 1000);
+
+      if (Number.isFinite(this.car.prevX) && Number.isFinite(this.car.prevY)) {
+        this.car.setPosition(this.car.prevX, this.car.prevY);
+      }
+
+      if (spd > 75) {
+        GAME.car.damage = Math.min(100, GAME.car.damage + Math.round(impact / 125));
+      }
+
+      if (spd > 120) {
+        const shake = Phaser.Math.Clamp(impact * h.impactShakeMassScale, 0.006, 0.035);
+        this.cameras.main.shake(130, shake);
+      }
+
+      if (spd > 150 && GAME.ramos?.inCar) {
+        const lines = ['¡Mierda, Malcolm!', '¡Cuidado!', 'Malcolm, slow down before you kill us.'];
+        this.message = lines[Phaser.Math.Between(0, lines.length - 1)];
+        this.messageTimer = 2200;
+      } else if (spd > 170) {
+        this.message = 'Hard impact.';
+        this.messageTimer = 1200;
+      }
+
+      this.car.velocityX = vx * -0.18;
+      this.car.velocityY = vy * -0.18;
+      this.car.vx = this.car.velocityX;
+      this.car.vy = this.car.velocityY;
+      this.car.speed = (this.car.speed || 0) * 0.28;
+      this.car.angularVelocity = (this.car.angularVelocity || 0) * -0.35;
+      this.car.body?.setVelocity(this.car.velocityX, this.car.velocityY);
+      this.syncVehicleSprites?.();
+    };
+
+    const __heavyOldHud = GameScene.prototype.updateHUD;
+    GameScene.prototype.updateHUD = function() {
+      if (typeof __heavyOldHud === 'function') __heavyOldHud.call(this);
+      if (this.debug?.collision && this.lastCarPhysicsDebug && this.carText) {
+        const p = this.lastCarPhysicsDebug;
+        this.carText.setText(
+          this.carText.text +
+          ` | MASS ${p.mass} GRIP ${p.grip} AV ${p.angularVelocity} SLIP ${p.lateralSlip}`
+        );
+      }
+    };
+  }
+
+
+  // VEHICLE_SKIDS_DAMAGE_AI_COLLISION_PATCH_001:
+  // Persistent tire skid canvas + bumper momentum transfer + damage/sparks + smoother waypoint AI.
+  // Applies to Malcolm/player-vs-traffic interactions; NPC route graph remains intact.
+
+  const VEHICLE_PHYSICS_PROFILE = {
+    meridian_sentinel_lx: { mass: 1850, w: 80, h: 132 },
+    meridian_sentinel_patrol: { mass: 1950, w: 76, h: 124 },
+    blackthorne_regent: { mass: 1550, w: 72, h: 120 },
+    blackthorne_regent_taxi: { mass: 1650, w: 72, h: 120 },
+    rustway_comet: { mass: 1150, w: 68, h: 112 },
+    fairline_metro: { mass: 1050, w: 66, h: 108 },
+    ironcrest_hauler: { mass: 2350, w: 82, h: 132 },
+    halcyon_crown_imperial: { mass: 2050, w: 80, h: 132 },
+    sterling_diplomat: { mass: 2100, w: 80, h: 132 },
+    solara_mirage: { mass: 1350, w: 76, h: 124 },
+    northstar_vantage: { mass: 1550, w: 78, h: 128 }
+  };
+
+  function rhVehicleModelIdFromKey(key) {
+    return String(key || '')
+      .replace(/_top(_128)?$/, '')
+      .replace(/^traffic_/, '')
+      .replace(/^vehicle_/, '');
+  }
+
+  function rhGetVehiclePhysicsProfile(modelKey) {
+    const id = rhVehicleModelIdFromKey(modelKey);
+    const byId = VEHICLE_PHYSICS_PROFILE[id];
+    if (byId) return byId;
+    const meta = (typeof rhVehicleMetaFor === 'function') ? rhVehicleMetaFor(modelKey) : null;
+    return { mass: 1500, w: meta?.w || 72, h: meta?.h || 120 };
+  }
+
+  function rhAngleWrap(a) {
+    while (a < -Math.PI) a += Math.PI * 2;
+    while (a > Math.PI) a -= Math.PI * 2;
+    return a;
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    GameScene.prototype.ensurePersistentSkidCanvas = function() {
+      if (this.persistentSkidLayer) return;
+      const key = 'persistent_tire_skid_canvas';
+      try {
+        if (!this.textures.exists(key)) {
+          const tex = this.textures.createCanvas(key, WORLD_W, WORLD_H);
+          const ctx = tex.getContext();
+          ctx.clearRect(0, 0, WORLD_W, WORLD_H);
+          tex.refresh();
+        }
+        this.persistentSkidTexture = this.textures.get(key);
+        this.persistentSkidCtx = this.persistentSkidTexture.getContext();
+        this.persistentSkidLayer = this.add.image(0, 0, key)
+          .setOrigin(0, 0)
+          .setDepth(24)
+          .setAlpha(0.84);
+        this.persistentSkidDirty = false;
+      } catch (err) {
+        // Mobile-safe fallback: one retained graphics layer. It is capped by drawing only high-slip events.
+        this.persistentSkidFallbackGraphics = this.add.graphics().setDepth(24);
+        this.persistentSkidLayer = this.persistentSkidFallbackGraphics;
+      }
+    };
+
+    GameScene.prototype.drawPersistentSkidSegment = function(x1, y1, x2, y2, intensity = 0.5, width = 4) {
+      this.ensurePersistentSkidCanvas();
+      intensity = Phaser.Math.Clamp(intensity, 0.08, 1);
+      if (this.persistentSkidCtx && this.persistentSkidTexture) {
+        const ctx = this.persistentSkidCtx;
+        ctx.save();
+        ctx.strokeStyle = `rgba(12, 12, 15, ${0.16 + intensity * 0.30})`;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.restore();
+        this.persistentSkidDirty = true;
+      } else if (this.persistentSkidFallbackGraphics) {
+        this.persistentSkidFallbackGraphics.lineStyle(width, 0x09090b, 0.18 + intensity * 0.26);
+        this.persistentSkidFallbackGraphics.beginPath();
+        this.persistentSkidFallbackGraphics.moveTo(x1, y1);
+        this.persistentSkidFallbackGraphics.lineTo(x2, y2);
+        this.persistentSkidFallbackGraphics.strokePath();
+      }
+    };
+
+    GameScene.prototype.flushPersistentSkidCanvas = function() {
+      if (this.persistentSkidDirty && this.persistentSkidTexture) {
+        this.persistentSkidTexture.refresh();
+        this.persistentSkidDirty = false;
+      }
+    };
+
+    GameScene.prototype.addPersistentWheelSkidsForPlayer = function() {
+      if (!this.inCar || !this.car) return;
+      const car = this.car;
+      const vx = car.velocityX ?? car.vx ?? 0;
+      const vy = car.velocityY ?? car.vy ?? 0;
+      const speed = Math.hypot(vx, vy);
+      if (speed < 55) {
+        car._lastSkidLeft = null;
+        car._lastSkidRight = null;
+        return;
+      }
+
+      const heading = car.heading || 0;
+      const travelAngle = Math.atan2(vy, vx);
+      const angularDeviation = Math.abs(Math.sin(heading - travelAngle));
+      const lateralSlip = vx * Math.cos(heading + Math.PI / 2) + vy * Math.sin(heading + Math.PI / 2);
+      const intensity = Phaser.Math.Clamp(angularDeviation * (speed / 115) + Math.abs(lateralSlip) / 210 + (car.isHandbraking ? 0.38 : 0), 0, 1);
+
+      if (intensity < 0.16) {
+        car._lastSkidLeft = null;
+        car._lastSkidRight = null;
+        return;
+      }
+
+      const rearX = car.x + Math.cos(heading + Math.PI) * 43;
+      const rearY = car.y + Math.sin(heading + Math.PI) * 43;
+      const sideX = Math.cos(heading + Math.PI / 2) * 16;
+      const sideY = Math.sin(heading + Math.PI / 2) * 16;
+      const left = { x: rearX + sideX, y: rearY + sideY };
+      const right = { x: rearX - sideX, y: rearY - sideY };
+
+      if (car._lastSkidLeft && car._lastSkidRight) {
+        const width = car.isHandbraking ? 5 : 4;
+        this.drawPersistentSkidSegment(car._lastSkidLeft.x, car._lastSkidLeft.y, left.x, left.y, intensity, width);
+        this.drawPersistentSkidSegment(car._lastSkidRight.x, car._lastSkidRight.y, right.x, right.y, intensity, width);
+      }
+      car._lastSkidLeft = left;
+      car._lastSkidRight = right;
+    };
+
+    GameScene.prototype.ensureVehicleDamageEffects = function() {
+      if (!this.vehicleSparkGraphics) {
+        this.vehicleSparkGraphics = this.add.graphics().setDepth(82);
+        try { this.vehicleSparkGraphics.setBlendMode(Phaser.BlendModes.ADD); }
+        catch (e) { try { this.vehicleSparkGraphics.setBlendMode('ADD'); } catch (_) {} }
+      }
+      if (!this.vehicleDamageGraphics) this.vehicleDamageGraphics = this.add.graphics().setDepth(39);
+      if (!this.vehicleSparks) this.vehicleSparks = [];
+      if (!this.carDamageRuntime) this.carDamageRuntime = {
+        health: 100, frontCrumple: 0, rearCrumple: 0, leftDent: 0, rightDent: 0, windshieldShattered: false
+      };
+    };
+
+    GameScene.prototype.spawnVehicleSparks = function(x, y, count, biasAngle = null) {
+      this.ensureVehicleDamageEffects();
+      count = Phaser.Math.Clamp(count | 0, 2, 36);
+      for (let i = 0; i < count; i++) {
+        const a = Number.isFinite(biasAngle) ? biasAngle + Phaser.Math.FloatBetween(-1.25, 1.25) : Phaser.Math.FloatBetween(0, Math.PI * 2);
+        const s = Phaser.Math.FloatBetween(90, 280);
+        this.vehicleSparks.push({
+          x, y,
+          vx: Math.cos(a) * s,
+          vy: Math.sin(a) * s,
+          life: Phaser.Math.FloatBetween(0.22, 0.55),
+          maxLife: 0.55,
+          color: Math.random() > 0.35 ? 0xffaa20 : 0xff3b12
+        });
+      }
+      if (this.vehicleSparks.length > 180) this.vehicleSparks.splice(0, this.vehicleSparks.length - 180);
+    };
+
+    GameScene.prototype.applyVehicleDamageRuntime = function(vehicle, impactForce, contactAngle, isPlayer = false) {
+      this.ensureVehicleDamageEffects();
+      if (impactForce < 90 || !vehicle) return;
+
+      const dmg = vehicle.damageRuntime || (vehicle.damageRuntime = {
+        health: 100, frontCrumple: 0, rearCrumple: 0, leftDent: 0, rightDent: 0, windshieldShattered: false
+      });
+
+      dmg.health = Math.max(0, dmg.health - impactForce * 0.018);
+      const heading = vehicle.heading || 0;
+      let rel = rhAngleWrap(contactAngle - heading);
+      const add = impactForce * 0.012;
+
+      if (rel > -Math.PI / 4 && rel <= Math.PI / 4) {
+        dmg.frontCrumple = Math.min(15, dmg.frontCrumple + add);
+        if (impactForce > 260) dmg.windshieldShattered = true;
+      } else if (rel > Math.PI / 4 && rel <= 3 * Math.PI / 4) {
+        dmg.rightDent = Math.min(10, dmg.rightDent + add);
+      } else if (rel > -3 * Math.PI / 4 && rel <= -Math.PI / 4) {
+        dmg.leftDent = Math.min(10, dmg.leftDent + add);
+      } else {
+        dmg.rearCrumple = Math.min(12, dmg.rearCrumple + add);
+      }
+
+      if (isPlayer) {
+        this.carDamageRuntime = dmg;
+        GAME.car.damage = Math.min(100, Math.max(GAME.car.damage || 0, 100 - Math.round(dmg.health)));
+      }
+    };
+
+    GameScene.prototype.drawVehicleDamageMarker = function(g, x, y, heading, profile, damage) {
+      if (!damage) return;
+      const maxD = Math.max(damage.frontCrumple || 0, damage.rearCrumple || 0, damage.leftDent || 0, damage.rightDent || 0);
+      if (maxD <= 0.2 && !damage.windshieldShattered) return;
+
+      const fw = { x: Math.cos(heading), y: Math.sin(heading) };
+      const sd = { x: Math.cos(heading + Math.PI / 2), y: Math.sin(heading + Math.PI / 2) };
+      const halfH = (profile.h || 120) * 0.34;
+      const halfW = (profile.w || 72) * 0.32;
+
+      function local(lx, ly) {
+        return { x: x + fw.x * lx + sd.x * ly, y: y + fw.y * lx + sd.y * ly };
+      }
+
+      g.fillStyle(0x08080a, 0.72);
+      g.lineStyle(1, 0xcfd6df, 0.30);
+
+      if (damage.frontCrumple > 0.5) {
+        const p = local(halfH - 4, 0);
+        g.fillEllipse(p.x, p.y, 18 + damage.frontCrumple, 6 + damage.frontCrumple * 0.25);
+      }
+      if (damage.rearCrumple > 0.5) {
+        const p = local(-halfH + 5, 0);
+        g.fillEllipse(p.x, p.y, 15 + damage.rearCrumple, 5 + damage.rearCrumple * 0.25);
+      }
+      if (damage.leftDent > 0.5) {
+        const p = local(0, -halfW + 3);
+        g.fillEllipse(p.x, p.y, 7 + damage.leftDent, 16 + damage.leftDent);
+      }
+      if (damage.rightDent > 0.5) {
+        const p = local(0, halfW - 3);
+        g.fillEllipse(p.x, p.y, 7 + damage.rightDent, 16 + damage.rightDent);
+      }
+      if (damage.windshieldShattered) {
+        const p = local(halfH * 0.36, 0);
+        g.lineStyle(1, 0xe8f6ff, 0.85);
+        for (let i = 0; i < 7; i++) {
+          const a = heading + Phaser.Math.FloatBetween(-2.8, 2.8);
+          g.strokeLineShape(new Phaser.Geom.Line(p.x, p.y, p.x + Math.cos(a) * Phaser.Math.Between(5, 14), p.y + Math.sin(a) * Phaser.Math.Between(5, 14)));
+        }
+      }
+    };
+
+    GameScene.prototype.updateAndRenderVehicleDamageEffects = function(dt) {
+      this.ensureVehicleDamageEffects();
+
+      const dg = this.vehicleDamageGraphics;
+      dg.clear();
+
+      if (this.car) {
+        this.drawVehicleDamageMarker(dg, this.car.x, this.car.y, this.car.heading || 0, rhGetVehiclePhysicsProfile('meridian_sentinel_lx'), this.car.damageRuntime || this.carDamageRuntime);
+      }
+      if (this.trafficCars?.length) {
+        for (const car of this.trafficCars) {
+          if (!car?.body || !car.damageRuntime) continue;
+          this.drawVehicleDamageMarker(dg, car.body.x, car.body.y, car.heading || 0, rhGetVehiclePhysicsProfile(car.vehicleKey), car.damageRuntime);
+        }
+      }
+
+      const sg = this.vehicleSparkGraphics;
+      sg.clear();
+      if (!this.vehicleSparks?.length) return;
+
+      for (let i = this.vehicleSparks.length - 1; i >= 0; i--) {
+        const p = this.vehicleSparks[i];
+        p.life -= dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.vx *= Math.pow(0.82, dt * 60);
+        p.vy *= Math.pow(0.82, dt * 60);
+
+        if (p.life <= 0) {
+          this.vehicleSparks.splice(i, 1);
+          continue;
+        }
+        const a = Phaser.Math.Clamp(p.life / p.maxLife, 0, 1);
+        sg.fillStyle(p.color, a);
+        sg.fillRect(p.x - 1.5, p.y - 1.5, 3, 3);
+      }
+    };
+
+    GameScene.prototype.processPlayerTrafficBumperCollisions = function(dt) {
+      if (!this.inCar || !this.car || !this.trafficCars?.length) return;
+      const player = this.car;
+      const pMass = PLAYER_CAR_HEAVY_HANDLING?.mass || 1850;
+      const pvx = player.velocityX ?? player.vx ?? 0;
+      const pvy = player.velocityY ?? player.vy ?? 0;
+      const pProfile = rhGetVehiclePhysicsProfile('meridian_sentinel_lx');
+
+      for (const other of this.trafficCars) {
+        if (!other?.body) continue;
+        const oProfile = rhGetVehiclePhysicsProfile(other.vehicleKey);
+        const oxv = (other.bumpVX || 0) + Math.cos(other.heading || 0) * (other.speed || 0);
+        const oyv = (other.bumpVY || 0) + Math.sin(other.heading || 0) * (other.speed || 0);
+
+        const dx = other.body.x - player.x;
+        const dy = other.body.y - player.y;
+        const dist = Math.max(0.001, Math.hypot(dx, dy));
+        const minDist = ((pProfile.w || 80) + (oProfile.w || 72)) * 0.28 + ((pProfile.h || 132) + (oProfile.h || 120)) * 0.12;
+
+        if (dist >= minDist) continue;
+
+        const nx = dx / dist, ny = dy / dist;
+        const overlap = minDist - dist;
+        const oMass = oProfile.mass || 1500;
+        const totalMass = pMass + oMass;
+
+        // Separate by inverse mass: lighter vehicle moves more.
+        player.x -= nx * overlap * (oMass / totalMass) * 0.55;
+        player.y -= ny * overlap * (oMass / totalMass) * 0.55;
+        other.body.x += nx * overlap * (pMass / totalMass) * 0.90;
+        other.body.y += ny * overlap * (pMass / totalMass) * 0.90;
+
+        const relVX = pvx - oxv;
+        const relVY = pvy - oyv;
+        const speedAlongNormal = relVX * nx + relVY * ny;
+        if (speedAlongNormal <= 18) continue;
+
+        const restitution = 0.36;
+        const impulse = ((1 + restitution) * speedAlongNormal) / (1 / pMass + 1 / oMass);
+        const pDelta = impulse / pMass;
+        const oDelta = impulse / oMass;
+
+        player.velocityX = pvx - pDelta * nx;
+        player.velocityY = pvy - pDelta * ny;
+        player.vx = player.velocityX;
+        player.vy = player.velocityY;
+        player.speed = (player.speed || 0) * 0.72;
+        player.angularVelocity = (player.angularVelocity || 0) - (nx * Math.sin(player.heading || 0) - ny * Math.cos(player.heading || 0)) * 0.65;
+
+        other.bumpVX = (other.bumpVX || 0) + oDelta * nx * 1.25;
+        other.bumpVY = (other.bumpVY || 0) + oDelta * ny * 1.25;
+        other.bumpTimer = Math.max(other.bumpTimer || 0, 0.75);
+        other.angularVelocity = (other.angularVelocity || 0) + Phaser.Math.Clamp((pMass / oMass) * 0.55, -1.25, 1.25) * (Math.random() > 0.5 ? 1 : -1);
+        other.waitTimer = Math.max(other.waitTimer || 0, 350);
+
+        const force = Math.abs(impulse) / 900;
+        const cx = player.x + nx * (pProfile.h || 120) * 0.27;
+        const cy = player.y + ny * (pProfile.h || 120) * 0.27;
+
+        this.spawnVehicleSparks(cx, cy, Math.round(Phaser.Math.Clamp(force / 2.5, 4, 30)), Math.atan2(ny, nx));
+        this.applyVehicleDamageRuntime(player, force, Math.atan2(ny, nx) + Math.PI, true);
+        this.applyVehicleDamageRuntime(other, force, Math.atan2(ny, nx), false);
+
+        if (force > 135) {
+          this.cameras.main.shake(110, Phaser.Math.Clamp(force * 0.00008, 0.006, 0.032));
+        }
+      }
+    };
+
+    const __vdOldUpdateTrafficCars = GameScene.prototype.updateTrafficCars;
+    GameScene.prototype.updateTrafficCars = function(delta = 16) {
+      // First let the existing road-node AI do its route selection/yielding.
+      if (typeof __vdOldUpdateTrafficCars === 'function') __vdOldUpdateTrafficCars.call(this, delta);
+
+      if (!this.trafficCars?.length) return;
+      const dt = (delta > 1 ? delta / 1000 : delta) || 0.016;
+
+      for (const car of this.trafficCars) {
+        if (!car?.body) continue;
+
+        // Waypoint steering smoothing layered over existing node target.
+        const target = RH_RD_PATCH_MAP?.[car.targetNodeId];
+        if (target) {
+          const dx = target.x - car.body.x, dy = target.y - car.body.y;
+          const desiredAngle = Math.atan2(dy, dx);
+          const err = rhAngleWrap(desiredAngle - (car.heading || desiredAngle));
+          car.aiAngularVelocity = (car.aiAngularVelocity || 0) + Phaser.Math.Clamp(err, -0.55, 0.55) * 2.4 * dt;
+          car.aiAngularVelocity *= Math.pow(0.78, dt * 60);
+          car.heading = rhAngleWrap((car.heading || 0) + car.aiAngularVelocity * dt);
+
+          // Brake into sharp turns without rewriting the route system.
+          if (Math.abs(err) > 0.62 && car.speed > 38) car.speed *= Math.pow(0.965, delta / 16);
+        }
+
+        if (car.bumpTimer > 0) {
+          car.bumpTimer -= dt;
+          car.body.x += (car.bumpVX || 0) * dt;
+          car.body.y += (car.bumpVY || 0) * dt;
+          car.bumpVX *= Math.pow(0.80, dt * 60);
+          car.bumpVY *= Math.pow(0.80, dt * 60);
+          car.heading = rhAngleWrap((car.heading || 0) + (car.angularVelocity || 0) * dt);
+          car.angularVelocity = (car.angularVelocity || 0) * Math.pow(0.80, dt * 60);
+          if (car.body.body) car.body.body.setVelocity((car.bumpVX || 0), (car.bumpVY || 0));
+        }
+
+        if (car.sprite) {
+          car.sprite.setPosition(car.body.x, car.body.y);
+          car.sprite.setRotation((car.heading || -Math.PI / 2) + Math.PI / 2);
+        }
+      }
+    };
+
+    const __vdOldUpdateCar = GameScene.prototype.updateCar;
+    GameScene.prototype.updateCar = function(dt) {
+      if (typeof __vdOldUpdateCar === 'function') __vdOldUpdateCar.call(this, dt);
+      this.addPersistentWheelSkidsForPlayer?.();
+      this.flushPersistentSkidCanvas?.();
+    };
+
+    const __vdOldUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __vdOldUpdate.call(this, time, delta);
+      const dt = (delta || 16) / 1000;
+      this.processPlayerTrafficBumperCollisions?.(dt);
+      this.updateAndRenderVehicleDamageEffects?.(dt);
+      this.flushPersistentSkidCanvas?.();
+    };
+
+    const __vdOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __vdOldCreate.apply(this, arguments);
+      this.ensurePersistentSkidCanvas?.();
+      this.ensureVehicleDamageEffects?.();
+    };
+  }
+
+
+  // MODULAR_VEHICLE_WEAPONS_RADAR_AI_PATCH_001:
+  // Adds isolated projectile pipeline, AI proximity radar/evasion, and impact solver helpers.
+  // Keeps the existing core loop; these are modular subsystems mounted onto GameScene.
+
+  const VEHICLE_WEAPON_PROFILE = {
+    enabled: true,
+    fireKey: 'C',
+    cooldownMs: 135,
+    muzzleVelocity: 620,
+    ttl: 0.62,
+    damageValue: 12,
+    tracerLength: 28,
+    spread: 0.018
+  };
+
+  const VEHICLE_RADAR_PROFILE = {
+    range: 165,
+    spread: 0.42,
+    centerRangeBoost: 1.12,
+    obstacleRadiusScale: 0.70,
+    debug: false
+  };
+
+  function rhVehicleRadiusForProfile(profile) {
+    return Math.max(profile?.w || 72, profile?.h || 120) * 0.34;
+  }
+
+  function rhPointRectDistance(px, py, rect) {
+    const cx = Phaser.Math.Clamp(px, rect.x, rect.x + rect.w);
+    const cy = Phaser.Math.Clamp(py, rect.y, rect.y + rect.h);
+    return Math.hypot(px - cx, py - cy);
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    GameScene.prototype.ensureModularVehicleSystems = function() {
+      if (!this.vehicleProjectileGraphics) {
+        this.vehicleProjectileGraphics = this.add.graphics().setDepth(86);
+        try { this.vehicleProjectileGraphics.setBlendMode(Phaser.BlendModes.ADD); }
+        catch (e) { try { this.vehicleProjectileGraphics.setBlendMode('ADD'); } catch (_) {} }
+      }
+      if (!this.vehicleRadarDebugGraphics) {
+        this.vehicleRadarDebugGraphics = this.add.graphics().setDepth(92);
+      }
+      if (!this.vehicleProjectiles) this.vehicleProjectiles = [];
+      if (!Number.isFinite(this.vehicleWeaponCooldown)) this.vehicleWeaponCooldown = 0;
+      if (this.input?.keyboard && !this.vehicleFireKey) {
+        this.vehicleFireKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C);
+      }
+    };
+
+    GameScene.prototype.deployDualTracerSalvo = function(posX, posY, angle, currentSpeed, width, height, rateLimitMs = VEHICLE_WEAPON_PROFILE.cooldownMs) {
+      this.ensureModularVehicleSystems();
+      if (!VEHICLE_WEAPON_PROFILE.enabled) return;
+      if (this.vehicleWeaponCooldown > 0) return;
+
+      const profile = VEHICLE_WEAPON_PROFILE;
+      const frontX = posX + Math.cos(angle) * (height * 0.42);
+      const frontY = posY + Math.sin(angle) * (height * 0.42);
+      const lateralX = Math.cos(angle + Math.PI / 2) * (width * 0.26);
+      const lateralY = Math.sin(angle + Math.PI / 2) * (width * 0.26);
+
+      const carry = Math.max(0, Math.min(240, currentSpeed || 0));
+      for (let i = 0; i < 2; i++) {
+        const side = i === 0 ? 1 : -1;
+        const a = angle + Phaser.Math.FloatBetween(-profile.spread, profile.spread);
+        const spd = profile.muzzleVelocity + carry;
+        this.vehicleProjectiles.push({
+          id: `veh_round_${Date.now()}_${Math.random().toString(36).slice(2,7)}`,
+          x: frontX + lateralX * side,
+          y: frontY + lateralY * side,
+          vx: Math.cos(a) * spd,
+          vy: Math.sin(a) * spd,
+          ttl: profile.ttl,
+          maxTtl: profile.ttl,
+          damageValue: profile.damageValue,
+          owner: 'player_car'
+        });
+      }
+      this.vehicleWeaponCooldown = rateLimitMs / 1000;
+    };
+
+    GameScene.prototype.fireVehicleWeapon = function() {
+      if (!this.inCar || !this.car) return;
+      this.ensureModularVehicleSystems();
+      const profile = rhGetVehiclePhysicsProfile('meridian_sentinel_lx');
+      const speed = Math.hypot(this.car.velocityX || this.car.vx || 0, this.car.velocityY || this.car.vy || 0);
+      this.deployDualTracerSalvo(this.car.x, this.car.y, this.car.heading || 0, speed, profile.w || 80, profile.h || 132);
+    };
+
+    GameScene.prototype.updateAndRenderVehicleProjectiles = function(dt) {
+      this.ensureModularVehicleSystems();
+      this.vehicleWeaponCooldown = Math.max(0, (this.vehicleWeaponCooldown || 0) - dt);
+
+      const g = this.vehicleProjectileGraphics;
+      g.clear();
+      if (!this.vehicleProjectiles?.length) return;
+
+      for (let i = this.vehicleProjectiles.length - 1; i >= 0; i--) {
+        const b = this.vehicleProjectiles[i];
+        const oldX = b.x, oldY = b.y;
+        b.x += b.vx * dt;
+        b.y += b.vy * dt;
+        b.ttl -= dt;
+
+        let remove = false;
+        if (b.ttl <= 0 || b.x < 0 || b.y < 0 || b.x > WORLD_W || b.y > WORLD_H) remove = true;
+
+        // Stop rounds on building collision rectangles.
+        if (!remove && Array.isArray(COLLISION_RECTS)) {
+          for (const r of COLLISION_RECTS) {
+            if (r.type !== 'building') continue;
+            if (b.x >= r.x && b.x <= r.x + r.w && b.y >= r.y && b.y <= r.y + r.h) {
+              this.spawnVehicleSparks?.(b.x, b.y, 5, Math.atan2(b.vy, b.vx) + Math.PI);
+              remove = true;
+              break;
+            }
+          }
+        }
+
+        // Hit traffic vehicles.
+        if (!remove && this.trafficCars?.length) {
+          for (const car of this.trafficCars) {
+            if (!car?.body) continue;
+            const prof = rhGetVehiclePhysicsProfile(car.vehicleKey);
+            const radius = rhVehicleRadiusForProfile(prof);
+            if (Math.hypot(b.x - car.body.x, b.y - car.body.y) <= radius) {
+              const impactAngle = Math.atan2(b.y - car.body.y, b.x - car.body.x);
+              this.applyVehicleDamageRuntime?.(car, b.damageValue * 26, impactAngle, false);
+              this.spawnVehicleSparks?.(b.x, b.y, 7, impactAngle);
+              car.bumpVX = (car.bumpVX || 0) + Math.cos(impactAngle) * b.damageValue * 12;
+              car.bumpVY = (car.bumpVY || 0) + Math.sin(impactAngle) * b.damageValue * 12;
+              car.bumpTimer = Math.max(car.bumpTimer || 0, 0.22);
+              remove = true;
+              break;
+            }
+          }
+        }
+
+        if (remove) {
+          this.vehicleProjectiles.splice(i, 1);
+          continue;
+        }
+
+        const alpha = Phaser.Math.Clamp(b.ttl / b.maxTtl, 0, 1);
+        g.lineStyle(2.5, 0xfff3a1, 0.92 * alpha);
+        g.beginPath();
+        g.moveTo(b.x, b.y);
+        g.lineTo(b.x - Math.cos(Math.atan2(b.vy, b.vx)) * VEHICLE_WEAPON_PROFILE.tracerLength, b.y - Math.sin(Math.atan2(b.vy, b.vx)) * VEHICLE_WEAPON_PROFILE.tracerLength);
+        g.strokePath();
+
+        g.lineStyle(1, 0xff8a21, 0.55 * alpha);
+        g.beginPath();
+        g.moveTo(oldX, oldY);
+        g.lineTo(b.x, b.y);
+        g.strokePath();
+      }
+    };
+
+    GameScene.prototype.assessTrafficRadarHazard = function(car) {
+      if (!car?.body) return { overrideRequired: false, suggestedSteerDirection: 0, brake: false };
+      const p = VEHICLE_RADAR_PROFILE;
+      const angle = car.heading || 0;
+      const scans = [-p.spread, 0, p.spread];
+
+      let left = false, center = false, right = false;
+      const obstacles = [];
+
+      // Player car obstacle.
+      if (this.inCar && this.car) {
+        obstacles.push({
+          x: this.car.x, y: this.car.y,
+          width: 80, height: 132,
+          radius: 72,
+          type: 'player_car'
+        });
+      }
+
+      // Nearby traffic obstacles.
+      if (this.trafficCars?.length) {
+        for (const other of this.trafficCars) {
+          if (!other || other === car || !other.body) continue;
+          const dx = other.body.x - car.body.x, dy = other.body.y - car.body.y;
+          const d = Math.hypot(dx, dy);
+          if (d > p.range + 90) continue;
+          const op = rhGetVehiclePhysicsProfile(other.vehicleKey);
+          obstacles.push({
+            x: other.body.x, y: other.body.y,
+            width: op.w || 72, height: op.h || 120,
+            radius: rhVehicleRadiusForProfile(op),
+            type: 'traffic'
+          });
+        }
+      }
+
+      // Building rectangles close ahead.
+      if (Array.isArray(COLLISION_RECTS)) {
+        for (const r of COLLISION_RECTS) {
+          if (r.type !== 'building') continue;
+          const d = rhPointRectDistance(car.body.x, car.body.y, r);
+          if (d > p.range + 70) continue;
+          obstacles.push({ x: r.x + r.w / 2, y: r.y + r.h / 2, width: r.w, height: r.h, rect: r, radius: Math.min(180, Math.max(r.w, r.h) * 0.45), type: 'building' });
+        }
+      }
+
+      for (let si = 0; si < scans.length; si++) {
+        const off = scans[si];
+        const len = p.range * (off === 0 ? p.centerRangeBoost : 0.86);
+        const ex = car.body.x + Math.cos(angle + off) * len;
+        const ey = car.body.y + Math.sin(angle + off) * len;
+
+        for (const ob of obstacles) {
+          let hit = false;
+          if (ob.rect) hit = rhPointRectDistance(ex, ey, ob.rect) < 34;
+          else hit = Math.hypot(ex - ob.x, ey - ob.y) < (ob.radius || ob.width * p.obstacleRadiusScale);
+          if (!hit) continue;
+          if (si === 0) left = true;
+          if (si === 1) center = true;
+          if (si === 2) right = true;
+        }
+      }
+
+      if (!(left || center || right)) return { overrideRequired: false, suggestedSteerDirection: 0, brake: false };
+
+      let steer = 0;
+      if (left && !right) steer = 1;
+      else if (right && !left) steer = -1;
+      else if (center) steer = 1;
+      else steer = left ? 1 : -1;
+
+      return { overrideRequired: true, suggestedSteerDirection: steer, brake: center || (left && right) };
+    };
+
+    GameScene.prototype.debugDrawTrafficRadar = function() {
+      if (!this.vehicleRadarDebugGraphics) return;
+      const g = this.vehicleRadarDebugGraphics;
+      g.clear();
+      if (!VEHICLE_RADAR_PROFILE.debug || !this.debug?.routes || !this.trafficCars?.length) return;
+
+      g.lineStyle(1, 0x00f0ff, 0.18);
+      for (const car of this.trafficCars) {
+        if (!car?.body) continue;
+        const angle = car.heading || 0;
+        for (const off of [-VEHICLE_RADAR_PROFILE.spread, 0, VEHICLE_RADAR_PROFILE.spread]) {
+          const len = VEHICLE_RADAR_PROFILE.range * (off === 0 ? VEHICLE_RADAR_PROFILE.centerRangeBoost : 0.86);
+          g.beginPath();
+          g.moveTo(car.body.x, car.body.y);
+          g.lineTo(car.body.x + Math.cos(angle + off) * len, car.body.y + Math.sin(angle + off) * len);
+          g.strokePath();
+        }
+      }
+    };
+
+    // Layer radar onto the already-patched AI update.
+    const __modOldUpdateTrafficCars = GameScene.prototype.updateTrafficCars;
+    GameScene.prototype.updateTrafficCars = function(delta = 16) {
+      if (typeof __modOldUpdateTrafficCars === 'function') __modOldUpdateTrafficCars.call(this, delta);
+
+      const dt = (delta > 1 ? delta / 1000 : delta) || 0.016;
+      if (!this.trafficCars?.length) return;
+
+      for (const car of this.trafficCars) {
+        if (!car?.body) continue;
+        const hazard = this.assessTrafficRadarHazard(car);
+        if (!hazard.overrideRequired) continue;
+
+        // Steering correction away from hazard; brake if center ray hit.
+        car.heading = rhAngleWrap((car.heading || 0) + hazard.suggestedSteerDirection * 1.65 * dt);
+        if (hazard.brake) car.speed = Math.max(0, (car.speed || 0) - (car.brake || 0.16) * delta * 1.35);
+        if (car.body.body) {
+          const spd = Math.max(0, car.speed || 0);
+          car.body.body.setVelocity(Math.cos(car.heading) * spd, Math.sin(car.heading) * spd);
+        }
+        if (car.sprite) {
+          car.sprite.setRotation((car.heading || -Math.PI / 2) + Math.PI / 2);
+          car.sprite.setPosition(car.body.x, car.body.y);
+        }
+      }
+
+      this.debugDrawTrafficRadar();
+    };
+
+    const __modOldUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __modOldUpdate.call(this, time, delta);
+      const dt = (delta || 16) / 1000;
+      this.ensureModularVehicleSystems?.();
+
+      if (this.inCar && this.vehicleFireKey && Phaser.Input.Keyboard.JustDown(this.vehicleFireKey)) {
+        this.fireVehicleWeapon?.();
+      }
+
+      this.updateAndRenderVehicleProjectiles?.(dt);
+    };
+
+    const __modOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __modOldCreate.apply(this, arguments);
+      this.ensureModularVehicleSystems?.();
+    };
+  }
+
+
+  // WEATHER_RAIN_LIGHTNING_PATCH_001:
+  // Outdoor Raven Hook storm layer: heavy angled rain, lightning flash, camera shake.
+  // Runs only on GameScene/outdoor city, not interiors.
+
+  class WeatherEffectsManager {
+    constructor(scene) {
+      this.scene = scene;
+      this.rainParticles = null;
+      this.rainFallbackGraphics = null;
+      this.fallbackDrops = [];
+      this.windVelocityX = -180;
+      this.rainFallVelocityY = 850;
+      this.intensity = 14;
+      this.nextLightningEvent = null;
+      this.lightningKey = null;
+      this.initialized = false;
+    }
+
+    initRainSystem() {
+      if (this.initialized) return;
+      this.initialized = true;
+
+      const scene = this.scene;
+      const texKey = 'rain_streak_runtime';
+
+      if (!scene.textures.exists(texKey)) {
+        const textureCanvas = scene.textures.createCanvas(texKey, 2, 32);
+        if (textureCanvas) {
+          const ctx = textureCanvas.getContext();
+          const gradient = ctx.createLinearGradient(0, 0, 0, 32);
+          gradient.addColorStop(0, 'rgba(255,255,255,0.04)');
+          gradient.addColorStop(1, 'rgba(170,210,255,0.48)');
+          ctx.fillStyle = gradient;
+          ctx.fillRect(0, 0, 2, 32);
+          textureCanvas.refresh();
+        }
+      }
+
+      try {
+        this.rainParticles = scene.add.particles(0, 0, texKey, {
+          x: { min: -240, max: VIEW_W + 240 },
+          y: { min: -90, max: -15 },
+          lifespan: 1150,
+          quantity: this.intensity,
+          frequency: 1,
+          scaleX: { min: 0.35, max: 0.8 },
+          scaleY: { min: 0.85, max: 1.55 },
+          speedX: this.windVelocityX,
+          speedY: this.rainFallVelocityY,
+          rotate: Phaser.Math.RadToDeg(Math.atan2(this.rainFallVelocityY, this.windVelocityX)) - 90,
+          alpha: { start: 0.78, end: 0.10 },
+          blendMode: 'ADD'
+        });
+        this.rainParticles.setDepth(47);
+        this.rainParticles.setScrollFactor(0);
+      } catch (err) {
+        this.createFallbackRain();
+      }
+
+      if (scene.input?.keyboard) {
+        this.lightningKey = scene.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L);
+      }
+
+      this.scheduleLightningLoop();
+    }
+
+    createFallbackRain() {
+      const scene = this.scene;
+      this.rainFallbackGraphics = scene.add.graphics().setDepth(47).setScrollFactor(0);
+      this.fallbackDrops = [];
+      for (let i = 0; i < 180; i++) {
+        this.fallbackDrops.push({
+          x: Phaser.Math.Between(-240, VIEW_W + 240),
+          y: Phaser.Math.Between(-80, VIEW_H + 80),
+          len: Phaser.Math.Between(22, 52),
+          spd: Phaser.Math.Between(680, 1020),
+          alpha: Phaser.Math.FloatBetween(0.22, 0.58)
+        });
+      }
+    }
+
+    setIntensity(density) {
+      const q = Phaser.Math.Clamp(Math.round(density), 1, 30);
+      this.intensity = q;
+
+      if (this.rainParticles) {
+        try {
+          if (typeof this.rainParticles.setQuantity === 'function') this.rainParticles.setQuantity(q);
+          else if (this.rainParticles.quantity && typeof this.rainParticles.quantity.setValue === 'function') this.rainParticles.quantity.setValue(q);
+          else this.rainParticles.quantity = q;
+        } catch (err) {
+          // Keep rain alive even if the Phaser build uses a different emitter API.
+        }
+      }
+
+      if (this.fallbackDrops?.length) {
+        const target = Phaser.Math.Clamp(q * 13, 35, 260);
+        while (this.fallbackDrops.length < target) {
+          this.fallbackDrops.push({
+            x: Phaser.Math.Between(-240, VIEW_W + 240),
+            y: Phaser.Math.Between(-80, VIEW_H + 80),
+            len: Phaser.Math.Between(22, 52),
+            spd: Phaser.Math.Between(680, 1020),
+            alpha: Phaser.Math.FloatBetween(0.22, 0.58)
+          });
+        }
+        if (this.fallbackDrops.length > target) this.fallbackDrops.length = target;
+      }
+    }
+
+    scheduleLightningLoop() {
+      if (!this.scene?.time) return;
+      if (this.nextLightningEvent) this.nextLightningEvent.remove(false);
+
+      this.nextLightningEvent = this.scene.time.delayedCall(
+        Phaser.Math.Between(12000, 25000),
+        () => {
+          this.triggerLightningStrike();
+          this.scheduleLightningLoop();
+        }
+      );
+    }
+
+    triggerLightningStrike() {
+      const scene = this.scene;
+      if (!scene?.add || !scene?.cameras?.main) return;
+
+      const flashOverlay = scene.add.rectangle(VIEW_W / 2, VIEW_H / 2, VIEW_W, VIEW_H, 0xeaf6ff, 0.64);
+      flashOverlay.setDepth(99);
+      flashOverlay.setScrollFactor(0);
+
+      scene.tweens.add({
+        targets: flashOverlay,
+        alpha: 0,
+        duration: 450,
+        ease: 'Quad.easeOut',
+        onComplete: () => flashOverlay.destroy()
+      });
+
+      scene.cameras.main.shake(350, 0.007, true);
+
+      if (scene.message !== undefined) {
+        scene.message = 'Lightning cuts across Raven Hook.';
+        scene.messageTimer = 1200;
+      }
+    }
+
+    update(time, delta) {
+      if (!this.initialized) return;
+
+      if (this.lightningKey && Phaser.Input.Keyboard.JustDown(this.lightningKey)) {
+        this.triggerLightningStrike();
+      }
+
+      if (!this.rainFallbackGraphics) return;
+
+      const dt = (delta || 16) / 1000;
+      const g = this.rainFallbackGraphics;
+      g.clear();
+
+      const angle = Math.atan2(this.rainFallVelocityY, this.windVelocityX);
+      const dx = Math.cos(angle);
+      const dy = Math.sin(angle);
+
+      for (const d of this.fallbackDrops) {
+        d.x += this.windVelocityX * dt;
+        d.y += d.spd * dt;
+
+        if (d.y > VIEW_H + 90 || d.x < -260) {
+          d.x = Phaser.Math.Between(-120, VIEW_W + 260);
+          d.y = Phaser.Math.Between(-120, -20);
+        }
+
+        g.lineStyle(1.35, 0xb7d4ff, d.alpha);
+        g.beginPath();
+        g.moveTo(d.x, d.y);
+        g.lineTo(d.x - dx * d.len, d.y - dy * d.len);
+        g.strokePath();
+      }
+    }
+
+    destroy() {
+      if (this.nextLightningEvent) this.nextLightningEvent.remove(false);
+      this.rainParticles?.destroy?.();
+      this.rainFallbackGraphics?.destroy?.();
+    }
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    const __weatherOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __weatherOldCreate.apply(this, arguments);
+
+      if (!this.weatherEffects) {
+        this.weatherEffects = new WeatherEffectsManager(this);
+        this.weatherEffects.initRainSystem();
+        this.weatherEffects.setIntensity(14);
+      }
+    };
+
+    const __weatherOldUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __weatherOldUpdate.call(this, time, delta);
+      this.weatherEffects?.update?.(time, delta);
+    };
+  }
+
+
+  // CAR_SPRITE_VISIBILITY_PLAYER_SCALE_FIX_001:
+  // Makes all single top-down car sprites reliably visible and scales Malcolm's car down.
+  // Keeps Malcolm's car using the single top-down PNG; fallback only appears until PNG loads.
+
+  const VEHICLE_DISPLAY_SIZE_LOCK = {
+    meridian_sentinel_lx_top: { w: 52, h: 92 },
+    meridian_sentinel_patrol_top: { w: 52, h: 90 },
+    blackthorne_regent_top: { w: 48, h: 84 },
+    blackthorne_regent_taxi_top: { w: 48, h: 84 },
+    rustway_comet_top: { w: 44, h: 76 },
+    fairline_metro_top: { w: 44, h: 76 },
+    ironcrest_hauler_top: { w: 58, h: 94 },
+    halcyon_crown_imperial_top: { w: 52, h: 92 },
+    sterling_diplomat_top: { w: 52, h: 92 },
+    solara_mirage_top: { w: 48, h: 84 },
+    northstar_vantage_top: { w: 50, h: 88 }
+  };
+
+  function rhApplyVehicleDisplaySizeLock() {
+    if (typeof PLAYER_CAR_SINGLE_ASSET !== 'undefined') {
+      PLAYER_CAR_SINGLE_ASSET.w = 52;
+      PLAYER_CAR_SINGLE_ASSET.h = 92;
+    }
+
+    if (typeof SINGLE_VEHICLE_ASSETS !== 'undefined' && Array.isArray(SINGLE_VEHICLE_ASSETS)) {
+      for (const v of SINGLE_VEHICLE_ASSETS) {
+        const s = VEHICLE_DISPLAY_SIZE_LOCK[v.key];
+        if (s) { v.w = s.w; v.h = s.h; }
+      }
+    }
+
+    if (typeof SINGLE_VEHICLE_TOP_META !== 'undefined') {
+      for (const [key, size] of Object.entries(VEHICLE_DISPLAY_SIZE_LOCK)) {
+        if (SINGLE_VEHICLE_TOP_META[key]) {
+          SINGLE_VEHICLE_TOP_META[key].w = size.w;
+          SINGLE_VEHICLE_TOP_META[key].h = size.h;
+        }
+      }
+    }
+  }
+
+  rhApplyVehicleDisplaySizeLock();
+
+  function rhLockedVehicleMeta(modelKey) {
+    const key = (typeof rhTopKeyForVehicle === 'function')
+      ? rhTopKeyForVehicle(modelKey)
+      : (String(modelKey || '').endsWith('_top') ? String(modelKey) : `${modelKey}_top`);
+
+    const baseMeta = (typeof SINGLE_VEHICLE_TOP_META !== 'undefined' && SINGLE_VEHICLE_TOP_META[key])
+      ? SINGLE_VEHICLE_TOP_META[key]
+      : { key, path: `assets/vehicles_single/${key}.png`, w: 48, h: 84 };
+
+    const size = VEHICLE_DISPLAY_SIZE_LOCK[key] || {};
+    return { ...baseMeta, key, w: size.w || baseMeta.w || 48, h: size.h || baseMeta.h || 84 };
+  }
+
+  function rhForceLoadVehicleImage(scene, meta) {
+    if (!scene || !meta || !meta.key || !meta.path) return;
+    if (scene.textures.exists(meta.key)) return;
+
+    // Avoid repeated loader queue spam.
+    scene._rhVehicleLoadQueued = scene._rhVehicleLoadQueued || {};
+    if (scene._rhVehicleLoadQueued[meta.key]) return;
+    scene._rhVehicleLoadQueued[meta.key] = true;
+
+    try {
+      scene.load.image(meta.key, A(meta.path));
+      scene.load.once(`filecomplete-image-${meta.key}`, () => {
+        scene._rhVehicleLoadQueued[meta.key] = false;
+        scene.setupPlayerTopDownCarSprite?.();
+        scene.refreshWorldNpcSprites?.();
+      });
+      scene.load.once('loaderror', () => {
+        scene._rhVehicleLoadQueued[meta.key] = false;
+      });
+      if (!scene.load.isLoading()) scene.load.start();
+    } catch (err) {
+      scene._rhVehicleLoadQueued[meta.key] = false;
+    }
+  }
+
+  function rhGuaranteedVehicleTexture(scene, meta, modelKey) {
+    if (scene.textures.exists(meta.key)) return meta.key;
+    rhForceLoadVehicleImage(scene, meta);
+
+    if (typeof rhCreateFallbackTopCarTexture === 'function') {
+      return rhCreateFallbackTopCarTexture(scene, meta.key, modelKey || meta.key, meta);
+    }
+
+    const fallbackKey = `${meta.key}__small_fallback`;
+    if (!scene.textures.exists(fallbackKey)) {
+      const tex = scene.textures.createCanvas(fallbackKey, 96, 128);
+      const ctx = tex.getContext();
+      ctx.clearRect(0, 0, 96, 128);
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath(); ctx.ellipse(48, 64, 25, 45, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = modelKey && String(modelKey).includes('taxi') ? '#b88422' : '#15191f';
+      ctx.fillRect(31, 16, 34, 88);
+      ctx.fillStyle = '#07090e';
+      ctx.fillRect(35, 24, 26, 16);
+      ctx.fillRect(35, 70, 26, 20);
+      tex.refresh();
+    }
+    return fallbackKey;
+  }
+
+  if (typeof rhVehicleMetaFor === 'function') {
+    const __scaleOldVehicleMetaFor = rhVehicleMetaFor;
+    rhVehicleMetaFor = function(modelKey) {
+      const oldMeta = __scaleOldVehicleMetaFor(modelKey);
+      const key = oldMeta?.key || rhTopKeyForVehicle?.(modelKey) || `${modelKey}_top`;
+      const locked = VEHICLE_DISPLAY_SIZE_LOCK[key];
+      if (locked) return { ...oldMeta, key, w: locked.w, h: locked.h };
+      return oldMeta;
+    };
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    const __scaleOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __scaleOldCreate.apply(this, arguments);
+      rhApplyVehicleDisplaySizeLock();
+
+      // Force-load visible single-topdown car PNGs even if older preload path missed them.
+      rhForceLoadVehicleImage(this, PLAYER_CAR_SINGLE_ASSET);
+      if (typeof SINGLE_VEHICLE_ASSETS !== 'undefined') {
+        for (const meta of SINGLE_VEHICLE_ASSETS) rhForceLoadVehicleImage(this, meta);
+      }
+
+      this.time.delayedCall(120, () => {
+        this.setupPlayerTopDownCarSprite?.();
+        this.refreshWorldNpcSprites?.();
+      });
+      this.time.delayedCall(750, () => {
+        this.setupPlayerTopDownCarSprite?.();
+        this.refreshWorldNpcSprites?.();
+      });
+    };
+
+    GameScene.prototype.setupPlayerTopDownCarSprite = function() {
+      if (!this.car) return;
+      rhApplyVehicleDisplaySizeLock();
+
+      const meta = { ...PLAYER_CAR_SINGLE_ASSET, w: 52, h: 92 };
+      const textureKey = rhGuaranteedVehicleTexture(this, meta, 'meridian_sentinel_lx');
+
+      if (!this.carSingleSprite || this.carSingleSprite.destroyed || this.carSingleSprite.texture?.key !== textureKey) {
+        this.carSingleSprite?.destroy?.();
+
+        this.carSingleSprite = this.add.image(0, 0, textureKey)
+          .setOrigin(0.5, 0.5)
+          .setDepth(1);
+
+        this.car.add(this.carSingleSprite);
+      }
+
+      this.carSingleSprite
+        .setVisible(true)
+        .setAlpha(1)
+        .setDisplaySize(meta.w, meta.h)
+        .setPosition(0, 0)
+        .setDepth(1);
+
+      // Hide old 64-frame layered car art and placeholder rectangle.
+      for (const obj of [this.carFallback, this.carShadowSprite, this.carBaseSprite, this.carLightsSprite, this.carDamageSprite, this.carSmokeSprite]) {
+        if (obj?.setVisible) obj.setVisible(false);
+      }
+
+      if (this.car.body) this.car.body.setSize(30, 54);
+      this.car.setDepth(34);
+      this.car.setVisible(true);
+      this.car.setAlpha(1);
+      this.car.setRotation((this.car.heading || -Math.PI / 2) + Math.PI / 2);
+    };
+
+    GameScene.prototype.refreshWorldNpcSprites = function() {
+      rhApplyVehicleDisplaySizeLock();
+
+      if (this.civilians?.length) {
+        for (const civ of this.civilians) {
+          if (!civ || !civ.body || !civ.assetKey) continue;
+          if (this.textures.exists(civ.assetKey)) {
+            if (!civ.sprite || civ.sprite._isFallback || civ.sprite.texture?.key !== civ.assetKey || civ.sprite.destroyed) {
+              civ.sprite?.destroy?.();
+              civ.sprite = this.add.sprite(civ.body.x, civ.body.y, civ.assetKey, 0)
+                .setOrigin(0.5, 0.88)
+                .setScale(CIV_CITY_SCALE)
+                .setDepth(30);
+            }
+            civ.sprite.setVisible(true).setAlpha(1).setScale(CIV_CITY_SCALE);
+          }
+        }
+      }
+
+      if (this.trafficCars?.length) {
+        for (const car of this.trafficCars) {
+          if (!car || !car.body || !car.vehicleKey) continue;
+          const meta = rhLockedVehicleMeta(car.vehicleKey);
+          const textureKey = rhGuaranteedVehicleTexture(this, meta, car.vehicleKey);
+
+          if (!car.sprite || car.sprite.destroyed || car.sprite.texture?.key !== textureKey || typeof car.sprite.setFrame === 'function') {
+            const x = car.body.x, y = car.body.y;
+            car.sprite?.destroy?.();
+            car.sprite = this.add.image(x, y, textureKey)
+              .setOrigin(0.5, 0.5)
+              .setDepth(car.isPolicePatrol ? 36 : 34);
+          }
+
+          car.sprite
+            .setVisible(true)
+            .setAlpha(1)
+            .setPosition(car.body.x, car.body.y)
+            .setDisplaySize(meta.w, meta.h)
+            .setRotation((car.heading || -Math.PI / 2) + Math.PI / 2);
+        }
+      }
+
+      this.setupPlayerTopDownCarSprite?.();
+    };
+
+    const __scaleOldUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __scaleOldUpdate.call(this, time, delta);
+      if (this.car && (!this.carSingleSprite || !this.carSingleSprite.visible)) {
+        this.setupPlayerTopDownCarSprite?.();
+      }
+      if (this.trafficCars?.length && time % 1000 < (delta || 16)) {
+        this.refreshWorldNpcSprites?.();
       }
     };
   }
