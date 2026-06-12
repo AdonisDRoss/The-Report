@@ -8390,6 +8390,7 @@
   }
 
 
+  // RIGHT_DIAMOND_HARD_TOUCH_ZONES_001: hard zones fix wrong controls; only X gas, Y reverse, B exit, Z handbrake.
   // RIGHT_SIDE_CAR_DIAMOND_FINAL_MAP_001: right-side car diamond; X gas, Y reverse, A lights, B exit, separated Z handbrake.
   // CAR_BUTTONS_LOWER_MIDDLE_LAYOUT_001: car diamond moved to lower-middle marked area.
   // CAR_CONTROLS_NO_SELECT_OVERLAP_001: SEL/STA hidden while driving; isolated car diamond fixes overlap.
@@ -9562,6 +9563,411 @@
       }
 
       // On foot behavior.
+      if (key === 'a') {
+        if (typeof target.handleInteract === 'function') { target.handleInteract(); return; }
+        if (target.scene?.key === 'InteriorScene') {
+          target.scene.start('GameScene', { fromStationExit: true, spawn: target.dataIn?.returnSpawn || { x: 1010, y: 570 }, message: `Exited ${target.dataIn?.title || 'building'}.` });
+          return;
+        }
+        if (target.scene?.key === 'ReportScene') { target.scene.start('PoliceStationScene'); return; }
+      }
+      if (key === 'sta') {
+        if (typeof target.togglePauseMenu === 'function') target.togglePauseMenu();
+        else togglePauseMenu(target);
+        return;
+      }
+      if (key === 'b') {
+        if (typeof target.handleCarOrArrest === 'function') target.handleCarOrArrest();
+        else if (typeof target.tryArrest === 'function') target.tryArrest();
+        else if (typeof target.handleInteract === 'function') target.handleInteract();
+        return;
+      }
+      if (key === 'x') {
+        if (typeof target.handleCarOrShoot === 'function') target.handleCarOrShoot();
+        else if (typeof target.malcolmShoot === 'function') target.malcolmShoot();
+        else if (typeof target.handleTrunk === 'function') target.handleTrunk();
+        return;
+      }
+      if (key === 'y') {
+        if (typeof target.ramosSmallTalk === 'function') target.ramosSmallTalk();
+        else if (typeof target.tryReport === 'function') target.tryReport();
+        return;
+      }
+    };
+
+    MobileControlsScene.prototype.update = function() {
+      this.refreshControlMode?.();
+    };
+  }
+
+
+  // RIGHT_DIAMOND_HARD_TOUCH_ZONES_001:
+  // Final correction: hard touch zones and semantic driving states.
+  // Raw x/y/a/b/z mobile flags are ignored while in car, so old mappings cannot make B reverse or Z gas.
+  //
+  // In-car:
+  //   X = gas / accelerate
+  //   Y = brake / reverse
+  //   A = headlights
+  //   B = exit only
+  //   Z = handbrake only
+  // Steering/toggle stick is preserved.
+
+  Object.assign(MOBILE_INPUT_STATE, {
+    driveGas:false,
+    driveBrake:false,
+    driveHandbrake:false,
+    driveSteerX:0,
+    driveSteerY:0
+  });
+
+  function rhHardClearRawButtons() {
+    MOBILE_INPUT_STATE.x = false;
+    MOBILE_INPUT_STATE.y = false;
+    MOBILE_INPUT_STATE.a = false;
+    MOBILE_INPUT_STATE.b = false;
+    MOBILE_INPUT_STATE.z = false;
+    MOBILE_INPUT_STATE.sel = false;
+    MOBILE_INPUT_STATE.sta = false;
+  }
+
+  function rhHardClearDriveButtons() {
+    MOBILE_INPUT_STATE.driveGas = false;
+    MOBILE_INPUT_STATE.driveBrake = false;
+    MOBILE_INPUT_STATE.driveHandbrake = false;
+    rhHardClearRawButtons();
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    const __hardZonesGameCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __hardZonesGameCreate.apply(this, arguments);
+
+      if (this.input?.keyboard) {
+        this.keyHardGas = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+        this.keyHardBrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
+        this.keyHardLights = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.keyHardExit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+        this.keyHardHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+        this.keyHardSpace = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.keyHardLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+        this.keyHardRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+        this.keyHardUp = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+        this.keyHardDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+        this.keyHardW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.keyHardS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+      }
+
+      this.accelerateButtonKey = this.keyHardGas;
+      this.carAccelKey = this.keyHardGas;
+      this.carBrakeKey = this.keyHardBrake;
+      this.headlightToggleKey = this.keyHardLights;
+      this.carHandbrakeKey = this.keyHardHandbrake;
+      this.handbrakeKey = this.keyHardHandbrake;
+    };
+
+    GameScene.prototype.readPlayerCarInput = function() {
+      const m = this.mobile || MOBILE_INPUT_STATE || {};
+
+      let steering = 0;
+      if (Math.abs(m.carSteerX || 0) > 0.025) {
+        const raw = Phaser.Math.Clamp(m.carSteerX || 0, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
+      } else if (Math.abs(m.driveSteerX || 0) > 0.025) {
+        const raw = Phaser.Math.Clamp(m.driveSteerX || 0, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
+      } else {
+        if (m.left || this.keyHardLeft?.isDown) steering -= 1;
+        if (m.right || this.keyHardRight?.isDown) steering += 1;
+      }
+
+      let throttle = 0;
+      // Mobile car driving reads ONLY semantic states. Raw X/Y/B/Z are ignored.
+      if (m.driveGas || this.keyHardGas?.isDown || this.keyHardUp?.isDown || this.keyHardW?.isDown) throttle = 1;
+      if (m.driveBrake || this.keyHardBrake?.isDown || this.keyHardDown?.isDown || this.keyHardS?.isDown) throttle = -1;
+
+      const handbrake = !!(m.driveHandbrake || this.keyHardHandbrake?.isDown || this.keyHardSpace?.isDown);
+      return { throttle, steering: Phaser.Math.Clamp(steering, -1, 1), handbrake };
+    };
+
+    const __hardZonesGameUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      // Clear raw mobile button flags before old wrappers can read them.
+      if (this.inCar) rhHardClearRawButtons();
+
+      __hardZonesGameUpdate.call(this, time, delta);
+
+      if (this.inCar && this.keyHardLights && Phaser.Input.Keyboard.JustDown(this.keyHardLights)) {
+        this.togglePlayerHeadlights?.();
+      }
+      if (this.inCar && this.keyHardExit && Phaser.Input.Keyboard.JustDown(this.keyHardExit)) {
+        rhHardClearDriveButtons();
+        this.handleCarOrArrest?.();
+      }
+    };
+  }
+
+  if (typeof MobileControlsScene !== 'undefined') {
+    MobileControlsScene.prototype.drawControls = function() {
+      this.children.removeAll(true);
+      this.input.topOnly = true;
+      this.activePointerControls = new Map();
+      this.dynamicStickPointerId = null;
+      this.dynamicStickCenter = null;
+      this.dpadButtons = [];
+      this.selectStartButtons = [];
+      this.driveButtons = [];
+
+      const isDriving = () => {
+        const target = this.getTargetScene?.();
+        return !!(target?.scene?.key === 'GameScene' && target.inCar);
+      };
+
+      const addVisualButton = (x, y, label, color, radius = 34, depth = 9000) => {
+        const c = this.add.container(x, y).setScrollFactor(0).setDepth(depth);
+        const bg = this.add.circle(0, 0, radius, color, 0.84).setStrokeStyle(2, 0xffffff, 0.72);
+        const tx = this.add.text(0, -8, label, {
+          fontFamily: 'Courier New',
+          fontSize: '18px',
+          color: '#fff',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+        c.add([bg, tx]);
+        return c;
+      };
+
+      const addHardZone = (x, y, radius, semanticKey, actionKey) => {
+        const zone = this.add.zone(x, y, radius * 2, radius * 2)
+          .setScrollFactor(0)
+          .setDepth(10000)
+          .setInteractive(new Phaser.Geom.Circle(0, 0, radius), Phaser.Geom.Circle.Contains);
+
+        zone.on('pointerdown', (pointer) => {
+          if (!isDriving()) return;
+          rhHardClearRawButtons();
+
+          if (semanticKey === 'driveGas') MOBILE_INPUT_STATE.driveGas = true;
+          if (semanticKey === 'driveBrake') MOBILE_INPUT_STATE.driveBrake = true;
+          if (semanticKey === 'driveHandbrake') MOBILE_INPUT_STATE.driveHandbrake = true;
+
+          if (semanticKey === 'exit') {
+            rhHardClearDriveButtons();
+          }
+
+          this.activePointerControls.set(pointer.id, [semanticKey]);
+          this.fireAction(actionKey);
+        });
+
+        zone.on('pointerup', (pointer) => this.releasePointer(pointer));
+        zone.on('pointerout', (pointer) => this.releasePointer(pointer));
+        return zone;
+      };
+
+      const addWalkBtn = (x, y, label, key) => {
+        const c = addVisualButton(x, y, label, 0x111827, 30, 5000);
+        c.setSize(78, 78).setInteractive(new Phaser.Geom.Circle(0, 0, 40), Phaser.Geom.Circle.Contains);
+        c.on('pointerdown', (pointer) => {
+          if (isDriving()) return;
+          this.setControl(key, true);
+          this.activePointerControls.set(pointer.id, [key]);
+        });
+        c.on('pointerup', (pointer) => this.releasePointer(pointer));
+        c.on('pointerout', (pointer) => this.releasePointer(pointer));
+        return c;
+      };
+
+      // Walking D-pad; hidden in car.
+      const dX = 96, dY = VIEW_H - 170;
+      this.dpadButtons.push(addWalkBtn(dX, dY - 76, '▲', 'up'));
+      this.dpadButtons.push(addWalkBtn(dX, dY + 76, '▼', 'down'));
+      this.dpadButtons.push(addWalkBtn(dX - 72, dY, '◀', 'left'));
+      this.dpadButtons.push(addWalkBtn(dX + 72, dY, '▶', 'right'));
+
+      // Working car steering / toggle stick preserved.
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
+      this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
+        .setScrollFactor(0)
+        .setDepth(5010)
+        .setInteractive();
+
+      this.dynamicStickVisual = this.add.container(0, 0).setScrollFactor(0).setDepth(5011).setVisible(false);
+      this.dynamicStickOuter = this.add.circle(0, 0, stick.maxRadius, 0x0b111a, 0.15).setStrokeStyle(4, 0xffffff, 0.28);
+      this.dynamicStickInner = this.add.circle(0, 0, 42, 0x8ac7ff, 0.07).setStrokeStyle(2, 0x9bd4ff, 0.22);
+      this.dynamicStickKnob = this.add.circle(0, 0, 22, 0x9bd4ff, 0.30).setStrokeStyle(2, 0xffffff, 0.42);
+      this.dynamicStickLabel = this.add.text(0, -9, 'STEER', {
+        fontFamily: 'Courier New',
+        fontSize: '12px',
+        color: '#d7ecff',
+        stroke: '#000',
+        strokeThickness: 2
+      }).setOrigin(0.5).setAlpha(0.70);
+      this.dynamicStickVisual.add([this.dynamicStickOuter, this.dynamicStickInner, this.dynamicStickKnob, this.dynamicStickLabel]);
+
+      this.updateDynamicStickFromPointer = (pointer) => {
+        if (!this.dynamicStickCenter) {
+          this.dynamicStickCenter = { x: pointer.x, y: pointer.y };
+          this.dynamicStickVisual.setPosition(pointer.x, pointer.y).setVisible(true);
+        }
+
+        let dx = pointer.x - this.dynamicStickCenter.x;
+        let dy = pointer.y - this.dynamicStickCenter.y;
+        const mag = Math.hypot(dx, dy);
+        const r = stick.maxRadius || 96;
+        if (mag > r) { dx = (dx / mag) * r; dy = (dy / mag) * r; }
+
+        MOBILE_INPUT_STATE.carSteerX = Phaser.Math.Clamp(dx / r, -1, 1);
+        MOBILE_INPUT_STATE.carSteerY = Phaser.Math.Clamp(dy / r, -1, 1);
+        MOBILE_INPUT_STATE.driveSteerX = MOBILE_INPUT_STATE.carSteerX;
+        MOBILE_INPUT_STATE.driveSteerY = MOBILE_INPUT_STATE.carSteerY;
+        this.dynamicStickKnob.setPosition(dx, dy);
+      };
+
+      this.dynamicStickZone.on('pointerdown', (pointer) => {
+        if (!isDriving()) return;
+        this.dynamicStickPointerId = pointer.id;
+        this.dynamicStickCenter = { x: pointer.x, y: pointer.y };
+        this.activePointerControls.set(pointer.id, ['dynamicStick']);
+        this.dynamicStickVisual.setPosition(pointer.x, pointer.y).setVisible(true);
+        this.dynamicStickKnob.setPosition(0, 0);
+        MOBILE_INPUT_STATE.carSteerX = 0;
+        MOBILE_INPUT_STATE.carSteerY = 0;
+        MOBILE_INPUT_STATE.driveSteerX = 0;
+        MOBILE_INPUT_STATE.driveSteerY = 0;
+        this.updateDynamicStickFromPointer(pointer);
+      });
+
+      this.input.on('pointermove', (pointer) => {
+        if (this.dynamicStickPointerId === pointer.id && this.updateDynamicStickFromPointer) {
+          this.updateDynamicStickFromPointer(pointer);
+        }
+      });
+      this.input.on('pointerup', (pointer) => this.releasePointer(pointer));
+      this.input.on('pointerupoutside', (pointer) => this.releasePointer(pointer));
+
+      // Right-side diamond, explicit hard zones.
+      const cX = VIEW_W - 132;
+      const cY = VIEW_H - 142;
+      const hGap = 74;
+      const vGap = 68;
+      const btnR = 34;
+
+      const positions = {
+        gas:        { x: cX,        y: cY - vGap, label:'X', color:0x1f314d },
+        brake:      { x: cX,        y: cY + vGap, label:'Y', color:0x4d3b1f },
+        lights:     { x: cX + hGap, y: cY,        label:'A', color:0x1f4d2f },
+        exit:       { x: cX - hGap, y: cY,        label:'B', color:0x4d1f1f },
+        handbrake:  { x: cX - hGap - 6, y: cY - vGap - 82, label:'Z', color:0x402050 }
+      };
+
+      this.driveButtons.push(addVisualButton(positions.gas.x, positions.gas.y, positions.gas.label, positions.gas.color, btnR));
+      this.driveButtons.push(addVisualButton(positions.brake.x, positions.brake.y, positions.brake.label, positions.brake.color, btnR));
+      this.driveButtons.push(addVisualButton(positions.lights.x, positions.lights.y, positions.lights.label, positions.lights.color, btnR));
+      this.driveButtons.push(addVisualButton(positions.exit.x, positions.exit.y, positions.exit.label, positions.exit.color, btnR));
+      this.driveButtons.push(addVisualButton(positions.handbrake.x, positions.handbrake.y, positions.handbrake.label, positions.handbrake.color, 30));
+
+      this.driveButtons.push(addHardZone(positions.gas.x, positions.gas.y, btnR + 8, 'driveGas', 'x'));
+      this.driveButtons.push(addHardZone(positions.brake.x, positions.brake.y, btnR + 8, 'driveBrake', 'y'));
+      this.driveButtons.push(addHardZone(positions.lights.x, positions.lights.y, btnR + 8, 'lights', 'a'));
+      this.driveButtons.push(addHardZone(positions.exit.x, positions.exit.y, btnR + 8, 'exit', 'b'));
+      this.driveButtons.push(addHardZone(positions.handbrake.x, positions.handbrake.y, 38, 'driveHandbrake', 'z'));
+
+      // SEL/STA only on foot.
+      const addSmall = (x, y, label, key) => {
+        const c = addVisualButton(x, y, label, 0x263241, 20, 4900);
+        c.list[1].setFontSize('10px');
+        c.setSize(48, 48).setInteractive(new Phaser.Geom.Circle(0, 0, 26), Phaser.Geom.Circle.Contains);
+        c.on('pointerdown', (pointer) => {
+          if (isDriving()) return;
+          this.setControl(key, true);
+          this.activePointerControls.set(pointer.id, [key]);
+          this.fireAction(key);
+        });
+        c.on('pointerup', (pointer) => this.releasePointer(pointer));
+        c.on('pointerout', (pointer) => this.releasePointer(pointer));
+        return c;
+      };
+      this.selectStartButtons.push(addSmall(VIEW_W - 168, 64, 'SEL', 'sel'));
+      this.selectStartButtons.push(addSmall(VIEW_W - 104, 64, 'STA', 'sta'));
+
+      this.events.on('shutdown', () => resetMobileInputState());
+      this.refreshControlMode?.();
+    };
+
+    MobileControlsScene.prototype.releasePointer = function(pointer) {
+      const keys = this.activePointerControls.get(pointer.id);
+      if (!keys) return;
+
+      for (const key of keys) {
+        if (key === 'dynamicStick') {
+          this.dynamicStickPointerId = null;
+          this.dynamicStickCenter = null;
+          this.dynamicStickVisual?.setVisible(false);
+          this.dynamicStickKnob?.setPosition(0, 0);
+          MOBILE_INPUT_STATE.carSteerX = 0;
+          MOBILE_INPUT_STATE.carSteerY = 0;
+          MOBILE_INPUT_STATE.driveSteerX = 0;
+          MOBILE_INPUT_STATE.driveSteerY = 0;
+        } else if (key === 'driveGas') {
+          MOBILE_INPUT_STATE.driveGas = false;
+        } else if (key === 'driveBrake') {
+          MOBILE_INPUT_STATE.driveBrake = false;
+        } else if (key === 'driveHandbrake') {
+          MOBILE_INPUT_STATE.driveHandbrake = false;
+        } else {
+          this.setControl(key, false);
+        }
+      }
+      this.activePointerControls.delete(pointer.id);
+    };
+
+    MobileControlsScene.prototype.setControl = function(key, value) {
+      if (key in MOBILE_INPUT_STATE) MOBILE_INPUT_STATE[key] = !!value;
+    };
+
+    MobileControlsScene.prototype.refreshControlMode = function() {
+      const target = this.getTargetScene?.();
+      const inCar = !!(target?.scene?.key === 'GameScene' && target.inCar);
+
+      if (this.dynamicStickZone) {
+        this.dynamicStickZone.setVisible(inCar);
+        this.dynamicStickZone.input.enabled = inCar;
+      }
+
+      if (this.dpadButtons?.length) for (const b of this.dpadButtons) b.setVisible(!inCar);
+
+      if (this.selectStartButtons?.length) {
+        for (const b of this.selectStartButtons) {
+          b.setVisible(!inCar);
+          if (b.input) b.input.enabled = !inCar;
+        }
+      }
+
+      if (!inCar) {
+        this.dynamicStickPointerId = null;
+        this.dynamicStickCenter = null;
+        this.dynamicStickVisual?.setVisible(false);
+        MOBILE_INPUT_STATE.carSteerX = 0;
+        MOBILE_INPUT_STATE.carSteerY = 0;
+        MOBILE_INPUT_STATE.driveSteerX = 0;
+        MOBILE_INPUT_STATE.driveSteerY = 0;
+        rhHardClearDriveButtons();
+      }
+    };
+
+    MobileControlsScene.prototype.fireAction = function(key) {
+      const target = this.getTargetScene?.();
+      if (!target) return;
+
+      const inCar = target.scene?.key === 'GameScene' && target.inCar;
+      if (inCar) {
+        if (key === 'a') { target.togglePlayerHeadlights?.(); return; }
+        if (key === 'b') { rhHardClearDriveButtons(); target.handleCarOrArrest?.(); return; }
+        if (key === 'x' || key === 'y' || key === 'z') return;
+        if (key === 'sel' || key === 'sta') return;
+      }
+
+      // On-foot behavior.
       if (key === 'a') {
         if (typeof target.handleInteract === 'function') { target.handleInteract(); return; }
         if (target.scene?.key === 'InteriorScene') {
