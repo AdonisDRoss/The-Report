@@ -6,7 +6,7 @@ on:
       zip_name:
         description: "Patch ZIP filename in repo root"
         required: true
-        default: "the_report_world_overlay_assets_fix_patch.zip"
+        default: "the_report_playthrough_part1_core.zip"
 
 permissions:
   contents: write
