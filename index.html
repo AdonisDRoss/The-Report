@@ -40,7 +40,8 @@
   // GIT_MAPPED_STANDARD_128_SPRITES_PATCH: Ramos walk path mapped to existing Git movement sheet; city actor action sheets standardized to 128x128 frames.
   // RAMOS_SCALE_CAR_B_FIX: city Ramos scaled to Malcolm movement height, station Ramos scaled up, B button enters/exits car near sedan.
   // X_CAR_ENTRY_RAMOS_CUT_FIX: X enters/exits car near sedan; Ramos sheets recut per frame to remove duplicate/bleed sprites.
-  // BLACK_SCREEN_SCALE_LOCK_HOTFIX_001: moved SCALE_LOCK before first use. // CAR_SPRITE_VISIBILITY_PLAYER_SCALE_FIX_001: guarantees car sprites show and scales Malcolm car smaller.
+  // BLACK_SCREEN_SCALE_LOCK_HOTFIX_001: moved SCALE_LOCK before first use. // CAR_UNIFORM_SCALE_RENDER_FIX_001: fixes thin/stretched vehicles by using uniform scale on square PNG canvases.
+  // CAR_SPRITE_VISIBILITY_PLAYER_SCALE_FIX_001: guarantees car sprites show and scales Malcolm car smaller.
   // WEATHER_RAIN_LIGHTNING_PATCH_001: heavy angled rain, lightning flash, camera shake on outdoor city scene.
   // MODULAR_VEHICLE_WEAPONS_RADAR_AI_PATCH_001: projectile pipeline, AI radar/evasion, modular impact helpers.
   // VEHICLE_SKIDS_DAMAGE_AI_COLLISION_PATCH_001: persistent skids, bumper momentum transfer, damage/sparks, smoother AI.
@@ -7131,6 +7132,211 @@
         this.setupPlayerTopDownCarSprite?.();
       }
       if (this.trafficCars?.length && time % 1000 < (delta || 16)) {
+        this.refreshWorldNpcSprites?.();
+      }
+    };
+  }
+
+
+  // CAR_UNIFORM_SCALE_RENDER_FIX_001:
+  // Current vehicle PNGs are square 192x192 canvases with the car painted inside.
+  // Do NOT use setDisplaySize(w,h) on them; that squashes the square canvas and makes cars thin.
+  // Use uniform scale only so the art keeps its proper proportions.
+
+  const VEHICLE_UNIFORM_SCALE_LOCK = {
+    meridian_sentinel_lx_top: 0.52,
+    meridian_sentinel_patrol_top: 0.50,
+    blackthorne_regent_top: 0.50,
+    blackthorne_regent_taxi_top: 0.50,
+    rustway_comet_top: 0.46,
+    fairline_metro_top: 0.46,
+    ironcrest_hauler_top: 0.56,
+    halcyon_crown_imperial_top: 0.52,
+    sterling_diplomat_top: 0.52,
+    solara_mirage_top: 0.50,
+    northstar_vantage_top: 0.50
+  };
+
+  function rhUniformScaleForVehicleKey(key) {
+    return VEHICLE_UNIFORM_SCALE_LOCK[String(key || '')] || 0.50;
+  }
+
+  function rhVehicleTopKeySafe(modelKey) {
+    if (typeof rhTopKeyForVehicle === 'function') return rhTopKeyForVehicle(modelKey);
+    if (typeof SINGLE_VEHICLE_MODEL_TO_TOP !== 'undefined' && SINGLE_VEHICLE_MODEL_TO_TOP[modelKey]) return SINGLE_VEHICLE_MODEL_TO_TOP[modelKey];
+    return String(modelKey || '').endsWith('_top') ? String(modelKey) : `${modelKey}_top`;
+  }
+
+  function rhVehicleMetaSafe(modelKey) {
+    const key = rhVehicleTopKeySafe(modelKey);
+    if (typeof SINGLE_VEHICLE_TOP_META !== 'undefined' && SINGLE_VEHICLE_TOP_META[key]) return SINGLE_VEHICLE_TOP_META[key];
+    if (key === PLAYER_CAR_SINGLE_ASSET?.key) return PLAYER_CAR_SINGLE_ASSET;
+    return { key, path: `assets/vehicles_single/${key}.png` };
+  }
+
+  function rhTextureOrSmallFallback(scene, modelKey) {
+    const meta = rhVehicleMetaSafe(modelKey);
+    const key = meta.key;
+    if (scene.textures.exists(key)) return key;
+
+    // Queue the real PNG if it somehow missed preload.
+    scene._rhVehicleRealLoadQueued = scene._rhVehicleRealLoadQueued || {};
+    if (meta.path && !scene._rhVehicleRealLoadQueued[key]) {
+      scene._rhVehicleRealLoadQueued[key] = true;
+      try {
+        scene.load.image(key, A(meta.path));
+        scene.load.once(`filecomplete-image-${key}`, () => {
+          scene._rhVehicleRealLoadQueued[key] = false;
+          scene.setupPlayerTopDownCarSprite?.();
+          scene.refreshWorldNpcSprites?.();
+        });
+        if (!scene.load.isLoading()) scene.load.start();
+      } catch (err) {
+        scene._rhVehicleRealLoadQueued[key] = false;
+      }
+    }
+
+    const fb = `${key}__proportional_fallback`;
+    if (!scene.textures.exists(fb)) {
+      const tex = scene.textures.createCanvas(fb, 192, 192);
+      const ctx = tex.getContext();
+      ctx.clearRect(0, 0, 192, 192);
+      const isTaxi = String(modelKey).includes('taxi');
+      const isPolice = String(modelKey).includes('patrol') || String(key).includes('patrol');
+      const isTruck = String(modelKey).includes('hauler');
+      const isPlayer = key === PLAYER_CAR_SINGLE_ASSET.key;
+
+      ctx.fillStyle = 'rgba(0,0,0,0.35)';
+      ctx.beginPath(); ctx.ellipse(96, 96, isTruck ? 45 : 38, 78, 0, 0, Math.PI * 2); ctx.fill();
+
+      ctx.fillStyle = isPolice ? '#e5e0d2' : isTaxi ? '#c99124' : isPlayer ? '#12161c' : '#60432e';
+      const bw = isTruck ? 70 : 62;
+      const bh = isTruck ? 134 : 136;
+      ctx.fillRect(96 - bw/2, 96 - bh/2, bw, bh);
+
+      ctx.fillStyle = '#090b0f';
+      ctx.fillRect(96 - 23, 35, 46, 21);
+      ctx.fillRect(96 - 22, 99, 44, 26);
+
+      if (isPolice || isPlayer) {
+        ctx.fillStyle = '#1c5cff'; ctx.fillRect(83, 45, 11, 6);
+        ctx.fillStyle = '#ff2a2a'; ctx.fillRect(98, 45, 11, 6);
+      }
+      tex.refresh();
+    }
+    return fb;
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    const __uniformOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __uniformOldCreate.apply(this, arguments);
+
+      // Force Malcolm car and all traffic single PNGs into loader queue.
+      try {
+        if (PLAYER_CAR_SINGLE_ASSET?.key && PLAYER_CAR_SINGLE_ASSET?.path && !this.textures.exists(PLAYER_CAR_SINGLE_ASSET.key)) {
+          this.load.image(PLAYER_CAR_SINGLE_ASSET.key, A(PLAYER_CAR_SINGLE_ASSET.path));
+        }
+        if (typeof SINGLE_VEHICLE_ASSETS !== 'undefined') {
+          for (const v of SINGLE_VEHICLE_ASSETS) {
+            if (v?.key && v?.path && !this.textures.exists(v.key)) this.load.image(v.key, A(v.path));
+          }
+        }
+        if (!this.load.isLoading()) this.load.start();
+      } catch (_) {}
+
+      this.time.delayedCall(100, () => { this.setupPlayerTopDownCarSprite?.(); this.refreshWorldNpcSprites?.(); });
+      this.time.delayedCall(650, () => { this.setupPlayerTopDownCarSprite?.(); this.refreshWorldNpcSprites?.(); });
+    };
+
+    GameScene.prototype.setupPlayerTopDownCarSprite = function() {
+      if (!this.car) return;
+      const textureKey = rhTextureOrSmallFallback(this, 'meridian_sentinel_lx');
+      const scale = rhUniformScaleForVehicleKey(PLAYER_CAR_SINGLE_ASSET.key);
+
+      if (!this.carSingleSprite || this.carSingleSprite.destroyed || this.carSingleSprite.texture?.key !== textureKey) {
+        this.carSingleSprite?.destroy?.();
+        this.carSingleSprite = this.add.image(0, 0, textureKey)
+          .setOrigin(0.5, 0.5)
+          .setDepth(2);
+        this.car.add(this.carSingleSprite);
+      }
+
+      // Uniform scale fixes the stretched/thin-car look.
+      this.carSingleSprite
+        .setVisible(true)
+        .setAlpha(1)
+        .setScale(scale)
+        .setPosition(this.car.currentBodyRoll || 0, 0);
+
+      // Kill every older placeholder/layered car visual.
+      for (const obj of [
+        this.carFallback,
+        this.carShadowSprite,
+        this.carBaseSprite,
+        this.carLightsSprite,
+        this.carDamageSprite,
+        this.carSmokeSprite
+      ]) {
+        if (obj?.setVisible) obj.setVisible(false);
+        if (obj?.setAlpha) obj.setAlpha(0);
+      }
+
+      if (this.car.body) this.car.body.setSize(34, 62);
+      this.car.setVisible(true).setAlpha(1).setDepth(34);
+      this.car.setRotation((this.car.heading || -Math.PI / 2) + Math.PI / 2);
+    };
+
+    GameScene.prototype.refreshWorldNpcSprites = function() {
+      if (this.civilians?.length) {
+        for (const civ of this.civilians) {
+          if (!civ || !civ.body || !civ.assetKey) continue;
+          if (this.textures.exists(civ.assetKey)) {
+            if (!civ.sprite || civ.sprite._isFallback || civ.sprite.texture?.key !== civ.assetKey || civ.sprite.destroyed) {
+              civ.sprite?.destroy?.();
+              civ.sprite = this.add.sprite(civ.body.x, civ.body.y, civ.assetKey, 0)
+                .setOrigin(0.5, 0.88)
+                .setScale(CIV_CITY_SCALE)
+                .setDepth(30);
+            }
+            civ.sprite.setVisible(true).setAlpha(1).setScale(CIV_CITY_SCALE);
+          }
+        }
+      }
+
+      if (this.trafficCars?.length) {
+        for (const car of this.trafficCars) {
+          if (!car || !car.body || !car.vehicleKey) continue;
+          const topKey = rhVehicleTopKeySafe(car.vehicleKey);
+          const textureKey = rhTextureOrSmallFallback(this, car.vehicleKey);
+          const scale = rhUniformScaleForVehicleKey(topKey);
+
+          if (!car.sprite || car.sprite.destroyed || car.sprite.texture?.key !== textureKey || typeof car.sprite.setFrame === 'function') {
+            const x = car.body.x, y = car.body.y;
+            car.sprite?.destroy?.();
+            car.sprite = this.add.image(x, y, textureKey)
+              .setOrigin(0.5, 0.5)
+              .setDepth(car.isPolicePatrol ? 36 : 34);
+          }
+
+          car.sprite
+            .setVisible(true)
+            .setAlpha(1)
+            .setScale(scale)
+            .setPosition(car.body.x, car.body.y)
+            .setRotation((car.heading || -Math.PI / 2) + Math.PI / 2);
+        }
+      }
+
+      this.setupPlayerTopDownCarSprite?.();
+    };
+
+    const __uniformOldUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __uniformOldUpdate.call(this, time, delta);
+      if (this.inCar || !this.carSingleSprite || !this.carSingleSprite.visible) this.setupPlayerTopDownCarSprite?.();
+      if (this.trafficCars?.length && (Math.floor(time / 900) !== this._lastVehicleUniformRefreshTick)) {
+        this._lastVehicleUniformRefreshTick = Math.floor(time / 900);
         this.refreshWorldNpcSprites?.();
       }
     };
