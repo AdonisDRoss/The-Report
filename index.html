@@ -40,7 +40,8 @@
   // GIT_MAPPED_STANDARD_128_SPRITES_PATCH: Ramos walk path mapped to existing Git movement sheet; city actor action sheets standardized to 128x128 frames.
   // RAMOS_SCALE_CAR_B_FIX: city Ramos scaled to Malcolm movement height, station Ramos scaled up, B button enters/exits car near sedan.
   // X_CAR_ENTRY_RAMOS_CUT_FIX: X enters/exits car near sedan; Ramos sheets recut per frame to remove duplicate/bleed sprites.
-  // BLACK_SCREEN_SCALE_LOCK_HOTFIX_001: moved SCALE_LOCK before first use. // CAR_TOUCH_STEERING_CONTROLS_REMAP_001: X gas, Y brake/reverse, A headlights, B exit, Z handbrake, in-car transparent steering circle.
+  // BLACK_SCREEN_SCALE_LOCK_HOTFIX_001: moved SCALE_LOCK before first use. // CAR_RESPONSIVE_STEERING_TUNING_001: stronger touch-circle steering and low-speed turning help.
+  // CAR_TOUCH_STEERING_CONTROLS_REMAP_001: X gas, Y brake/reverse, A headlights, B exit, Z handbrake, in-car transparent steering circle.
   // PLAYER_CAR_WORLD_VISUAL_FIX_001: hard world-space visible Malcolm sedan sprite.
   // CAR_UNIFORM_SCALE_RENDER_FIX_001: fixes thin/stretched vehicles by using uniform scale on square PNG canvases.
   // CAR_SPRITE_VISIBILITY_PLAYER_SCALE_FIX_001: guarantees car sprites show and scales Malcolm car smaller.
@@ -7748,6 +7749,122 @@
     MobileControlsScene.prototype.update = function(time, delta) {
       if (typeof __touchOldUpdate === 'function') __touchOldUpdate.call(this, time, delta);
       this.refreshCarSteerVisibility?.();
+    };
+  }
+
+
+  // CAR_RESPONSIVE_STEERING_TUNING_001:
+  // Makes in-car steering more responsive while keeping the heavy vehicle feel.
+  // Touch circle now has a stronger steering curve, lower deadzone, and faster angular response.
+
+  const CAR_STEERING_TUNING = {
+    touchDeadzone: 0.035,
+    touchSensitivity: 1.75,
+    touchCurve: 0.56,
+    keyboardSensitivity: 1.0,
+    steeringPower: 7.2,
+    angularDamping: 0.91,
+    minTurnSpeed: 4,
+    handbrakeTurnBoost: 2.05,
+    angularVelocityLimit: 4.4
+  };
+
+  function rhCurveSteer(v) {
+    v = Phaser.Math.Clamp(v || 0, -1, 1);
+    const a = Math.abs(v);
+    if (a < CAR_STEERING_TUNING.touchDeadzone) return 0;
+    const curved = Math.pow(a, CAR_STEERING_TUNING.touchCurve) * CAR_STEERING_TUNING.touchSensitivity;
+    return Phaser.Math.Clamp(Math.sign(v) * curved, -1, 1);
+  }
+
+  function rhApplyResponsiveCarSteeringTuning() {
+    if (typeof PLAYER_CAR_HEAVY_HANDLING !== 'undefined') {
+      PLAYER_CAR_HEAVY_HANDLING.steeringPower = CAR_STEERING_TUNING.steeringPower;
+      PLAYER_CAR_HEAVY_HANDLING.angularDamping = CAR_STEERING_TUNING.angularDamping;
+      PLAYER_CAR_HEAVY_HANDLING.minTurnSpeed = CAR_STEERING_TUNING.minTurnSpeed;
+      PLAYER_CAR_HEAVY_HANDLING.handbrakeTurnBoost = CAR_STEERING_TUNING.handbrakeTurnBoost;
+      PLAYER_CAR_HEAVY_HANDLING.angularVelocityLimit = CAR_STEERING_TUNING.angularVelocityLimit;
+    }
+    if (typeof PLAYER_CAR_HANDLING !== 'undefined') {
+      PLAYER_CAR_HANDLING.turnRate = 4.4;
+      PLAYER_CAR_HANDLING.minTurnSpeed = 4;
+      PLAYER_CAR_HANDLING.handbrakeTurnBoost = 2.0;
+    }
+  }
+
+  rhApplyResponsiveCarSteeringTuning();
+
+  if (typeof GameScene !== 'undefined') {
+    const __responsiveSteerOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __responsiveSteerOldCreate.apply(this, arguments);
+      rhApplyResponsiveCarSteeringTuning();
+
+      if (this.input?.keyboard) {
+        this.carLeftKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+        this.carRightKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+        this.carWKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.carSKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+        this.carUpKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+        this.carDownKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+      }
+
+      this.message = 'Car steering tuned: touch circle is more responsive.';
+      this.messageTimer = 1800;
+    };
+
+    GameScene.prototype.readPlayerCarInput = function() {
+      const m = this.mobile || MOBILE_INPUT_STATE || {};
+
+      let steering = 0;
+      if (Math.abs(m.carSteerX || 0) > CAR_STEERING_TUNING.touchDeadzone) {
+        steering = rhCurveSteer(m.carSteerX);
+      } else {
+        if (m.left || this.carLeftKey?.isDown) steering -= CAR_STEERING_TUNING.keyboardSensitivity;
+        if (m.right || this.carRightKey?.isDown) steering += CAR_STEERING_TUNING.keyboardSensitivity;
+      }
+
+      let throttle = 0;
+      if (m.x || this.carAccelKey?.isDown || this.carWKey?.isDown || this.carUpKey?.isDown) throttle = 1;
+      if (m.y || this.carBrakeKey?.isDown || this.carSKey?.isDown || this.carDownKey?.isDown) throttle = -1;
+
+      const handbrake = !!(m.z || this.carHandbrakeKey?.isDown || this.carHandbrakeSpaceKey?.isDown);
+      return { throttle, steering: Phaser.Math.Clamp(steering, -1, 1), handbrake };
+    };
+
+    // Patch the heavy physics clamp, because the old updateCar capped angular velocity internally.
+    const __responsiveSteerOldUpdateCar = GameScene.prototype.updateCar;
+    GameScene.prototype.updateCar = function(dt) {
+      rhApplyResponsiveCarSteeringTuning();
+      if (typeof __responsiveSteerOldUpdateCar === 'function') __responsiveSteerOldUpdateCar.call(this, dt);
+
+      if (this.car && Number.isFinite(this.car.angularVelocity)) {
+        const max = CAR_STEERING_TUNING.angularVelocityLimit;
+        this.car.angularVelocity = Phaser.Math.Clamp(this.car.angularVelocity, -max, max);
+
+        // Extra low-speed help: lets the car begin turning before it is moving fast.
+        const m = this.mobile || MOBILE_INPUT_STATE || {};
+        const steer = Math.abs(m.carSteerX || 0) > CAR_STEERING_TUNING.touchDeadzone ? rhCurveSteer(m.carSteerX) : 0;
+        const speed = Math.hypot(this.car.velocityX || this.car.vx || 0, this.car.velocityY || this.car.vy || 0);
+        if (this.inCar && Math.abs(steer) > 0.1 && speed < 55) {
+          this.car.heading = (this.car.heading || -Math.PI / 2) + steer * 0.018;
+          this.car.setRotation((this.car.heading || -Math.PI / 2) + Math.PI / 2);
+        }
+      }
+    };
+  }
+
+  if (typeof MobileControlsScene !== 'undefined') {
+    const __responsiveSteerOldRefresh = MobileControlsScene.prototype.refreshCarSteerVisibility;
+    MobileControlsScene.prototype.refreshCarSteerVisibility = function() {
+      if (typeof __responsiveSteerOldRefresh === 'function') __responsiveSteerOldRefresh.call(this);
+
+      const target = this.getTargetScene?.();
+      const inCar = !!(target?.scene?.key === 'GameScene' && target.inCar);
+
+      if (this.carSteerCircle) {
+        this.carSteerCircle.setAlpha(inCar ? 1 : 0);
+      }
     };
   }
 
