@@ -40,7 +40,8 @@
   // GIT_MAPPED_STANDARD_128_SPRITES_PATCH: Ramos walk path mapped to existing Git movement sheet; city actor action sheets standardized to 128x128 frames.
   // RAMOS_SCALE_CAR_B_FIX: city Ramos scaled to Malcolm movement height, station Ramos scaled up, B button enters/exits car near sedan.
   // X_CAR_ENTRY_RAMOS_CUT_FIX: X enters/exits car near sedan; Ramos sheets recut per frame to remove duplicate/bleed sprites.
-  // BLACK_SCREEN_SCALE_LOCK_HOTFIX_001: moved SCALE_LOCK before first use. // CAR_UNIFORM_SCALE_RENDER_FIX_001: fixes thin/stretched vehicles by using uniform scale on square PNG canvases.
+  // BLACK_SCREEN_SCALE_LOCK_HOTFIX_001: moved SCALE_LOCK before first use. // PLAYER_CAR_WORLD_VISUAL_FIX_001: hard world-space visible Malcolm sedan sprite.
+  // CAR_UNIFORM_SCALE_RENDER_FIX_001: fixes thin/stretched vehicles by using uniform scale on square PNG canvases.
   // CAR_SPRITE_VISIBILITY_PLAYER_SCALE_FIX_001: guarantees car sprites show and scales Malcolm car smaller.
   // WEATHER_RAIN_LIGHTNING_PATCH_001: heavy angled rain, lightning flash, camera shake on outdoor city scene.
   // MODULAR_VEHICLE_WEAPONS_RADAR_AI_PATCH_001: projectile pipeline, AI radar/evasion, modular impact helpers.
@@ -7339,6 +7340,146 @@
         this._lastVehicleUniformRefreshTick = Math.floor(time / 900);
         this.refreshWorldNpcSprites?.();
       }
+    };
+  }
+
+
+  // PLAYER_CAR_WORLD_VISUAL_FIX_001:
+  // Hard-fixes Malcolm's invisible car by rendering his car as a world-space image at the car physics container.
+  // This bypasses any hidden child/container/placeholder state left by old 64-frame car code.
+
+  function rhPlayerCarHardTexture(scene) {
+    const key = PLAYER_CAR_SINGLE_ASSET?.key || 'meridian_sentinel_lx_top';
+    const path = PLAYER_CAR_SINGLE_ASSET?.path || 'assets/vehicles_single/meridian_sentinel_lx_top.png';
+
+    if (scene.textures.exists(key)) return key;
+
+    scene._rhPlayerCarHardLoadQueued = scene._rhPlayerCarHardLoadQueued || false;
+    if (!scene._rhPlayerCarHardLoadQueued) {
+      scene._rhPlayerCarHardLoadQueued = true;
+      try {
+        scene.load.image(key, A(path));
+        scene.load.once(`filecomplete-image-${key}`, () => {
+          scene._rhPlayerCarHardLoadQueued = false;
+          scene.forcePlayerCarWorldVisual?.();
+        });
+        scene.load.once('loaderror', () => { scene._rhPlayerCarHardLoadQueued = false; });
+        if (!scene.load.isLoading()) scene.load.start();
+      } catch (_) {
+        scene._rhPlayerCarHardLoadQueued = false;
+      }
+    }
+
+    const fb = 'meridian_sentinel_lx_top__hard_visible_fallback';
+    if (!scene.textures.exists(fb)) {
+      const tex = scene.textures.createCanvas(fb, 192, 192);
+      const ctx = tex.getContext();
+      ctx.clearRect(0, 0, 192, 192);
+
+      // Shadow
+      ctx.fillStyle = 'rgba(0,0,0,0.38)';
+      ctx.beginPath();
+      ctx.ellipse(96, 98, 40, 78, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Unmarked detective sedan body, readable but not skinny.
+      ctx.fillStyle = '#151a21';
+      ctx.strokeStyle = '#6f7f86';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect(65, 16, 62, 160, 18);
+      ctx.fill();
+      ctx.stroke();
+
+      // Roof/cabin
+      ctx.fillStyle = '#080b10';
+      ctx.fillRect(72, 46, 48, 28);
+      ctx.fillRect(73, 105, 46, 36);
+
+      // Windshield dash red/blue lights.
+      ctx.fillStyle = '#1a2028';
+      ctx.fillRect(75, 47, 42, 12);
+      ctx.fillStyle = '#ff2525';
+      ctx.fillRect(82, 50, 10, 5);
+      ctx.fillStyle = '#2868ff';
+      ctx.fillRect(100, 50, 10, 5);
+
+      // Bumpers and tires.
+      ctx.fillStyle = '#0a0a0b';
+      ctx.fillRect(55, 38, 10, 30);
+      ctx.fillRect(127, 38, 10, 30);
+      ctx.fillRect(55, 124, 10, 34);
+      ctx.fillRect(127, 124, 10, 34);
+
+      ctx.fillStyle = '#cbd2d6';
+      ctx.fillRect(75, 13, 42, 4);
+      ctx.fillRect(75, 175, 42, 4);
+
+      tex.refresh();
+    }
+    return fb;
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    GameScene.prototype.forcePlayerCarWorldVisual = function() {
+      if (!this.car) return;
+
+      const key = rhPlayerCarHardTexture(this);
+      const scale = 0.52; // actual 192x192 canvas stays proportional; car painted inside reads about 42x83.
+
+      if (!this.playerCarWorldSprite || this.playerCarWorldSprite.destroyed || this.playerCarWorldSprite.texture?.key !== key) {
+        this.playerCarWorldSprite?.destroy?.();
+        this.playerCarWorldSprite = this.add.image(this.car.x, this.car.y, key)
+          .setOrigin(0.5, 0.5)
+          .setDepth(34);
+      }
+
+      this.playerCarWorldSprite
+        .setVisible(true)
+        .setAlpha(1)
+        .setScale(scale)
+        .setPosition(this.car.x, this.car.y)
+        .setRotation((this.car.heading || -Math.PI / 2) + Math.PI / 2)
+        .setDepth(34);
+
+      // Old visuals are allowed to exist but never visible.
+      for (const obj of [
+        this.carFallback,
+        this.carSingleSprite,
+        this.carShadowSprite,
+        this.carBaseSprite,
+        this.carLightsSprite,
+        this.carDamageSprite,
+        this.carSmokeSprite
+      ]) {
+        if (obj?.setVisible) obj.setVisible(false);
+        if (obj?.setAlpha) obj.setAlpha(0);
+      }
+
+      // Keep the physics body active but visually invisible.
+      if (this.car.body) this.car.body.setSize(34, 62);
+      this.car.setVisible(true).setAlpha(1).setDepth(33);
+    };
+
+    const __playerCarWorldOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __playerCarWorldOldCreate.apply(this, arguments);
+      this.forcePlayerCarWorldVisual?.();
+      this.time.delayedCall(100, () => this.forcePlayerCarWorldVisual?.());
+      this.time.delayedCall(700, () => this.forcePlayerCarWorldVisual?.());
+      this.time.delayedCall(1600, () => this.forcePlayerCarWorldVisual?.());
+    };
+
+    const __playerCarWorldOldUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __playerCarWorldOldUpdate.call(this, time, delta);
+      this.forcePlayerCarWorldVisual?.();
+    };
+
+    const __playerCarWorldOldSync = GameScene.prototype.syncVehicleSprites;
+    GameScene.prototype.syncVehicleSprites = function() {
+      if (typeof __playerCarWorldOldSync === 'function') __playerCarWorldOldSync.call(this);
+      this.forcePlayerCarWorldVisual?.();
     };
   }
 
