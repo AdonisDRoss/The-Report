@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Exit Freeze Fix</title>
+  <title>The Report — Raven Hook Central — Exit Freeze Fix V2</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -803,6 +803,7 @@
     path: 'assets/reference/layer_02_building_exterior_sheet.png'
   };
 
+  // EXIT_FREEZE_FIX_002: fixes drawBuildings ReferenceError that froze station exit.
   // EXIT_FREEZE_FIX_001:
   // Heavy 4096 map + many large building PNG overlays can freeze mobile when leaving the station.
   // Keep car/civilian nodes active, but do not load building overlays until street exit is stable.
@@ -1716,7 +1717,7 @@
       // Base page already contains building footprint pads.
       // Keep this empty so old Raven Hook Central building overlays do not fight the rebuilt 4096x4096 map.
       this.buildingLabels = [];
-      this.buildingGraphics = this.add.graphics().setDepth(b.depth ?? ROOF_DEPTH);
+      this.buildingGraphics = this.add.graphics().setDepth(ROOF_DEPTH);
     }
 
     createCollision() {
@@ -1792,7 +1793,7 @@
         const img = this.add.image(x, y, b.key)
           .setOrigin(0, 0)
           .setDisplaySize(w, h)
-          .setDepth(ROOF_DEPTH);
+          .setDepth(b.depth ?? ROOF_DEPTH);
         img.setName(b.name);
         this.realBuildingImages.push(img);
       }
