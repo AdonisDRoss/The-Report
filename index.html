@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Collision Rebuild</title>
+  <title>The Report — Raven Hook Central — Zoom Out + Locked Controls</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -58,10 +58,11 @@
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
 
   const CAMERA = {
-    playerZoom: 2.35,
-    carSlowZoom: 1.85,
-    carMidZoom: 1.45,
-    carFastZoom: 1.20,
+    // CAMERA_ZOOM_OUT_LOCKED_CONTROLS_001: slight zoom-out; mobile controls stay fixed screen-space.
+    playerZoom: 2.20,
+    carSlowZoom: 1.72,
+    carMidZoom: 1.36,
+    carFastZoom: 1.12,
     followLerp: 0.14
   };
 
@@ -1297,7 +1298,8 @@
       if (!obj) return obj;
       if (!this.uiObjects) this.uiObjects = [];
       if (!this.uiObjects.includes(obj)) this.uiObjects.push(obj);
-      if (obj.setScrollFactor) obj.setScrollFactor(0);
+      if (obj.setScrollFactor) obj.setScrollFactor(0, 0);
+      if (obj.setDepth && obj.depth < 2000) obj.setDepth(2000);
       return obj;
     }
 
@@ -4219,14 +4221,29 @@
       this.input.addPointer(5);
       this.input.mouse?.disableContextMenu();
       this.activePointerControls = new Map();
+      this.lockMobileControlsCamera();
       this.drawControls();
     }
 
+    lockMobileControlsCamera() {
+      // MOBILE_CONTROLS_SCREEN_LOCK_001:
+      // This scene is UI-only. It must never inherit world camera scroll/zoom.
+      if (!this.cameras?.main) return;
+      this.cameras.main.setScroll(0, 0);
+      this.cameras.main.setZoom(1);
+      this.cameras.main.roundPixels = true;
+    }
+
+    update() {
+      this.lockMobileControlsCamera();
+    }
+
     drawControls() {
+      this.lockMobileControlsCamera();
       this.children.removeAll(true);
 
       const addBtn = (x, y, label, key, color = 0x111827, radius = 30, font = '18px') => {
-        const c = this.add.container(x, y).setScrollFactor(0).setDepth(5000);
+        const c = this.add.container(x, y).setScrollFactor(0, 0).setDepth(5000);
         const bg = this.add.circle(0, 0, radius, color, 0.82).setStrokeStyle(2, 0xffffff, 0.65);
         const tx = this.add.text(0, -8, label, {
           fontFamily: 'Courier New',
