@@ -1,9 +1,9 @@
 mkdir -p .github/workflows
 
-cat > .github/workflows/import-raven-hook-assets.yml <<'YAML'
+cat > .github/workflows/main.yml <<'YAML'
 name: Import Raven Hook Assets 1-4
 
-on:
+"on":
   workflow_dispatch:
 
 permissions:
@@ -22,7 +22,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y unzip
 
-      - name: Check required zips in repo root
+      - name: Check required ZIP files in root
         run: |
           test -f the_report_raven_hook_FINAL_KIMS_FIXED_part01a_hero_processed.zip
           test -f the_report_raven_hook_FINAL_KIMS_FIXED_part01b_hero_processed.zip
@@ -55,11 +55,11 @@ jobs:
         run: |
           unzip -o the_report_raven_hook_FINAL_KIMS_FIXED_part03_overlays_config_docs.zip
 
-      - name: Do not import map backups or patches
+      - name: Skip map and backups
         run: |
           echo "Skipping part04_map.zip."
-          echo "Skipping original backups."
-          echo "Skipping Kim/filler patches."
+          echo "Skipping backups."
+          echo "Skipping Kim/filler patch."
 
       - name: Show imported files
         run: |
