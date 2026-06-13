@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Controls Restored + Buildings Batch 1</title>
+  <title>The Report — Raven Hook Central — Controls Restored + Visible Buildings</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -326,7 +326,7 @@
     {"id": "dock_office_door", "x": 3191, "y": 3040, "w": 88, "h": 60, "type": "door", "label": "Dock Office"},
     {"id": "river_storage_door", "x": 3651, "y": 3050, "w": 88, "h": 60, "type": "door", "label": "River Storage"},
     {"id": "crow_burger_door", "x": 2486, "y": 3550, "w": 88, "h": 60, "type": "door", "label": "Crow Burger"},
-    {"id": "detective_trunk", "x": 900, "y": 685, "w": 260, "h": 240, "type": "trunk", "label": "Detective Sedan"},
+    {"id": "detective_trunk", "x": 850, "y": 650, "w": 360, "h": 300, "type": "trunk", "label": "Detective Sedan"},
     {"id": "bennys_shoplifting_trigger", "x": 2245, "y": 230, "w": 430, "h": 330, "type": "crime_trigger", "label": "Benny's Receipt Case"},
     {"id": "bennys_evidence", "x": 2360, "y": 370, "w": 90, "h": 90, "type": "evidence", "label": "Stolen Goods"},
     {"id": "bennys_witness", "x": 2325, "y": 520, "w": 135, "h": 95, "type": "witness", "npcId": "bennys_clerk", "label": "Benny's Clerk"},
@@ -804,19 +804,28 @@
   };
 
   const BUILDING_IMAGE_ASSETS = [
-    // CONTROLS_RESTORE_BUILDINGS_BATCH1_001
-    // Safe first batch: enough buildings to prove the pipeline without freezing mobile.
-    // Car controls are untouched from the known-good base index.
+    // CONTROLS_RESTORED_BUILDINGS_VISIBLE_FIX_001
+    // Batch 1 visible building overlays. Police station is intentionally raised so the player/car spawn lane stays visible.
 
-    { key:'raven_hook_police_station_main_slotfit', name:'Raven Hook Police Station', path:'assets/buildings/hero/raven_hook_police_station_main_slotfit.png', place:[820, 470, 700, 470], depth:ROOF_DEPTH },
+    { key:'raven_hook_police_station_main_slotfit', name:'Raven Hook Police Station', path:'assets/buildings/hero/raven_hook_police_station_main_slotfit.png', place:[760, 180, 560, 380], depth:ROOF_DEPTH },
+    { key:'raven_hook_police_motor_pool_overlay_open', name:'Police Motor Pool Open Overlay', path:'assets/buildings/overlays/raven_hook_police_motor_pool_overlay_open.png', place:[1180, 510, 300, 220], depth:ROOF_DEPTH + 8 },
+
     { key:'bennys_market_main_slotfit', name:"Benny's Market", path:'assets/buildings/hero/bennys_market_main_slotfit.png', place:[2180, 190, 620, 380], depth:ROOF_DEPTH },
     { key:'red_gull_diner_main_slotfit', name:'Red Gull Diner', path:'assets/buildings/hero/red_gull_diner_main_slotfit.png', place:[2820, 205, 600, 350], depth:ROOF_DEPTH },
+    { key:'quick_wash_laundromat_main_slotfit', name:'Quick Wash', path:'assets/buildings/hero/quick_wash_laundromat_main_slotfit.png', place:[3260, 245, 360, 300], depth:ROOF_DEPTH },
+
     { key:'raven_pawn_main_slotfit', name:'Raven Pawn', path:'assets/buildings/hero/raven_pawn_main_slotfit.png', place:[2135, 900, 420, 360], depth:ROOF_DEPTH },
     { key:'kims_corner_market_malcolm_apartment_main_slotfit', name:"Kim's Corner Market / Malcolm Apartment", path:'assets/buildings/hero/kims_corner_market_malcolm_apartment_main_slotfit.png', place:[2500, 920, 430, 360], depth:ROOF_DEPTH },
     { key:'russo_auto_body_main_roof_slotfit', name:'Russo Auto Body', path:'assets/buildings/hero/russo_auto_body_main_roof_slotfit.png', place:[3220, 890, 600, 390], depth:ROOF_DEPTH },
+
     { key:'courthouse_city_hall_large_main_slotfit', name:'Courthouse & City Hall', path:'assets/buildings/hero/courthouse_city_hall_large_main_slotfit.png', place:[610, 2350, 640, 440], depth:ROOF_DEPTH },
+    { key:'march_legal_services_main_slotfit', name:'March Legal Services', path:'assets/buildings/hero/march_legal_services_main_slotfit.png', place:[735, 3020, 430, 310], depth:ROOF_DEPTH },
     { key:'civic_service_tow_main_slotfit', name:'Civic Service & Tow', path:'assets/buildings/hero/civic_service_tow_main_slotfit.png', place:[1345, 3440, 470, 330], depth:ROOF_DEPTH },
     { key:'bell_cartage_cold_storage_main_slotfit', name:'Bell Cartage & Cold Storage', path:'assets/buildings/hero/bell_cartage_cold_storage_main_slotfit.png', place:[2625, 3170, 620, 420], depth:ROOF_DEPTH },
+
+    { key:'neon_nights_main_slotfit', name:'Neon Nights', path:'assets/buildings/hero/neon_nights_main_slotfit.png', place:[2660, 1500, 560, 390], depth:ROOF_DEPTH },
+    { key:'blue_lantern_supper_club_main_slotfit', name:'Blue Lantern Supper Club', path:'assets/buildings/hero/blue_lantern_supper_club_main_slotfit.png', place:[3050, 2120, 520, 360], depth:ROOF_DEPTH },
+
     { key:'filler_storage_building_main_slotfit', name:'Filler Storage Building', path:'assets/buildings/fillers/filler_storage_building_main_slotfit.png', place:[3440, 2930, 390, 290], depth:ROOF_DEPTH }
   ];
 
@@ -1001,7 +1010,7 @@
 
   // Pedestrian sidewalk graph — safe zones between building edges and road lanes
   const CITY_SIDEWALK_NODES = [
-    // RAVEN_HOOK_NPC_NODE_UPDATE_SAFE_001
+    // RAVEN_HOOK_NPC_NODE_UPDATE_SAFE_002
     { id:'sw_station_w', x: 780, y: 590, links:['sw_station_door','sw_station_e'] },
     { id:'sw_station_door', x:1010, y: 570, links:['sw_station_w','sw_station_e','sw_payphone'] },
     { id:'sw_station_e', x:1260, y: 590, links:['sw_station_door','sw_payphone'] },
@@ -1034,7 +1043,7 @@
 
   // NPC traffic routes — looping waypoint arrays. stop:true = intersection pause.
   const CITY_TRAFFIC_ROUTES = [
-    // RAVEN_HOOK_TRAFFIC_NODE_UPDATE_SAFE_001
+    // RAVEN_HOOK_TRAFFIC_NODE_UPDATE_SAFE_002
     { id:'rte_north_eastbound', waypoints:[
       {x:260,y:760},{x:620,y:760,stop:true},{x:1010,y:760,stop:true},{x:1510,y:760},
       {x:2300,y:760,stop:true},{x:2940,y:760},{x:3500,y:760,stop:true},{x:3860,y:760}
@@ -1729,8 +1738,8 @@
 
 
     applyBuildingImages() {
-      // BUILDING_PROGRESSIVE_LOAD_FIX_001:
-      // Draw building images as each one finishes loading. One missing/bad file no longer blocks all buildings.
+      // BUILDING_PROGRESSIVE_LOAD_FIX_002:
+      // Draw buildings as each file finishes. One missing file cannot block all building overlays.
       if (!this._buildingImageKeys) this._buildingImageKeys = new Set();
       if (!this.realBuildingImages) this.realBuildingImages = [];
 
@@ -9479,9 +9488,9 @@
   }
 
 
-  // USER_REQUESTED_IN_CAR_DIAMOND_002:
+  // USER_REQUESTED_IN_CAR_DIAMOND_003_HEADLIGHTS_Z:
   // Preserve reverted on-foot controls. Replace only the active in-car mobile layer.
-  // In car: X = gas, Y = reverse, A = handbrake, B = enter/exit only.
+  // In car: X = gas, Y = reverse, A = handbrake, B = enter/exit only, Z = headlights.
   // Raw x/y/a/b/z mobile flags are never used for driving while in car.
   Object.assign(MOBILE_INPUT_STATE, {
     driveGas: false,
@@ -9537,6 +9546,7 @@
         this.keyRequestedBrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
         this.keyRequestedHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.keyRequestedExit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+        this.keyRequestedLights = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
         this.keyRequestedSpaceHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.keyRequestedLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         this.keyRequestedRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
@@ -9615,6 +9625,10 @@
 
       __requestedCarUpdate.call(this, time, delta);
 
+      if (this.inCar && this.keyRequestedLights && Phaser.Input.Keyboard.JustDown(this.keyRequestedLights)) {
+        this.togglePlayerHeadlights?.();
+      }
+
       if (this.inCar && this.keyRequestedExit && Phaser.Input.Keyboard.JustDown(this.keyRequestedExit)) {
         rhRequestedClearAllDriveState();
         this.handleCarOrArrest?.();
@@ -9675,6 +9689,12 @@
           if (semanticKey === 'driveGas') MOBILE_INPUT_STATE.driveGas = true;
           else if (semanticKey === 'driveBrake') MOBILE_INPUT_STATE.driveBrake = true;
           else if (semanticKey === 'driveHandbrake') MOBILE_INPUT_STATE.driveHandbrake = true;
+          else if (semanticKey === 'lights') {
+            const target = this.getTargetScene?.();
+            if (target?.scene?.key === 'GameScene' && target.inCar) target.togglePlayerHeadlights?.();
+            this.activePointerControls.set(pointer.id, ['lights']);
+            return;
+          }
           else if (semanticKey === 'exit') {
             rhRequestedClearAllDriveState();
             this.activePointerControls.set(pointer.id, ['exit']);
@@ -9752,6 +9772,7 @@
       this.input.on('pointerupoutside', this._requestedUpOutsideHandler);
 
       // Rebuilt in-car diamond, moved up and clear of the bottom edge.
+      //      Z headlights
       //      X gas
       // B exit   A handbrake
       //      Y reverse
@@ -9759,6 +9780,7 @@
       const baseY = VIEW_H - 310;
       const radius = 32;
       const buttons = [
+        { x: baseX,      y: baseY - 64,  label: 'Z', color: 0x402050, state: 'lights' },
         { x: baseX,      y: baseY,       label: 'X', color: 0x1f314d, state: 'driveGas' },
         { x: baseX,      y: baseY + 124, label: 'Y', color: 0x4d3b1f, state: 'driveBrake' },
         { x: baseX + 62, y: baseY + 62,  label: 'A', color: 0x1f4d2f, state: 'driveHandbrake' },
@@ -9803,6 +9825,8 @@
           MOBILE_INPUT_STATE.driveBrake = false;
         } else if (key === 'driveHandbrake') {
           MOBILE_INPUT_STATE.driveHandbrake = false;
+        } else if (key === 'lights') {
+          rhRequestedClearRawMobileButtons();
         } else if (key === 'exit') {
           rhRequestedClearAllDriveState();
         }
@@ -9831,7 +9855,7 @@
           rhRequestedClearAllDriveState();
           target.handleCarOrArrest?.();
         }
-        // X/Y/A are held semantic driving states only.
+        // X/Y/A are held semantic driving states only. Z toggles headlights through its own touch zone.
         return;
       }
     };
@@ -9853,6 +9877,414 @@
 
       if (this._requestedControlMode !== 'car' && typeof __requestedFootUpdate === 'function') {
         __requestedFootUpdate.call(this, time, delta);
+      }
+    };
+  }
+
+
+
+  // USER_HOTFIX_CAR_INPUT_B_NOT_REVERSE_004:
+  // Final hard override for in-car controls after the Z-headlights request.
+  // Fixes reported issue where B behaved like reverse and X acceleration did not engage.
+  // In car: X = gas, Y = reverse, A = handbrake, B = enter/exit only, Z = headlights.
+  // While driving, no raw mobile x/y/a/b/z/down/analogY state is allowed to feed car movement.
+  Object.assign(MOBILE_INPUT_STATE, {
+    driveGas:false,
+    driveBrake:false,
+    driveHandbrake:false,
+    driveSteerX:0,
+    driveSteerY:0,
+    carGas:false,
+    carBrake:false,
+    carHandbrake:false,
+    carSteerX:0,
+    carSteerY:0,
+    z:false
+  });
+
+  function rhBReverseHotfixClearRawDrivingLeak() {
+    // Clear every legacy/mobile path older car wrappers used for throttle/reverse.
+    MOBILE_INPUT_STATE.x = false;
+    MOBILE_INPUT_STATE.y = false;
+    MOBILE_INPUT_STATE.a = false;
+    MOBILE_INPUT_STATE.b = false;
+    MOBILE_INPUT_STATE.z = false;
+    MOBILE_INPUT_STATE.up = false;
+    MOBILE_INPUT_STATE.down = false;
+    MOBILE_INPUT_STATE.carGas = false;
+    MOBILE_INPUT_STATE.carBrake = false;
+    MOBILE_INPUT_STATE.carHandbrake = false;
+    // Keep steering independent from the old walking analog Y so drag steering cannot become reverse.
+    MOBILE_INPUT_STATE.analogY = 0;
+  }
+
+  function rhBReverseHotfixClearDriveButtons() {
+    MOBILE_INPUT_STATE.driveGas = false;
+    MOBILE_INPUT_STATE.driveBrake = false;
+    MOBILE_INPUT_STATE.driveHandbrake = false;
+    rhBReverseHotfixClearRawDrivingLeak();
+  }
+
+  function rhBReverseHotfixClearSteer() {
+    MOBILE_INPUT_STATE.driveSteerX = 0;
+    MOBILE_INPUT_STATE.driveSteerY = 0;
+    MOBILE_INPUT_STATE.carSteerX = 0;
+    MOBILE_INPUT_STATE.carSteerY = 0;
+    MOBILE_INPUT_STATE.analogX = 0;
+    MOBILE_INPUT_STATE.analogY = 0;
+  }
+
+  function rhBReverseHotfixClearAllCarInput() {
+    rhBReverseHotfixClearDriveButtons();
+    rhBReverseHotfixClearSteer();
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    const __bReverseHotfixCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __bReverseHotfixCreate.apply(this, arguments);
+
+      if (this.input?.keyboard) {
+        this.keyHotfixGas = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
+        this.keyHotfixReverse = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
+        this.keyHotfixHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
+        this.keyHotfixExit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+        this.keyHotfixLights = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+        this.keyHotfixSpaceHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.keyHotfixLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+        this.keyHotfixRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+        this.keyHotfixUp = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
+        this.keyHotfixDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
+        this.keyHotfixW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
+        this.keyHotfixS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
+      }
+
+      // Disable older aliases whose meanings changed across patches.
+      this.headlightToggleKey = null;
+      this.carHeadlightKey = null;
+      this.keyCarLights = null;
+      this.keyFinalLights = null;
+      this.keyDriveLights = null;
+      this.keyCleanLights = null;
+      this.keyRequestedLights = null;
+      this.carEnterExitKey = null;
+      this.keyCarExit = null;
+      this.keyFinalExit = null;
+      this.keyDriveExit = null;
+      this.keyCleanExit = null;
+      this.keyRequestedExit = null;
+
+      // Repoint legacy names to harmless/current meanings for any older wrapper that still reads them.
+      this.accelerateButtonKey = this.keyHotfixGas;
+      this.carAccelKey = this.keyHotfixGas;
+      this.carBrakeKey = this.keyHotfixReverse;
+      this.handbrakeKey = this.keyHotfixHandbrake;
+      this.carHandbrakeKey = this.keyHotfixHandbrake;
+    };
+
+    GameScene.prototype.readPlayerCarInput = function() {
+      const m = this.mobile || MOBILE_INPUT_STATE || {};
+
+      let steering = 0;
+      const steerX = Number.isFinite(m.driveSteerX) ? m.driveSteerX : (Number.isFinite(m.carSteerX) ? m.carSteerX : 0);
+      if (Math.abs(steerX || 0) > 0.025) {
+        const raw = Phaser.Math.Clamp(steerX || 0, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
+      } else {
+        if (this.keyHotfixLeft?.isDown) steering -= 1;
+        if (this.keyHotfixRight?.isDown) steering += 1;
+      }
+
+      let throttle = 0;
+      if (m.driveGas || this.keyHotfixGas?.isDown || this.keyHotfixUp?.isDown || this.keyHotfixW?.isDown) throttle = 1;
+      if (m.driveBrake || this.keyHotfixReverse?.isDown || this.keyHotfixDown?.isDown || this.keyHotfixS?.isDown) throttle = -1;
+
+      const handbrake = !!(m.driveHandbrake || this.keyHotfixHandbrake?.isDown || this.keyHotfixSpaceHandbrake?.isDown);
+      return { throttle, steering: Phaser.Math.Clamp(steering, -1, 1), handbrake };
+    };
+
+    const __bReverseHotfixUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      if (this.inCar) {
+        rhBReverseHotfixClearRawDrivingLeak();
+        // Keep old wrappers from seeing legacy light/exit aliases.
+        this.headlightToggleKey = null;
+        this.carHeadlightKey = null;
+        this.keyCarLights = null;
+        this.keyFinalLights = null;
+        this.keyDriveLights = null;
+        this.keyCleanLights = null;
+        this.keyRequestedLights = null;
+        this.carEnterExitKey = null;
+        this.keyCarExit = null;
+        this.keyFinalExit = null;
+        this.keyDriveExit = null;
+        this.keyCleanExit = null;
+        this.keyRequestedExit = null;
+      }
+
+      __bReverseHotfixUpdate.call(this, time, delta);
+
+      if (this.inCar) {
+        rhBReverseHotfixClearRawDrivingLeak();
+
+        if (this.keyHotfixLights && Phaser.Input.Keyboard.JustDown(this.keyHotfixLights)) {
+          this.togglePlayerHeadlights?.();
+        }
+
+        if (this.keyHotfixExit && Phaser.Input.Keyboard.JustDown(this.keyHotfixExit)) {
+          rhBReverseHotfixClearAllCarInput();
+          this.handleCarOrArrest?.();
+        }
+      }
+    };
+
+    const __bReverseHotfixHandleInteract = GameScene.prototype.handleInteract;
+    GameScene.prototype.handleInteract = function() {
+      const wasInCar = !!this.inCar;
+      const result = __bReverseHotfixHandleInteract.apply(this, arguments);
+      if (wasInCar !== !!this.inCar) rhBReverseHotfixClearAllCarInput();
+      return result;
+    };
+  }
+
+  if (typeof MobileControlsScene !== 'undefined') {
+    const __bReverseHotfixFootDrawControls = MobileControlsScene.prototype.drawControls;
+    const __bReverseHotfixFootSetControl = MobileControlsScene.prototype.setControl;
+    const __bReverseHotfixFootFireAction = MobileControlsScene.prototype.fireAction;
+    const __bReverseHotfixFootReleasePointer = MobileControlsScene.prototype.releasePointer;
+    const __bReverseHotfixFootUpdate = MobileControlsScene.prototype.update;
+
+    MobileControlsScene.prototype.isBReverseHotfixDriving = function() {
+      const target = this.getTargetScene?.();
+      return !!(target?.scene?.key === 'GameScene' && target.inCar);
+    };
+
+    MobileControlsScene.prototype.drawBReverseHotfixCarControls = function() {
+      this.children.removeAll(true);
+      this.input.topOnly = true;
+      this.activePointerControls = new Map();
+      this.dynamicStickPointerId = null;
+      this.dynamicStickCenter = null;
+      this._bReverseHotfixMode = 'car';
+
+      if (this._bReverseHotfixMoveHandler) this.input.off('pointermove', this._bReverseHotfixMoveHandler);
+      if (this._bReverseHotfixUpHandler) this.input.off('pointerup', this._bReverseHotfixUpHandler);
+      if (this._bReverseHotfixUpOutsideHandler) this.input.off('pointerupoutside', this._bReverseHotfixUpOutsideHandler);
+
+      const isDriving = () => this.isBReverseHotfixDriving?.();
+
+      const addVisualButton = (x, y, label, color, radius = 34, depth = 22000, font = '18px') => {
+        const c = this.add.container(x, y).setScrollFactor(0).setDepth(depth);
+        const bg = this.add.circle(0, 0, radius, color, 0.88).setStrokeStyle(3, 0xffffff, 0.78);
+        const tx = this.add.text(0, -8, label, {
+          fontFamily: 'Courier New',
+          fontSize: font,
+          color: '#fff',
+          stroke: '#000',
+          strokeThickness: 3
+        }).setOrigin(0.5);
+        c.add([bg, tx]);
+        return c;
+      };
+
+      const addCarButtonZone = (x, y, w, h, semanticKey) => {
+        const zone = this.add.zone(x, y, w, h)
+          .setScrollFactor(0)
+          .setDepth(23000)
+          .setInteractive({ useHandCursor: false });
+
+        zone.on('pointerdown', (pointer) => {
+          if (!isDriving()) return;
+          pointer.event?.stopPropagation?.();
+          rhBReverseHotfixClearRawDrivingLeak();
+
+          if (semanticKey === 'driveGas') {
+            MOBILE_INPUT_STATE.driveGas = true;
+            this.activePointerControls.set(pointer.id, ['driveGas']);
+            return;
+          }
+          if (semanticKey === 'driveBrake') {
+            MOBILE_INPUT_STATE.driveBrake = true;
+            this.activePointerControls.set(pointer.id, ['driveBrake']);
+            return;
+          }
+          if (semanticKey === 'driveHandbrake') {
+            MOBILE_INPUT_STATE.driveHandbrake = true;
+            this.activePointerControls.set(pointer.id, ['driveHandbrake']);
+            return;
+          }
+          if (semanticKey === 'lights') {
+            this.activePointerControls.set(pointer.id, ['lights']);
+            const target = this.getTargetScene?.();
+            if (target?.scene?.key === 'GameScene' && target.inCar) target.togglePlayerHeadlights?.();
+            return;
+          }
+          if (semanticKey === 'exit') {
+            this.activePointerControls.set(pointer.id, ['exit']);
+            rhBReverseHotfixClearAllCarInput();
+            const target = this.getTargetScene?.();
+            if (target?.scene?.key === 'GameScene' && target.inCar) target.handleCarOrArrest?.();
+          }
+        });
+
+        zone.on('pointerup', (pointer) => this.releasePointer(pointer));
+        zone.on('pointerout', (pointer) => this.releasePointer(pointer));
+        zone.on('pointerupoutside', (pointer) => this.releasePointer(pointer));
+        return zone;
+      };
+
+      // Left-side driving touch zone. Horizontal drag steers only; vertical drag never reverses.
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
+      this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
+        .setScrollFactor(0)
+        .setDepth(21000)
+        .setInteractive();
+
+      this.dynamicStickVisual = this.add.container(0, 0).setScrollFactor(0).setDepth(21001).setVisible(false);
+      this.dynamicStickOuter = this.add.circle(0, 0, stick.maxRadius, 0x0b111a, 0.15).setStrokeStyle(4, 0xffffff, 0.28);
+      this.dynamicStickInner = this.add.circle(0, 0, 42, 0x8ac7ff, 0.07).setStrokeStyle(2, 0x9bd4ff, 0.22);
+      this.dynamicStickKnob = this.add.circle(0, 0, 22, 0x9bd4ff, 0.30).setStrokeStyle(2, 0xffffff, 0.42);
+      this.dynamicStickLabel = this.add.text(0, -9, 'STEER', {
+        fontFamily: 'Courier New',
+        fontSize: '12px',
+        color: '#d7ecff',
+        stroke: '#000',
+        strokeThickness: 2
+      }).setOrigin(0.5).setAlpha(0.70);
+      this.dynamicStickVisual.add([this.dynamicStickOuter, this.dynamicStickInner, this.dynamicStickKnob, this.dynamicStickLabel]);
+
+      this.updateBReverseHotfixStick = (pointer) => {
+        if (!this.dynamicStickCenter) {
+          this.dynamicStickCenter = { x: pointer.x, y: pointer.y };
+          this.dynamicStickVisual.setPosition(pointer.x, pointer.y).setVisible(true);
+        }
+        let dx = pointer.x - this.dynamicStickCenter.x;
+        let dy = pointer.y - this.dynamicStickCenter.y;
+        const mag = Math.hypot(dx, dy);
+        const r = stick.maxRadius || 96;
+        if (mag > r) { dx = (dx / mag) * r; dy = (dy / mag) * r; }
+        MOBILE_INPUT_STATE.driveSteerX = Phaser.Math.Clamp(dx / r, -1, 1);
+        MOBILE_INPUT_STATE.driveSteerY = Phaser.Math.Clamp(dy / r, -1, 1);
+        MOBILE_INPUT_STATE.carSteerX = MOBILE_INPUT_STATE.driveSteerX;
+        MOBILE_INPUT_STATE.carSteerY = MOBILE_INPUT_STATE.driveSteerY;
+        MOBILE_INPUT_STATE.analogY = 0;
+        this.dynamicStickKnob.setPosition(dx, dy);
+      };
+
+      this.dynamicStickZone.on('pointerdown', (pointer) => {
+        if (!isDriving()) return;
+        pointer.event?.stopPropagation?.();
+        this.dynamicStickPointerId = pointer.id;
+        this.dynamicStickCenter = { x: pointer.x, y: pointer.y };
+        this.activePointerControls.set(pointer.id, ['dynamicStick']);
+        this.dynamicStickVisual.setPosition(pointer.x, pointer.y).setVisible(true);
+        this.dynamicStickKnob.setPosition(0, 0);
+        rhBReverseHotfixClearSteer();
+        this.updateBReverseHotfixStick(pointer);
+      });
+
+      this._bReverseHotfixMoveHandler = (pointer) => {
+        if (this.dynamicStickPointerId === pointer.id && this.updateBReverseHotfixStick) this.updateBReverseHotfixStick(pointer);
+      };
+      this._bReverseHotfixUpHandler = (pointer) => this.releasePointer(pointer);
+      this._bReverseHotfixUpOutsideHandler = (pointer) => this.releasePointer(pointer);
+      this.input.on('pointermove', this._bReverseHotfixMoveHandler);
+      this.input.on('pointerup', this._bReverseHotfixUpHandler);
+      this.input.on('pointerupoutside', this._bReverseHotfixUpOutsideHandler);
+
+      // Spread out the diamond so B cannot overlap the reverse zone.
+      //       Z lights
+      //       X gas
+      // B exit          A handbrake
+      //       Y reverse
+      const baseX = VIEW_W - 124;
+      const baseY = VIEW_H - 322;
+      const btn = [
+        { x: baseX,       y: baseY - 70,  w: 92,  h: 84, label:'Z', color:0x402050, state:'lights' },
+        { x: baseX,       y: baseY,       w: 96,  h: 88, label:'X', color:0x1f314d, state:'driveGas' },
+        { x: baseX,       y: baseY + 150, w: 96,  h: 88, label:'Y', color:0x4d3b1f, state:'driveBrake' },
+        { x: baseX + 84,  y: baseY + 76,  w: 92,  h: 88, label:'A', color:0x1f4d2f, state:'driveHandbrake' },
+        { x: baseX - 122, y: baseY + 76,  w: 100, h: 88, label:'B', color:0x4d1f1f, state:'exit' }
+      ];
+
+      for (const b of btn) {
+        addVisualButton(b.x, b.y, b.label, b.color, 34, 22000);
+        addCarButtonZone(b.x, b.y, b.w, b.h, b.state);
+      }
+
+      // Visual-only middle controls while driving.
+      addVisualButton(Math.floor(VIEW_W * 0.46), VIEW_H - 132, 'SEL', 0x263241, 20, 21500, '10px');
+      addVisualButton(Math.floor(VIEW_W * 0.55), VIEW_H - 132, 'STA', 0x263241, 20, 21500, '10px');
+    };
+
+    MobileControlsScene.prototype.drawControls = function() {
+      if (this.isBReverseHotfixDriving?.()) {
+        this.drawBReverseHotfixCarControls();
+        return;
+      }
+      __bReverseHotfixFootDrawControls.call(this);
+      this._bReverseHotfixMode = 'foot';
+    };
+
+    MobileControlsScene.prototype.releasePointer = function(pointer) {
+      if (this._bReverseHotfixMode !== 'car') return __bReverseHotfixFootReleasePointer.call(this, pointer);
+
+      const keys = this.activePointerControls.get(pointer.id);
+      if (!keys) return;
+
+      for (const key of keys) {
+        if (key === 'dynamicStick') {
+          this.dynamicStickPointerId = null;
+          this.dynamicStickCenter = null;
+          this.dynamicStickVisual?.setVisible(false);
+          this.dynamicStickKnob?.setPosition(0, 0);
+          rhBReverseHotfixClearSteer();
+        } else if (key === 'driveGas') {
+          MOBILE_INPUT_STATE.driveGas = false;
+        } else if (key === 'driveBrake') {
+          MOBILE_INPUT_STATE.driveBrake = false;
+        } else if (key === 'driveHandbrake') {
+          MOBILE_INPUT_STATE.driveHandbrake = false;
+        } else if (key === 'exit') {
+          rhBReverseHotfixClearAllCarInput();
+        } else {
+          rhBReverseHotfixClearRawDrivingLeak();
+        }
+      }
+
+      this.activePointerControls.delete(pointer.id);
+    };
+
+    MobileControlsScene.prototype.setControl = function(key, value) {
+      if (this._bReverseHotfixMode !== 'car') return __bReverseHotfixFootSetControl.call(this, key, value);
+      // No raw x/y/a/b/z state is accepted while driving.
+      if (key in MOBILE_INPUT_STATE && !['x','y','a','b','z','up','down'].includes(key)) MOBILE_INPUT_STATE[key] = !!value;
+    };
+
+    MobileControlsScene.prototype.fireAction = function(key) {
+      if (this._bReverseHotfixMode !== 'car') return __bReverseHotfixFootFireAction.call(this, key);
+      // Car actions are handled by the dedicated zones above. B cannot become reverse here.
+      return;
+    };
+
+    MobileControlsScene.prototype.update = function(time, delta) {
+      const driving = this.isBReverseHotfixDriving?.();
+
+      if (driving && this._bReverseHotfixMode !== 'car') {
+        this.drawBReverseHotfixCarControls();
+        return;
+      }
+
+      if (!driving && this._bReverseHotfixMode === 'car') {
+        rhBReverseHotfixClearAllCarInput();
+        __bReverseHotfixFootDrawControls.call(this);
+        this._bReverseHotfixMode = 'foot';
+        return;
+      }
+
+      if (this._bReverseHotfixMode !== 'car' && typeof __bReverseHotfixFootUpdate === 'function') {
+        __bReverseHotfixFootUpdate.call(this, time, delta);
       }
     };
   }
