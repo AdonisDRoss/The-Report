@@ -114,185 +114,403 @@
     scene.scene.bringToTop('MobileControlsScene');
   }
 
+  // COLLISION_RECTS_UNIFIED_MAP_001:
+  // Forgiving collision layer for the one-picture Raven Hook base map.
+  // Buildings and deep water collide; roads, sidewalks, alleys, parking lots, and door approaches stay open.
   const COLLISION_RECTS = [
-    {"id": "rhpq_police_station", "x": 780, "y": 230, "w": 430, "h": 280, "type": "building"},
-    {"id": "precinct_annex", "x": 1260, "y": 225, "w": 280, "h": 190, "type": "building"},
-    {"id": "old_offices", "x": 130, "y": 365, "w": 270, "h": 145, "type": "building"},
-    {"id": "red_gull_edge", "x": 250, "y": 900, "w": 270, "h": 145, "type": "building"},
-    {"id": "records_office", "x": 775, "y": 950, "w": 300, "h": 165, "type": "building"},
-    {"id": "lockup_exterior", "x": 1250, "y": 945, "w": 340, "h": 175, "type": "building"},
-    {"id": "station_payphone_corner", "x": 1515, "y": 520, "w": 80, "h": 130, "type": "building"},
-    {"id": "gull_pump_station_edge", "x": 1520, "y": 1475, "w": 320, "h": 140, "type": "building"},
-    {"id": "bennys_market", "x": 2245, "y": 230, "w": 345, "h": 215, "type": "building"},
-    {"id": "red_gull_diner", "x": 2820, "y": 225, "w": 380, "h": 220, "type": "building"},
-    {"id": "raven_laundromat", "x": 3260, "y": 245, "w": 300, "h": 190, "type": "building"},
-    {"id": "gull_pump", "x": 3600, "y": 535, "w": 330, "h": 180, "type": "building"},
-    {"id": "pawn_shop", "x": 2200, "y": 920, "w": 270, "h": 160, "type": "building"},
-    {"id": "market_apartments", "x": 2525, "y": 980, "w": 300, "h": 150, "type": "building"},
-    {"id": "row_shops", "x": 2910, "y": 920, "w": 310, "h": 195, "type": "building"},
-    {"id": "auto_garage", "x": 3320, "y": 930, "w": 290, "h": 185, "type": "building"},
-    {"id": "raven_hook_courthouse", "x": 780, "y": 2210, "w": 480, "h": 320, "type": "building"},
-    {"id": "city_hall", "x": 1290, "y": 2240, "w": 370, "h": 260, "type": "building"},
-    {"id": "civic_clerk_office", "x": 240, "y": 2640, "w": 330, "h": 190, "type": "building"},
-    {"id": "law_offices", "x": 730, "y": 3010, "w": 330, "h": 170, "type": "building"},
-    {"id": "bail_bonds", "x": 1160, "y": 3000, "w": 400, "h": 190, "type": "building"},
-    {"id": "last_stop_dogs", "x": 320, "y": 3470, "w": 360, "h": 200, "type": "building"},
-    {"id": "city_archives", "x": 860, "y": 3480, "w": 410, "h": 210, "type": "building"},
-    {"id": "civic_service_tow", "x": 1360, "y": 3480, "w": 350, "h": 200, "type": "building"},
-    {"id": "old_town_block", "x": 2180, "y": 2220, "w": 390, "h": 230, "type": "building"},
-    {"id": "old_town_rooms", "x": 2650, "y": 2210, "w": 330, "h": 210, "type": "building"},
-    {"id": "river_warehouse", "x": 3050, "y": 2200, "w": 420, "h": 250, "type": "building"},
-    {"id": "harrows_auto_gas", "x": 3530, "y": 2185, "w": 370, "h": 250, "type": "building"},
-    {"id": "old_town_liquor", "x": 2220, "y": 2860, "w": 330, "h": 185, "type": "building"},
-    {"id": "canal_motel", "x": 2620, "y": 2865, "w": 350, "h": 190, "type": "building"},
-    {"id": "dock_office", "x": 3060, "y": 2860, "w": 350, "h": 200, "type": "building"},
-    {"id": "river_storage", "x": 3500, "y": 2860, "w": 390, "h": 210, "type": "building"},
-    {"id": "crow_burger", "x": 2360, "y": 3380, "w": 340, "h": 190, "type": "building"},
-    {"id": "filler_pad_000", "x": 720, "y": 89, "w": 84, "h": 58, "type": "building"},
-    {"id": "filler_pad_001", "x": 834, "y": 46, "w": 131, "h": 66, "type": "building"},
-    {"id": "filler_pad_002", "x": 990, "y": 37, "w": 78, "h": 91, "type": "building"},
-    {"id": "filler_pad_003", "x": 1089, "y": 32, "w": 133, "h": 75, "type": "building"},
-    {"id": "filler_pad_004", "x": 1239, "y": 50, "w": 86, "h": 86, "type": "building"},
-    {"id": "filler_pad_005", "x": 1353, "y": 41, "w": 118, "h": 83, "type": "building"},
-    {"id": "filler_pad_006", "x": 1491, "y": 46, "w": 78, "h": 99, "type": "building"},
-    {"id": "filler_pad_007", "x": 1600, "y": 38, "w": 125, "h": 68, "type": "building"},
-    {"id": "filler_pad_008", "x": 30, "y": 1230, "w": 90, "h": 77, "type": "building"},
-    {"id": "filler_pad_009", "x": 148, "y": 1230, "w": 117, "h": 92, "type": "building"},
-    {"id": "filler_pad_010", "x": 290, "y": 1230, "w": 115, "h": 63, "type": "building"},
-    {"id": "filler_pad_011", "x": 780, "y": 1170, "w": 115, "h": 98, "type": "building"},
-    {"id": "filler_pad_012", "x": 925, "y": 1179, "w": 95, "h": 57, "type": "building"},
-    {"id": "filler_pad_013", "x": 1051, "y": 1181, "w": 66, "h": 55, "type": "building"},
-    {"id": "filler_pad_014", "x": 1144, "y": 1186, "w": 113, "h": 72, "type": "building"},
-    {"id": "filler_pad_015", "x": 1282, "y": 1171, "w": 131, "h": 60, "type": "building"},
-    {"id": "filler_pad_016", "x": 1437, "y": 1186, "w": 76, "h": 58, "type": "building"},
-    {"id": "filler_pad_017", "x": 1538, "y": 1170, "w": 80, "h": 94, "type": "building"},
-    {"id": "filler_pad_018", "x": 60, "y": 1661, "w": 110, "h": 85, "type": "building"},
-    {"id": "filler_pad_019", "x": 191, "y": 1662, "w": 89, "h": 58, "type": "building"},
-    {"id": "filler_pad_020", "x": 309, "y": 1654, "w": 68, "h": 81, "type": "building"},
-    {"id": "filler_pad_021", "x": 410, "y": 1691, "w": 74, "h": 46, "type": "building"},
-    {"id": "filler_pad_022", "x": 518, "y": 1655, "w": 81, "h": 95, "type": "building"},
-    {"id": "filler_pad_023", "x": 628, "y": 1652, "w": 111, "h": 91, "type": "building"},
-    {"id": "filler_pad_024", "x": 757, "y": 1651, "w": 89, "h": 94, "type": "building"},
-    {"id": "filler_pad_025", "x": 863, "y": 1672, "w": 65, "h": 64, "type": "building"},
-    {"id": "filler_pad_026", "x": 956, "y": 1654, "w": 86, "h": 64, "type": "building"},
-    {"id": "filler_pad_027", "x": 1076, "y": 1653, "w": 99, "h": 90, "type": "building"},
-    {"id": "filler_pad_028", "x": 1189, "y": 1653, "w": 61, "h": 97, "type": "building"},
-    {"id": "filler_pad_029", "x": 1272, "y": 1660, "w": 111, "h": 86, "type": "building"},
-    {"id": "filler_pad_030", "x": 1407, "y": 1663, "w": 104, "h": 76, "type": "building"},
-    {"id": "filler_pad_031", "x": 1535, "y": 1684, "w": 72, "h": 54, "type": "building"},
-    {"id": "filler_pad_032", "x": 1623, "y": 1652, "w": 114, "h": 61, "type": "building"},
-    {"id": "filler_pad_033", "x": 2180, "y": 61, "w": 61, "h": 80, "type": "building"},
-    {"id": "filler_pad_034", "x": 2256, "y": 79, "w": 115, "h": 55, "type": "building"},
-    {"id": "filler_pad_035", "x": 2389, "y": 75, "w": 124, "h": 88, "type": "building"},
-    {"id": "filler_pad_036", "x": 2542, "y": 75, "w": 70, "h": 53, "type": "building"},
-    {"id": "filler_pad_037", "x": 2645, "y": 47, "w": 130, "h": 79, "type": "building"},
-    {"id": "filler_pad_038", "x": 2791, "y": 88, "w": 85, "h": 61, "type": "building"},
-    {"id": "filler_pad_039", "x": 2902, "y": 25, "w": 109, "h": 87, "type": "building"},
-    {"id": "filler_pad_040", "x": 3036, "y": 45, "w": 122, "h": 58, "type": "building"},
-    {"id": "filler_pad_041", "x": 3181, "y": 56, "w": 117, "h": 70, "type": "building"},
-    {"id": "filler_pad_042", "x": 3322, "y": 113, "w": 73, "h": 49, "type": "building"},
-    {"id": "filler_pad_043", "x": 3412, "y": 108, "w": 121, "h": 56, "type": "building"},
-    {"id": "filler_pad_044", "x": 3567, "y": 59, "w": 99, "h": 78, "type": "building"},
-    {"id": "filler_pad_045", "x": 3696, "y": 67, "w": 86, "h": 71, "type": "building"},
-    {"id": "filler_pad_046", "x": 3798, "y": 101, "w": 86, "h": 54, "type": "building"},
-    {"id": "filler_pad_047", "x": 2180, "y": 1134, "w": 87, "h": 75, "type": "building"},
-    {"id": "filler_pad_048", "x": 2284, "y": 1198, "w": 67, "h": 58, "type": "building"},
-    {"id": "filler_pad_049", "x": 2364, "y": 1163, "w": 125, "h": 70, "type": "building"},
-    {"id": "filler_pad_050", "x": 2509, "y": 1188, "w": 118, "h": 52, "type": "building"},
-    {"id": "filler_pad_051", "x": 2647, "y": 1137, "w": 135, "h": 65, "type": "building"},
-    {"id": "filler_pad_052", "x": 2812, "y": 1175, "w": 110, "h": 72, "type": "building"},
-    {"id": "filler_pad_053", "x": 2947, "y": 1161, "w": 73, "h": 99, "type": "building"},
-    {"id": "filler_pad_054", "x": 3053, "y": 1150, "w": 121, "h": 82, "type": "building"},
-    {"id": "filler_pad_055", "x": 3206, "y": 1143, "w": 74, "h": 47, "type": "building"},
-    {"id": "filler_pad_056", "x": 3303, "y": 1147, "w": 123, "h": 76, "type": "building"},
-    {"id": "filler_pad_057", "x": 3447, "y": 1156, "w": 69, "h": 77, "type": "building"},
-    {"id": "filler_pad_058", "x": 3543, "y": 1156, "w": 122, "h": 74, "type": "building"},
-    {"id": "filler_pad_059", "x": 3686, "y": 1131, "w": 75, "h": 98, "type": "building"},
-    {"id": "filler_pad_060", "x": 3791, "y": 1155, "w": 95, "h": 97, "type": "building"},
-    {"id": "filler_pad_061", "x": 2200, "y": 1528, "w": 115, "h": 68, "type": "building"},
-    {"id": "filler_pad_062", "x": 2342, "y": 1463, "w": 106, "h": 73, "type": "building"},
-    {"id": "filler_pad_063", "x": 2478, "y": 1467, "w": 73, "h": 98, "type": "building"},
-    {"id": "filler_pad_064", "x": 2572, "y": 1481, "w": 92, "h": 57, "type": "building"},
-    {"id": "filler_pad_065", "x": 2686, "y": 1524, "w": 134, "h": 62, "type": "building"},
-    {"id": "filler_pad_066", "x": 2848, "y": 1504, "w": 129, "h": 45, "type": "building"},
-    {"id": "filler_pad_067", "x": 2996, "y": 1478, "w": 103, "h": 65, "type": "building"},
-    {"id": "filler_pad_068", "x": 3116, "y": 1487, "w": 125, "h": 95, "type": "building"},
-    {"id": "filler_pad_069", "x": 3272, "y": 1500, "w": 93, "h": 49, "type": "building"},
-    {"id": "filler_pad_070", "x": 3383, "y": 1489, "w": 98, "h": 63, "type": "building"},
-    {"id": "filler_pad_071", "x": 3496, "y": 1495, "w": 100, "h": 56, "type": "building"},
-    {"id": "filler_pad_072", "x": 3615, "y": 1506, "w": 120, "h": 60, "type": "building"},
-    {"id": "filler_pad_073", "x": 3749, "y": 1474, "w": 63, "h": 80, "type": "building"},
-    {"id": "filler_pad_074", "x": 3846, "y": 1491, "w": 85, "h": 55, "type": "building"},
-    {"id": "filler_pad_075", "x": 40, "y": 2061, "w": 98, "h": 69, "type": "building"},
-    {"id": "filler_pad_076", "x": 155, "y": 2060, "w": 68, "h": 95, "type": "building"},
-    {"id": "filler_pad_077", "x": 239, "y": 2062, "w": 128, "h": 67, "type": "building"},
-    {"id": "filler_pad_078", "x": 401, "y": 2060, "w": 79, "h": 99, "type": "building"},
-    {"id": "filler_pad_079", "x": 700, "y": 2063, "w": 94, "h": 97, "type": "building"},
-    {"id": "filler_pad_080", "x": 809, "y": 2080, "w": 95, "h": 69, "type": "building"},
-    {"id": "filler_pad_081", "x": 925, "y": 2070, "w": 78, "h": 73, "type": "building"},
-    {"id": "filler_pad_082", "x": 1015, "y": 2060, "w": 74, "h": 81, "type": "building"},
-    {"id": "filler_pad_083", "x": 1123, "y": 2060, "w": 83, "h": 88, "type": "building"},
-    {"id": "filler_pad_084", "x": 1239, "y": 2079, "w": 115, "h": 72, "type": "building"},
-    {"id": "filler_pad_085", "x": 1376, "y": 2065, "w": 85, "h": 54, "type": "building"},
-    {"id": "filler_pad_086", "x": 1482, "y": 2081, "w": 134, "h": 59, "type": "building"},
-    {"id": "filler_pad_087", "x": 40, "y": 2864, "w": 105, "h": 84, "type": "building"},
-    {"id": "filler_pad_088", "x": 170, "y": 2866, "w": 94, "h": 84, "type": "building"},
-    {"id": "filler_pad_089", "x": 282, "y": 2862, "w": 81, "h": 91, "type": "building"},
-    {"id": "filler_pad_090", "x": 389, "y": 2871, "w": 62, "h": 84, "type": "building"},
-    {"id": "filler_pad_091", "x": 680, "y": 2843, "w": 112, "h": 93, "type": "building"},
-    {"id": "filler_pad_092", "x": 812, "y": 2871, "w": 129, "h": 62, "type": "building"},
-    {"id": "filler_pad_093", "x": 970, "y": 2891, "w": 101, "h": 64, "type": "building"},
-    {"id": "filler_pad_094", "x": 1095, "y": 2861, "w": 115, "h": 98, "type": "building"},
-    {"id": "filler_pad_095", "x": 1244, "y": 2845, "w": 107, "h": 99, "type": "building"},
-    {"id": "filler_pad_096", "x": 1371, "y": 2898, "w": 124, "h": 54, "type": "building"},
-    {"id": "filler_pad_097", "x": 1515, "y": 2870, "w": 130, "h": 45, "type": "building"},
-    {"id": "filler_pad_098", "x": 2180, "y": 2063, "w": 130, "h": 82, "type": "building"},
-    {"id": "filler_pad_099", "x": 2330, "y": 2060, "w": 107, "h": 45, "type": "building"},
-    {"id": "filler_pad_100", "x": 2461, "y": 2078, "w": 79, "h": 50, "type": "building"},
-    {"id": "filler_pad_101", "x": 2558, "y": 2060, "w": 103, "h": 97, "type": "building"},
-    {"id": "filler_pad_102", "x": 2683, "y": 2090, "w": 63, "h": 57, "type": "building"},
-    {"id": "filler_pad_103", "x": 2760, "y": 2080, "w": 103, "h": 51, "type": "building"},
-    {"id": "filler_pad_104", "x": 2897, "y": 2068, "w": 74, "h": 75, "type": "building"},
-    {"id": "filler_pad_105", "x": 2994, "y": 2062, "w": 119, "h": 90, "type": "building"},
-    {"id": "filler_pad_106", "x": 3130, "y": 2068, "w": 111, "h": 55, "type": "building"},
-    {"id": "filler_pad_107", "x": 3267, "y": 2070, "w": 95, "h": 87, "type": "building"},
-    {"id": "filler_pad_108", "x": 3397, "y": 2077, "w": 94, "h": 70, "type": "building"},
-    {"id": "filler_pad_109", "x": 3519, "y": 2097, "w": 68, "h": 52, "type": "building"},
-    {"id": "filler_pad_110", "x": 3599, "y": 2073, "w": 68, "h": 86, "type": "building"},
-    {"id": "filler_pad_111", "x": 3698, "y": 2060, "w": 92, "h": 100, "type": "building"},
-    {"id": "filler_pad_112", "x": 3812, "y": 2075, "w": 108, "h": 71, "type": "building"},
-    {"id": "filler_pad_113", "x": 2180, "y": 2626, "w": 101, "h": 87, "type": "building"},
-    {"id": "filler_pad_114", "x": 2309, "y": 2700, "w": 74, "h": 49, "type": "building"},
-    {"id": "filler_pad_115", "x": 2396, "y": 2654, "w": 66, "h": 70, "type": "building"},
-    {"id": "filler_pad_116", "x": 2488, "y": 2628, "w": 81, "h": 97, "type": "building"},
-    {"id": "filler_pad_117", "x": 2593, "y": 2639, "w": 80, "h": 91, "type": "building"},
-    {"id": "filler_pad_118", "x": 2695, "y": 2660, "w": 133, "h": 51, "type": "building"},
-    {"id": "filler_pad_119", "x": 2855, "y": 2686, "w": 92, "h": 55, "type": "building"},
-    {"id": "filler_pad_120", "x": 2961, "y": 2642, "w": 73, "h": 86, "type": "building"},
-    {"id": "filler_pad_121", "x": 3061, "y": 2703, "w": 79, "h": 48, "type": "building"},
-    {"id": "filler_pad_122", "x": 3156, "y": 2647, "w": 120, "h": 76, "type": "building"},
-    {"id": "filler_pad_123", "x": 3300, "y": 2628, "w": 62, "h": 92, "type": "building"},
-    {"id": "filler_pad_124", "x": 3374, "y": 2633, "w": 62, "h": 72, "type": "building"},
-    {"id": "filler_pad_125", "x": 3448, "y": 2656, "w": 95, "h": 97, "type": "building"},
-    {"id": "filler_pad_126", "x": 3577, "y": 2678, "w": 121, "h": 80, "type": "building"},
-    {"id": "filler_pad_127", "x": 3715, "y": 2628, "w": 110, "h": 93, "type": "building"},
-    {"id": "filler_pad_128", "x": 3840, "y": 2641, "w": 110, "h": 95, "type": "building"},
-    {"id": "filler_pad_129", "x": 2180, "y": 3421, "w": 68, "h": 89, "type": "building"},
-    {"id": "filler_pad_130", "x": 2279, "y": 3446, "w": 117, "h": 49, "type": "building"},
-    {"id": "filler_pad_131", "x": 2431, "y": 3433, "w": 99, "h": 74, "type": "building"},
-    {"id": "filler_pad_132", "x": 2553, "y": 3404, "w": 83, "h": 93, "type": "building"},
-    {"id": "filler_pad_133", "x": 2662, "y": 3427, "w": 87, "h": 86, "type": "building"},
-    {"id": "filler_pad_134", "x": 2779, "y": 3400, "w": 77, "h": 52, "type": "building"},
-    {"id": "filler_pad_135", "x": 2870, "y": 3403, "w": 114, "h": 49, "type": "building"},
-    {"id": "filler_pad_136", "x": 3014, "y": 3409, "w": 120, "h": 75, "type": "building"},
-    {"id": "filler_pad_137", "x": 3157, "y": 3414, "w": 132, "h": 84, "type": "building"},
-    {"id": "filler_pad_138", "x": 3313, "y": 3422, "w": 70, "h": 59, "type": "building"},
-    {"id": "filler_pad_139", "x": 3409, "y": 3460, "w": 127, "h": 56, "type": "building"},
-    {"id": "filler_pad_140", "x": 3565, "y": 3413, "w": 93, "h": 89, "type": "building"},
-    {"id": "filler_pad_141", "x": 3688, "y": 3415, "w": 123, "h": 92, "type": "building"},
-    {"id": "filler_pad_142", "x": 3835, "y": 3401, "w": 115, "h": 97, "type": "building"},
-    {"id": "river_deep_water", "x": 2500, "y": 3740, "w": 1596, "h": 356, "type": "water"}
-  ];
+    {
+        "id": "edge_nw_roof_01",
+        "x": 223,
+        "y": 14,
+        "w": 243,
+        "h": 87,
+        "type": "building"
+    },
+    {
+        "id": "edge_nw_roof_02",
+        "x": 821,
+        "y": 13,
+        "w": 194,
+        "h": 80,
+        "type": "building"
+    },
+    {
+        "id": "edge_nw_roof_03",
+        "x": 1829,
+        "y": 14,
+        "w": 437,
+        "h": 87,
+        "type": "building"
+    },
+    {
+        "id": "edge_ne_roof_01",
+        "x": 2671,
+        "y": 17,
+        "w": 228,
+        "h": 110,
+        "type": "building"
+    },
+    {
+        "id": "edge_ne_roof_02",
+        "x": 3763,
+        "y": 20,
+        "w": 274,
+        "h": 129,
+        "type": "building"
+    },
+    {
+        "id": "nw_left_block_north",
+        "x": 231,
+        "y": 481,
+        "w": 198,
+        "h": 228,
+        "type": "building"
+    },
+    {
+        "id": "nw_left_block_mid",
+        "x": 227,
+        "y": 883,
+        "w": 205,
+        "h": 274,
+        "type": "building"
+    },
+    {
+        "id": "nw_left_block_south",
+        "x": 232,
+        "y": 1648,
+        "w": 232,
+        "h": 270,
+        "type": "building"
+    },
+    {
+        "id": "nw_station_main",
+        "x": 891,
+        "y": 589,
+        "w": 543,
+        "h": 312,
+        "type": "building"
+    },
+    {
+        "id": "nw_station_annex",
+        "x": 2008,
+        "y": 512,
+        "w": 365,
+        "h": 266,
+        "type": "building"
+    },
+    {
+        "id": "nw_mid_office_a",
+        "x": 1976,
+        "y": 1150,
+        "w": 258,
+        "h": 160,
+        "type": "building"
+    },
+    {
+        "id": "nw_mid_office_b",
+        "x": 2264,
+        "y": 1155,
+        "w": 186,
+        "h": 160,
+        "type": "building"
+    },
+    {
+        "id": "nw_small_shop_row_01",
+        "x": 1957,
+        "y": 1709,
+        "w": 137,
+        "h": 312,
+        "type": "building"
+    },
+    {
+        "id": "nw_small_shop_row_02",
+        "x": 2283,
+        "y": 1703,
+        "w": 175,
+        "h": 114,
+        "type": "building"
+    },
+    {
+        "id": "nw_small_shop_row_03",
+        "x": 2258,
+        "y": 2236,
+        "w": 148,
+        "h": 228,
+        "type": "building"
+    },
+    {
+        "id": "nw_market_small_01",
+        "x": 832,
+        "y": 1741,
+        "w": 236,
+        "h": 228,
+        "type": "building"
+    },
+    {
+        "id": "nw_market_small_02",
+        "x": 1339,
+        "y": 1752,
+        "w": 281,
+        "h": 266,
+        "type": "building"
+    },
+    {
+        "id": "ne_diagonal_block_01",
+        "x": 2838,
+        "y": 225,
+        "w": 239,
+        "h": 190,
+        "type": "building"
+    },
+    {
+        "id": "ne_diagonal_block_02",
+        "x": 3162,
+        "y": 395,
+        "w": 327,
+        "h": 220,
+        "type": "building"
+    },
+    {
+        "id": "ne_diagonal_block_03",
+        "x": 3646,
+        "y": 532,
+        "w": 228,
+        "h": 205,
+        "type": "building"
+    },
+    {
+        "id": "ne_diagonal_block_04",
+        "x": 2955,
+        "y": 768,
+        "w": 220,
+        "h": 175,
+        "type": "building"
+    },
+    {
+        "id": "ne_diagonal_block_05",
+        "x": 3280,
+        "y": 936,
+        "w": 251,
+        "h": 228,
+        "type": "building"
+    },
+    {
+        "id": "ne_diagonal_block_06",
+        "x": 3673,
+        "y": 998,
+        "w": 243,
+        "h": 243,
+        "type": "building"
+    },
+    {
+        "id": "ne_market_wedge_a",
+        "x": 2686,
+        "y": 1425,
+        "w": 289,
+        "h": 346,
+        "type": "building"
+    },
+    {
+        "id": "ne_market_yard_a",
+        "x": 3115,
+        "y": 1569,
+        "w": 350,
+        "h": 213,
+        "type": "building"
+    },
+    {
+        "id": "ne_market_wedge_b",
+        "x": 3587,
+        "y": 1583,
+        "w": 327,
+        "h": 274,
+        "type": "building"
+    },
+    {
+        "id": "sw_civic_courthouse",
+        "x": 648,
+        "y": 2457,
+        "w": 494,
+        "h": 296,
+        "type": "building"
+    },
+    {
+        "id": "sw_left_lot_building",
+        "x": 243,
+        "y": 2676,
+        "w": 274,
+        "h": 163,
+        "type": "building"
+    },
+    {
+        "id": "sw_left_bottom_a",
+        "x": 252,
+        "y": 3232,
+        "w": 296,
+        "h": 201,
+        "type": "building"
+    },
+    {
+        "id": "sw_left_bottom_b",
+        "x": 865,
+        "y": 3416,
+        "w": 319,
+        "h": 323,
+        "type": "building"
+    },
+    {
+        "id": "sw_right_civic_main",
+        "x": 1601,
+        "y": 3424,
+        "w": 448,
+        "h": 312,
+        "type": "building"
+    },
+    {
+        "id": "sw_right_civic_north",
+        "x": 2101,
+        "y": 3190,
+        "w": 228,
+        "h": 160,
+        "type": "building"
+    },
+    {
+        "id": "sw_bottom_edge_small",
+        "x": 1426,
+        "y": 3905,
+        "w": 198,
+        "h": 160,
+        "type": "building"
+    },
+    {
+        "id": "sw_shop_column_01",
+        "x": 1448,
+        "y": 2211,
+        "w": 114,
+        "h": 167,
+        "type": "building"
+    },
+    {
+        "id": "sw_shop_column_02",
+        "x": 1467,
+        "y": 2507,
+        "w": 110,
+        "h": 141,
+        "type": "building"
+    },
+    {
+        "id": "sw_shop_column_03",
+        "x": 1469,
+        "y": 2829,
+        "w": 118,
+        "h": 182,
+        "type": "building"
+    },
+    {
+        "id": "se_canal_triangle_left",
+        "x": 2562,
+        "y": 1741,
+        "w": 395,
+        "h": 258,
+        "type": "building"
+    },
+    {
+        "id": "se_canal_bar_a",
+        "x": 2862,
+        "y": 2257,
+        "w": 395,
+        "h": 236,
+        "type": "building"
+    },
+    {
+        "id": "se_canal_bar_b",
+        "x": 3000,
+        "y": 2504,
+        "w": 251,
+        "h": 213,
+        "type": "building"
+    },
+    {
+        "id": "se_waterfront_large_a",
+        "x": 3406,
+        "y": 2600,
+        "w": 357,
+        "h": 380,
+        "type": "building"
+    },
+    {
+        "id": "se_waterfront_large_b",
+        "x": 3205,
+        "y": 2806,
+        "w": 251,
+        "h": 228,
+        "type": "building"
+    },
+    {
+        "id": "se_waterfront_warehouse",
+        "x": 2634,
+        "y": 3247,
+        "w": 471,
+        "h": 327,
+        "type": "building"
+    },
+    {
+        "id": "se_waterfront_small",
+        "x": 2300,
+        "y": 3488,
+        "w": 350,
+        "h": 243,
+        "type": "building"
+    },
+    {
+        "id": "se_center_shop_a",
+        "x": 2445,
+        "y": 2633,
+        "w": 160,
+        "h": 175,
+        "type": "building"
+    },
+    {
+        "id": "se_center_shop_b",
+        "x": 2245,
+        "y": 2555,
+        "w": 129,
+        "h": 319,
+        "type": "building"
+    },
+    {
+        "id": "water_east_deep",
+        "x": 3970,
+        "y": 1850,
+        "w": 126,
+        "h": 1900,
+        "type": "water"
+    },
+    {
+        "id": "water_southeast_deep",
+        "x": 3470,
+        "y": 3550,
+        "w": 626,
+        "h": 546,
+        "type": "water"
+    },
+    {
+        "id": "water_south_deep",
+        "x": 2520,
+        "y": 3840,
+        "w": 1576,
+        "h": 256,
+        "type": "water"
+    },
+    {
+        "id": "water_canal_inlet",
+        "x": 2250,
+        "y": 3730,
+        "w": 520,
+        "h": 366,
+        "type": "water"
+    }
+];
 
   const INTERACTION_ZONES = [
     {"id": "rhpq_police_station_door", "x": 951, "y": 490, "w": 88, "h": 60, "type": "door", "label": "Raven Hook Police Station"},
@@ -1534,6 +1752,7 @@
       this.input.keyboard.on('keydown-F', () => this.malcolmShoot());
       this.input.keyboard.on('keydown-R', () => this.tryReport());
       this.input.keyboard.on('keydown-C', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
+      this.input.keyboard.on('keydown-G', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
       this.input.keyboard.on('keydown-I', () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
       this.input.keyboard.on('keydown-P', () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
       this.input.keyboard.on('keydown-N', () => this.toggleRouteDebug());
@@ -2641,7 +2860,7 @@
     }
     handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
     tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
-    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook World Base v0.4 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:(this.isRamosNearPlayer()?'A/E interact | X car/shoot | B car/arrest | Y Ramos talk | T trunk':'A/E interact | X car/shoot | B car/arrest | Y talk | T trunk')); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
+    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook World Base v0.4 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:(this.isRamosNearPlayer()?'A/E interact | X car/shoot | B car/arrest | Y Ramos talk | T trunk':'A/E interact | X car/shoot | B car/arrest | Y talk | T trunk')); this.layerText.setText(`Debug C/G:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
     redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
   }
 
@@ -4471,16 +4690,15 @@
 
   // WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001:
   // Adds a 4096x4096 game-ready chunk overlay and fixes fallback boxes by replacing them as soon as assets load.
-  // REBUILT_BASE_NPC_TRAFFIC_NODES_002:
-  // Reroutes civilians and traffic for the unified one-picture 4096 Raven Hook base layer.
-  // This replaces the old four-chunk node layout while preserving controls, camera, day/night, and vehicle physics.
-  const RH_SIDEWALK_PATCH_NODES = [{"id":"sw_station_01","x":610,"y":420,"links":["sw_station_02","sw_station_left"]},{"id":"sw_station_02","x":980,"y":420,"links":["sw_station_01","sw_station_03"]},{"id":"sw_station_03","x":1390,"y":520,"links":["sw_station_02","sw_station_cross"]},{"id":"sw_station_cross","x":1400,"y":1020,"links":["sw_station_03","sw_station_south"]},{"id":"sw_station_south","x":1030,"y":1080,"links":["sw_station_cross","sw_market_lot","sw_midblock"]},{"id":"sw_station_left","x":520,"y":1040,"links":["sw_station_01","sw_left_mid"]},{"id":"sw_left_mid","x":520,"y":1670,"links":["sw_station_left","sw_civic_01"]},{"id":"sw_midblock","x":900,"y":1500,"links":["sw_station_south","sw_civic_01"]},{"id":"sw_market_lot","x":1780,"y":1340,"links":["sw_station_south","sw_market_01","sw_center_lot"]},{"id":"sw_center_lot","x":2050,"y":1970,"links":["sw_market_lot","sw_civic_03","sw_oldtown_01"]},{"id":"sw_market_01","x":2380,"y":900,"links":["sw_market_lot","sw_market_02"]},{"id":"sw_market_02","x":2780,"y":650,"links":["sw_market_01","sw_market_03"]},{"id":"sw_market_03","x":3180,"y":970,"links":["sw_market_02","sw_market_04"]},{"id":"sw_market_04","x":3560,"y":1260,"links":["sw_market_03","sw_gas_01"]},{"id":"sw_gas_01","x":3500,"y":1710,"links":["sw_market_04","sw_gas_south"]},{"id":"sw_gas_south","x":3320,"y":2220,"links":["sw_gas_01","sw_oldtown_04"]},{"id":"sw_civic_01","x":560,"y":2180,"links":["sw_left_mid","sw_civic_02"]},{"id":"sw_civic_02","x":880,"y":2500,"links":["sw_civic_01","sw_civic_park","sw_civic_03"]},{"id":"sw_civic_park","x":880,"y":2920,"links":["sw_civic_02","sw_civic_park_s"]},{"id":"sw_civic_park_s","x":920,"y":3200,"links":["sw_civic_park","sw_civic_05"]},{"id":"sw_civic_03","x":1450,"y":2450,"links":["sw_civic_02","sw_civic_04","sw_center_lot"]},{"id":"sw_civic_04","x":1650,"y":2760,"links":["sw_civic_03","sw_oldtown_01"]},{"id":"sw_civic_05","x":1450,"y":3500,"links":["sw_civic_park_s","sw_oldtown_river"]},{"id":"sw_oldtown_01","x":2450,"y":2060,"links":["sw_center_lot","sw_oldtown_02"]},{"id":"sw_oldtown_02","x":2730,"y":2320,"links":["sw_oldtown_01","sw_oldtown_03","sw_oldtown_alley"]},{"id":"sw_oldtown_03","x":3150,"y":2380,"links":["sw_oldtown_02","sw_oldtown_04"]},{"id":"sw_oldtown_04","x":3500,"y":2600,"links":["sw_oldtown_03","sw_gas_south","sw_oldtown_yard"]},{"id":"sw_oldtown_alley","x":2600,"y":2920,"links":["sw_oldtown_02","sw_oldtown_river"]},{"id":"sw_oldtown_yard","x":3340,"y":3020,"links":["sw_oldtown_04","sw_oldtown_river"]},{"id":"sw_oldtown_river","x":3000,"y":3260,"links":["sw_oldtown_alley","sw_oldtown_yard","sw_civic_05"]}];
+  // REBUILT_BASE_NPC_TRAFFIC_NODES_001:
+  // Reroutes civilians to sidewalk strips and traffic to visible road-center lanes on the rebuilt 4096 base layer.
+  const RH_SIDEWALK_PATCH_NODES = [{"id":"sw_station_01","x":610,"y":555,"links":["sw_station_02","sw_station_left"]},{"id":"sw_station_02","x":805,"y":555,"links":["sw_station_01","sw_station_03","sw_station_cross"]},{"id":"sw_station_03","x":1045,"y":555,"links":["sw_station_02","sw_station_04"]},{"id":"sw_station_04","x":1325,"y":555,"links":["sw_station_03","sw_station_east"]},{"id":"sw_station_left","x":610,"y":875,"links":["sw_station_01","sw_civic_01"]},{"id":"sw_station_east","x":1580,"y":760,"links":["sw_station_04","sw_market_01"]},{"id":"sw_station_cross","x":1010,"y":875,"links":["sw_station_02","sw_civic_02"]},{"id":"sw_market_01","x":2220,"y":560,"links":["sw_station_east","sw_market_02"]},{"id":"sw_market_02","x":2460,"y":560,"links":["sw_market_01","sw_market_03","sw_market_lot"]},{"id":"sw_market_03","x":2865,"y":560,"links":["sw_market_02","sw_market_04","sw_market_alley"]},{"id":"sw_market_04","x":3260,"y":560,"links":["sw_market_03","sw_gas_01"]},{"id":"sw_gas_01","x":3680,"y":790,"links":["sw_market_04","sw_gas_south"]},{"id":"sw_gas_south","x":3600,"y":1260,"links":["sw_gas_01","sw_oldtown_04"]},{"id":"sw_market_lot","x":2460,"y":710,"links":["sw_market_02","sw_market_alley"]},{"id":"sw_market_alley","x":2810,"y":710,"links":["sw_market_lot","sw_market_03"]},{"id":"sw_civic_01","x":610,"y":2485,"links":["sw_station_left","sw_civic_02"]},{"id":"sw_civic_02","x":975,"y":2485,"links":["sw_civic_01","sw_civic_03","sw_civic_park"]},{"id":"sw_civic_03","x":1390,"y":2485,"links":["sw_civic_02","sw_civic_04"]},{"id":"sw_civic_04","x":1660,"y":2760,"links":["sw_civic_03","sw_oldtown_01"]},{"id":"sw_civic_park","x":1000,"y":2920,"links":["sw_civic_02","sw_civic_05","sw_civic_park_s"]},{"id":"sw_civic_park_s","x":1000,"y":3180,"links":["sw_civic_park","sw_civic_05"]},{"id":"sw_civic_05","x":1420,"y":3260,"links":["sw_civic_park","sw_civic_park_s"]},{"id":"sw_oldtown_01","x":2245,"y":2505,"links":["sw_civic_04","sw_oldtown_02"]},{"id":"sw_oldtown_02","x":2700,"y":2505,"links":["sw_oldtown_01","sw_oldtown_03","sw_oldtown_alley"]},{"id":"sw_oldtown_03","x":3165,"y":2505,"links":["sw_oldtown_02","sw_oldtown_04","sw_oldtown_river"]},{"id":"sw_oldtown_04","x":3650,"y":2505,"links":["sw_oldtown_03","sw_gas_south","sw_oldtown_yard"]},{"id":"sw_oldtown_alley","x":2700,"y":3050,"links":["sw_oldtown_02","sw_oldtown_river"]},{"id":"sw_oldtown_yard","x":3650,"y":3050,"links":["sw_oldtown_04","sw_oldtown_river"]},{"id":"sw_oldtown_river","x":3185,"y":3370,"links":["sw_oldtown_alley","sw_oldtown_yard","sw_oldtown_03"]}];
   const RH_SW_PATCH_MAP = Object.fromEntries(RH_SIDEWALK_PATCH_NODES.map(n => [n.id, n]));
-  const RH_ROAD_PATCH_NODES = [{"id":"rd_west_top_630","x":630,"y":270,"lane":"grid_top","stop":true,"intersection":"int_west_top_630","links":["rd_west_top_1540","rd_left_1280"]},{"id":"rd_west_top_1540","x":1545,"y":270,"lane":"grid_top","stop":true,"intersection":"int_west_top_1540","links":["rd_east_top_2400","rd_mid_1280"]},{"id":"rd_east_top_2400","x":2400,"y":270,"lane":"grid_top","stop":true,"intersection":"int_east_top_2400","links":["rd_east_760","rd_ne_diag_2850_260"]},{"id":"rd_left_1280","x":630,"y":1280,"lane":"left_col","stop":true,"intersection":"int_left_1280","links":["rd_left_2000","rd_west_top_630","rd_midrow_1545"]},{"id":"rd_left_2000","x":630,"y":2000,"lane":"left_col","stop":true,"intersection":"int_left_2000","links":["rd_left_3000","rd_left_1280","rd_civicrow_1545"]},{"id":"rd_left_3000","x":630,"y":3000,"lane":"left_col","stop":true,"intersection":"int_left_3000","links":["rd_left_2000","rd_south_1545"]},{"id":"rd_mid_1280","x":1545,"y":1280,"lane":"mid_col","stop":true,"intersection":"int_mid_1280","links":["rd_mid_2000","rd_midrow_2120"]},{"id":"rd_mid_2000","x":1545,"y":2000,"lane":"mid_col","stop":true,"intersection":"int_mid_2000","links":["rd_mid_3000","rd_civicrow_2060"]},{"id":"rd_mid_3000","x":1545,"y":3000,"lane":"mid_col","stop":true,"intersection":"int_mid_3000","links":["rd_south_2480","rd_south_630"]},{"id":"rd_midrow_1545","x":1545,"y":1280,"lane":"midrow","stop":true,"intersection":"int_mid_1280","links":["rd_midrow_2120","rd_left_1280"]},{"id":"rd_midrow_2120","x":2120,"y":1280,"lane":"midrow","links":["rd_midrow_2480"]},{"id":"rd_midrow_2480","x":2480,"y":1280,"lane":"midrow","stop":true,"intersection":"int_center_1280","links":["rd_curve_2600_1700","rd_east_760"]},{"id":"rd_civicrow_1545","x":1545,"y":2000,"lane":"civicrow","stop":true,"intersection":"int_mid_2000","links":["rd_civicrow_2060","rd_left_2000"]},{"id":"rd_civicrow_2060","x":2060,"y":2000,"lane":"civicrow","links":["rd_civicrow_2480"]},{"id":"rd_civicrow_2480","x":2480,"y":2000,"lane":"civicrow","stop":true,"intersection":"int_center_2000","links":["rd_curve_2850_2050","rd_midrow_2480"]},{"id":"rd_south_630","x":630,"y":3000,"lane":"southrow","stop":true,"intersection":"int_left_3000","links":["rd_left_2000","rd_south_1545"]},{"id":"rd_south_1545","x":1545,"y":3000,"lane":"southrow","stop":true,"intersection":"int_mid_3000","links":["rd_south_2480","rd_mid_2000"]},{"id":"rd_south_2480","x":2480,"y":3000,"lane":"southrow","stop":true,"intersection":"int_center_3000","links":["rd_waterfront_2850_2860","rd_south_1545"]},{"id":"rd_east_760","x":2480,"y":760,"lane":"east_spine","stop":true,"intersection":"int_east_760","links":["rd_midrow_2480","rd_east_top_2400","rd_ne_diag_3020_870"]},{"id":"rd_ne_diag_2850_260","x":2850,"y":260,"lane":"ne_diag","links":["rd_ne_diag_3220_620"]},{"id":"rd_ne_diag_3220_620","x":3220,"y":620,"lane":"ne_diag","stop":true,"intersection":"int_ne_diag_cross","links":["rd_ne_diag_3600_980","rd_ne_return_3520_360"]},{"id":"rd_ne_diag_3600_980","x":3600,"y":980,"lane":"ne_diag","links":["rd_ne_return_3860_710","rd_ne_market_3340_1180"]},{"id":"rd_ne_return_3860_710","x":3860,"y":710,"lane":"ne_return","links":["rd_ne_return_3520_360"]},{"id":"rd_ne_return_3520_360","x":3520,"y":360,"lane":"ne_return","links":["rd_ne_diag_3220_620"]},{"id":"rd_ne_diag_3020_870","x":3020,"y":870,"lane":"ne_market","links":["rd_ne_market_3340_1180"]},{"id":"rd_ne_market_3340_1180","x":3340,"y":1180,"lane":"ne_market","links":["rd_curve_2600_1700"]},{"id":"rd_curve_2600_1700","x":2600,"y":1700,"lane":"canal_curve","links":["rd_curve_2850_2050"]},{"id":"rd_curve_2850_2050","x":2850,"y":2050,"lane":"canal_curve","stop":true,"intersection":"int_curve_mid","links":["rd_curve_3120_2240","rd_civicrow_2480"]},{"id":"rd_curve_3120_2240","x":3120,"y":2240,"lane":"canal_curve","links":["rd_curve_3040_2520"]},{"id":"rd_curve_3040_2520","x":3040,"y":2520,"lane":"canal_curve","links":["rd_curve_2860_2800"]},{"id":"rd_curve_2860_2800","x":2860,"y":2800,"lane":"canal_curve","links":["rd_waterfront_2850_2860"]},{"id":"rd_waterfront_2850_2860","x":2850,"y":2860,"lane":"waterfront","links":["rd_south_2480","rd_waterfront_3300_3000"]},{"id":"rd_waterfront_3300_3000","x":3300,"y":3000,"lane":"waterfront","links":["rd_waterfront_3600_2700"]},{"id":"rd_waterfront_3600_2700","x":3600,"y":2700,"lane":"waterfront","links":["rd_curve_3120_2240"]}];
+  const RH_ROAD_PATCH_NODES = [{"id":"rd_top_w","x":240,"y":840,"lane":"top_east","links":["rd_top_left"]},{"id":"rd_top_left","x":620,"y":840,"lane":"top_east","stop":true,"intersection":"int_left_top","links":["rd_top_station"]},{"id":"rd_top_station","x":1120,"y":840,"lane":"top_east","links":["rd_top_center_w"]},{"id":"rd_top_center_w","x":1880,"y":840,"lane":"top_east","stop":true,"intersection":"int_center_top_w","links":["rd_top_center_e","rd_center_s_1340"]},{"id":"rd_top_center_e","x":2065,"y":840,"lane":"top_east","stop":true,"intersection":"int_center_top_e","links":["rd_top_market","rd_center_n_1340"]},{"id":"rd_top_market","x":2440,"y":840,"lane":"top_east","links":["rd_top_east","rd_market_s_1340"]},{"id":"rd_top_east","x":2840,"y":840,"lane":"top_east","stop":true,"intersection":"int_market_top","links":["rd_top_river","rd_market_s_1340"]},{"id":"rd_top_river","x":3540,"y":840,"lane":"top_east","stop":true,"intersection":"int_river_top","links":["rd_river_1340"]},{"id":"rd_river_1340","x":3540,"y":1340,"lane":"river_south","stop":true,"intersection":"int_river_mid_n","links":["rd_river_2260"]},{"id":"rd_river_2260","x":3540,"y":2260,"lane":"river_south","stop":true,"intersection":"int_river_mid_s","links":["rd_river_3260"]},{"id":"rd_river_3260","x":3540,"y":3260,"lane":"river_south","stop":true,"intersection":"int_river_south","links":["rd_south_oldtown"]},{"id":"rd_south_oldtown","x":2840,"y":3260,"lane":"south_west","stop":true,"intersection":"int_oldtown_south","links":["rd_south_center_e"]},{"id":"rd_south_center_e","x":2065,"y":3260,"lane":"south_west","stop":true,"intersection":"int_center_south_e","links":["rd_center_n_2260","rd_south_center_w"]},{"id":"rd_south_center_w","x":1880,"y":3260,"lane":"south_west","stop":true,"intersection":"int_center_south_w","links":["rd_south_left","rd_center_s_2260"]},{"id":"rd_south_left","x":620,"y":3260,"lane":"south_west","stop":true,"intersection":"int_left_south","links":["rd_left_2760"]},{"id":"rd_left_2760","x":620,"y":2760,"lane":"left_north","links":["rd_left_2260"]},{"id":"rd_left_2260","x":620,"y":2260,"lane":"left_north","stop":true,"intersection":"int_left_civic","links":["rd_left_1800","rd_civic_center_w"]},{"id":"rd_left_1800","x":620,"y":1800,"lane":"left_north","links":["rd_left_1340"]},{"id":"rd_left_1340","x":620,"y":1340,"lane":"left_north","stop":true,"intersection":"int_left_mid","links":["rd_top_left"]},{"id":"rd_civic_center_w","x":1880,"y":2260,"lane":"civic_east","stop":true,"intersection":"int_center_civic_w","links":["rd_civic_center_e","rd_center_s_3260"]},{"id":"rd_civic_center_e","x":2065,"y":2260,"lane":"civic_east","stop":true,"intersection":"int_center_civic_e","links":["rd_civic_oldtown","rd_center_n_1340"]},{"id":"rd_civic_oldtown","x":2840,"y":2260,"lane":"civic_east","stop":true,"intersection":"int_oldtown_civic","links":["rd_river_2260","rd_market_s_3260"]},{"id":"rd_center_s_1340","x":1880,"y":1340,"lane":"center_south","stop":true,"intersection":"int_center_mid_w","links":["rd_center_s_2260"]},{"id":"rd_center_s_2260","x":1880,"y":2260,"lane":"center_south","stop":true,"intersection":"int_center_civic_w","links":["rd_center_s_3260"]},{"id":"rd_center_s_3260","x":1880,"y":3260,"lane":"center_south","stop":true,"intersection":"int_center_south_w","links":["rd_south_center_w"]},{"id":"rd_center_n_2260","x":2065,"y":2260,"lane":"center_north","stop":true,"intersection":"int_center_civic_e","links":["rd_center_n_1340"]},{"id":"rd_center_n_1340","x":2065,"y":1340,"lane":"center_north","stop":true,"intersection":"int_center_mid_e","links":["rd_top_center_e"]},{"id":"rd_market_s_1340","x":2840,"y":1340,"lane":"market_south","stop":true,"intersection":"int_market_mid","links":["rd_market_s_2260"]},{"id":"rd_market_s_2260","x":2840,"y":2260,"lane":"market_south","stop":true,"intersection":"int_oldtown_civic","links":["rd_market_s_3260"]},{"id":"rd_market_s_3260","x":2840,"y":3260,"lane":"market_south","stop":true,"intersection":"int_oldtown_south","links":["rd_south_oldtown"]}];
   const RH_RD_PATCH_MAP = Object.fromEntries(RH_ROAD_PATCH_NODES.map(n => [n.id, n]));
-  const RH_INTERSECTION_PATCH = {"int_west_top_630":{"box":{"x":520,"y":160,"w":220,"h":220}},"int_west_top_1540":{"box":{"x":1435,"y":160,"w":220,"h":220}},"int_east_top_2400":{"box":{"x":2290,"y":160,"w":220,"h":220}},"int_left_1280":{"box":{"x":520,"y":1170,"w":220,"h":220}},"int_left_2000":{"box":{"x":520,"y":1890,"w":220,"h":220}},"int_left_3000":{"box":{"x":520,"y":2890,"w":220,"h":220}},"int_mid_1280":{"box":{"x":1435,"y":1170,"w":220,"h":220}},"int_mid_2000":{"box":{"x":1435,"y":1890,"w":220,"h":220}},"int_mid_3000":{"box":{"x":1435,"y":2890,"w":220,"h":220}},"int_center_1280":{"box":{"x":2370,"y":1170,"w":220,"h":220}},"int_center_2000":{"box":{"x":2370,"y":1890,"w":220,"h":220}},"int_center_3000":{"box":{"x":2370,"y":2890,"w":220,"h":220}},"int_east_760":{"box":{"x":2370,"y":650,"w":220,"h":220}},"int_ne_diag_cross":{"box":{"x":3110,"y":510,"w":220,"h":220}},"int_curve_mid":{"box":{"x":2740,"y":1940,"w":220,"h":220}}};
+  const RH_INTERSECTION_PATCH = {"int_left_top":{"box":{"x":520,"y":740,"w":200,"h":200}},"int_center_top_w":{"box":{"x":1780,"y":740,"w":200,"h":200}},"int_center_top_e":{"box":{"x":1965,"y":740,"w":200,"h":200}},"int_market_top":{"box":{"x":2740,"y":740,"w":220,"h":220}},"int_river_top":{"box":{"x":3440,"y":740,"w":220,"h":220}},"int_river_mid_n":{"box":{"x":3440,"y":1240,"w":220,"h":220}},"int_river_mid_s":{"box":{"x":3440,"y":2160,"w":220,"h":220}},"int_river_south":{"box":{"x":3440,"y":3160,"w":220,"h":220}},"int_oldtown_south":{"box":{"x":2740,"y":3160,"w":220,"h":220}},"int_center_south_e":{"box":{"x":1965,"y":3160,"w":200,"h":200}},"int_center_south_w":{"box":{"x":1780,"y":3160,"w":200,"h":200}},"int_left_south":{"box":{"x":520,"y":3160,"w":220,"h":220}},"int_left_civic":{"box":{"x":520,"y":2160,"w":220,"h":220}},"int_left_mid":{"box":{"x":520,"y":1240,"w":220,"h":220}},"int_center_civic_w":{"box":{"x":1780,"y":2160,"w":200,"h":200}},"int_center_civic_e":{"box":{"x":1965,"y":2160,"w":200,"h":200}},"int_oldtown_civic":{"box":{"x":2740,"y":2160,"w":220,"h":220}},"int_center_mid_w":{"box":{"x":1780,"y":1240,"w":200,"h":200}},"int_center_mid_e":{"box":{"x":1965,"y":1240,"w":200,"h":200}},"int_market_mid":{"box":{"x":2740,"y":1240,"w":220,"h":220}}};
   for (const v of Object.values(RH_INTERSECTION_PATCH)) { v.occupiedBy = null; }
-  const RH_TRAFFIC_SPAWNS = [{"key":"blackthorne_regent","start":"rd_west_top_630","police":false,"maxSpeed":70},{"key":"blackthorne_regent_taxi","start":"rd_west_top_1540","police":false,"maxSpeed":66},{"key":"rustway_comet","start":"rd_east_760","police":false,"maxSpeed":72},{"key":"fairline_metro","start":"rd_mid_1280","police":false,"maxSpeed":70},{"key":"ironcrest_hauler","start":"rd_curve_2600_1700","police":false,"maxSpeed":54},{"key":"blackthorne_regent","start":"rd_waterfront_3300_3000","police":false,"maxSpeed":66},{"key":"meridian_sentinel_patrol","start":"rd_left_2000","police":true,"maxSpeed":60},{"key":"meridian_sentinel_patrol","start":"rd_civicrow_2060","police":true,"maxSpeed":62}];
+  const RH_TRAFFIC_SPAWNS = [{"key":"blackthorne_regent","start":"rd_top_w","police":false,"maxSpeed":72},{"key":"blackthorne_regent_taxi","start":"rd_top_market","police":false,"maxSpeed":68},{"key":"rustway_comet","start":"rd_market_s_1340","police":false,"maxSpeed":70},{"key":"fairline_metro","start":"rd_center_s_1340","police":false,"maxSpeed":70},{"key":"ironcrest_hauler","start":"rd_river_2260","police":false,"maxSpeed":56},{"key":"blackthorne_regent","start":"rd_south_oldtown","police":false,"maxSpeed":68},{"key":"meridian_sentinel_patrol","start":"rd_left_2260","police":true,"maxSpeed":62},{"key":"meridian_sentinel_patrol","start":"rd_south_center_e","police":true,"maxSpeed":62}];
 
   function rhPickNextRoadNode(car) {
     const cur = RH_RD_PATCH_MAP[car.currentNodeId];
