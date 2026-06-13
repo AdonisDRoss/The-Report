@@ -26,6 +26,7 @@
   window.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
   window.addEventListener('contextmenu', (e) => e.preventDefault());
 
+  // POLICE_LIGHTS_SIREN_SOUND_PATCH_001: dashboard police lights also start/stop siren audio.
   // HORN_POLICE_LIGHTS_AND_B_SHOOT_PATCH_001: tap Z toggles dash police lights, hold Z horn, B shoots on foot.
   // BUILD_NOTE_LOCKED_CONTROLS_ROOFS_ZOOM: roof depth + enterable buildings + UI camera locked controls + close zoom.
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
@@ -10727,6 +10728,127 @@
       return __rhHornReleasePointer.call(this, pointer);
     };
   }
+
+
+  // POLICE_LIGHTS_SIREN_SOUND_PATCH_001
+  // Malcolm's dashboard police lights also control a looping siren.
+  // Lights ON = siren ON. Lights OFF = siren OFF.
+  if (typeof GameScene !== 'undefined') {
+    GameScene.prototype.startPlayerSiren = function() {
+      if (this.playerSiren?.active) return;
+
+      const ctx = this.sound?.context;
+      if (!ctx) {
+        this.playerSiren = { active: true, fallback: true };
+        return;
+      }
+
+      try {
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.045, ctx.currentTime + 0.12);
+        gain.connect(ctx.destination);
+
+        const oscA = ctx.createOscillator();
+        const oscB = ctx.createOscillator();
+        oscA.type = 'sawtooth';
+        oscB.type = 'square';
+        oscA.frequency.setValueAtTime(520, ctx.currentTime);
+        oscB.frequency.setValueAtTime(680, ctx.currentTime);
+
+        oscA.connect(gain);
+        oscB.connect(gain);
+        oscA.start();
+        oscB.start();
+
+        this.playerSiren = {
+          active: true,
+          ctx,
+          gain,
+          oscA,
+          oscB,
+          startedAt: this.time?.now || 0
+        };
+      } catch (e) {
+        this.playerSiren = { active: true, fallback: true };
+      }
+    };
+
+    GameScene.prototype.stopPlayerSiren = function() {
+      const siren = this.playerSiren;
+      if (!siren?.active) return;
+
+      if (siren.ctx && siren.gain) {
+        try {
+          const t = siren.ctx.currentTime;
+          siren.gain.gain.cancelScheduledValues(t);
+          siren.gain.gain.setValueAtTime(Math.max(0.0001, siren.gain.gain.value || 0.0001), t);
+          siren.gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+
+          siren.oscA?.stop(t + 0.18);
+          siren.oscB?.stop(t + 0.18);
+
+          setTimeout(() => {
+            try { siren.gain?.disconnect(); } catch (_) {}
+            try { siren.oscA?.disconnect(); } catch (_) {}
+            try { siren.oscB?.disconnect(); } catch (_) {}
+          }, 240);
+        } catch (e) {
+          try { siren.oscA?.stop(); } catch (_) {}
+          try { siren.oscB?.stop(); } catch (_) {}
+        }
+      }
+
+      this.playerSiren = null;
+    };
+
+    GameScene.prototype.updatePlayerSirenSound = function(time = 0) {
+      const siren = this.playerSiren;
+      if (!siren?.active || !siren.ctx || !siren.oscA || !siren.oscB) return;
+
+      try {
+        const ctx = siren.ctx;
+        const t = ctx.currentTime;
+        const phase = ((time - (siren.startedAt || 0)) / 1000) % 1.6;
+        const sweep = 0.5 + 0.5 * Math.sin(phase * Math.PI * 2);
+        const freqA = 430 + sweep * 410;
+        const freqB = 570 + (1 - sweep) * 360;
+
+        siren.oscA.frequency.setTargetAtTime(freqA, t, 0.045);
+        siren.oscB.frequency.setTargetAtTime(freqB, t, 0.045);
+      } catch (e) {
+        // If WebAudio fails, disable the siren object cleanly.
+        this.playerSiren = null;
+      }
+    };
+
+    const __rhSirenToggle = GameScene.prototype.togglePlayerEmergencyLights;
+    GameScene.prototype.togglePlayerEmergencyLights = function() {
+      __rhSirenToggle.apply(this, arguments);
+
+      if (this.playerPoliceLightsOn) this.startPlayerSiren();
+      else this.stopPlayerSiren();
+    };
+
+    const __rhSirenUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __rhSirenUpdate.call(this, time, delta);
+
+      if (this.playerPoliceLightsOn) {
+        this.startPlayerSiren();
+        this.updatePlayerSirenSound(time);
+      } else {
+        this.stopPlayerSiren();
+      }
+    };
+
+    const __rhSirenShutdown = GameScene.prototype.shutdown;
+    GameScene.prototype.shutdown = function() {
+      this.stopPlayerSiren?.();
+      if (__rhSirenShutdown) __rhSirenShutdown.apply(this, arguments);
+    };
+  }
+
 
   // MAP_CLARITY_DAY_NIGHT_PATCH_001
   // Adds a screen-space city lighting pass driven by existing shiftMinutes.
