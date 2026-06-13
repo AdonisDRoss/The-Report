@@ -26,6 +26,7 @@
   window.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
   window.addEventListener('contextmenu', (e) => e.preventDefault());
 
+  // HORN_POLICE_LIGHTS_AND_B_SHOOT_PATCH_001: tap Z toggles dash police lights, hold Z horn, B shoots on foot.
   // BUILD_NOTE_LOCKED_CONTROLS_ROOFS_ZOOM: roof depth + enterable buildings + UI camera locked controls + close zoom.
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
   // STATION_OVERLAY_GIT_PROPS_PATH_014: station props layer now uses existing Git props-folder overlay path.
@@ -10285,7 +10286,16 @@
           if (semanticKey === 'lights') {
             this.activePointerControls.set(pointer.id, ['lights']);
             const target = this.getTargetScene?.();
-            if (target?.scene?.key === 'GameScene' && target.inCar) target.togglePlayerHeadlights?.();
+            if (!this._lightHoldMeta) this._lightHoldMeta = new Map();
+            this._lightHoldMeta.set(pointer.id, { downAt: target?.time?.now || 0, horned: false });
+            target?.time?.delayedCall?.(430, () => {
+              const meta = this._lightHoldMeta?.get(pointer.id);
+              const stillHeld = this.activePointerControls?.get(pointer.id)?.includes('lights');
+              if (meta && stillHeld && target?.scene?.key === 'GameScene' && target.inCar) {
+                meta.horned = true;
+                target.playVehicleHorn?.();
+              }
+            });
             return;
           }
           if (semanticKey === 'exit') {
@@ -10457,6 +10467,266 @@
     };
   }
 
+
+
+  // HORN_POLICE_LIGHTS_AND_B_SHOOT_PATCH_001
+  // In car:
+  // - Tap Z/lights = toggle Malcolm's dashboard police lights.
+  // - Hold Z/lights = horn.
+  // - NPC police patrol strobes can be controlled by policePatrolLightsOn.
+  // On foot:
+  // - B shoots Malcolm's weapon unless he is close enough to enter the car.
+  if (typeof GameScene !== 'undefined') {
+    function rhIsPlayerPoliceVehicle(scene) {
+      // Malcolm drives an unmarked police sedan. Dash lights are inside the front windshield/dashboard.
+      return true;
+    }
+
+    const __rhHornCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __rhHornCreate.apply(this, arguments);
+
+      if (this.input?.keyboard) {
+        this.keyHornLights = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
+      }
+
+      if (typeof this.playerPoliceLightsOn !== 'boolean') this.playerPoliceLightsOn = false;
+      if (typeof this.policePatrolLightsOn !== 'boolean') this.policePatrolLightsOn = true;
+
+      // Route all older Z/lights aliases through this new tap/hold handler.
+      this.keyHotfixLights = this.keyHornLights;
+      this.keyRequestedLights = null;
+      this.keyCleanLights = null;
+      this.keyDriveLights = null;
+      this.keyFinalLights = null;
+      this.keyCarLights = null;
+      this.carHeadlightKey = null;
+      this.headlightToggleKey = null;
+    };
+
+    GameScene.prototype.playVehicleHorn = function() {
+      const now = this.time?.now || 0;
+      if (now - (this.lastHornAt || 0) < 520) return;
+      this.lastHornAt = now;
+
+      const ctx = this.sound?.context;
+      if (ctx) {
+        try {
+          const gain = ctx.createGain();
+          gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.11, ctx.currentTime + 0.025);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
+          gain.connect(ctx.destination);
+
+          const oscA = ctx.createOscillator();
+          const oscB = ctx.createOscillator();
+          oscA.type = 'square';
+          oscB.type = 'square';
+          oscA.frequency.setValueAtTime(220, ctx.currentTime);
+          oscB.frequency.setValueAtTime(275, ctx.currentTime);
+          oscA.connect(gain);
+          oscB.connect(gain);
+          oscA.start();
+          oscB.start();
+          oscA.stop(ctx.currentTime + 0.24);
+          oscB.stop(ctx.currentTime + 0.24);
+        } catch (e) {
+          // Fallback below still gives player feedback.
+        }
+      }
+
+      this.message = 'HORN';
+      this.messageTimer = 520;
+    };
+
+    GameScene.prototype.togglePlayerEmergencyLights = function() {
+      if (rhIsPlayerPoliceVehicle(this)) {
+        this.playerPoliceLightsOn = !this.playerPoliceLightsOn;
+        GAME.car.visualState.policeLightsOn = this.playerPoliceLightsOn;
+        this.message = this.playerPoliceLightsOn ? 'Dashboard police lights on.' : 'Dashboard police lights off.';
+        this.messageTimer = 1200;
+        return;
+      }
+
+      GAME.car.visualState.lightsOn = !GAME.car.visualState.lightsOn;
+      this.playerHeadlightsOn = GAME.car.visualState.lightsOn;
+      this.message = GAME.car.visualState.lightsOn ? 'Headlights on.' : 'Headlights off.';
+      this.messageTimer = 1200;
+    };
+
+    GameScene.prototype.drawPlayerDashPoliceStrobe = function(g, x, y, heading, time = 0) {
+      const fx = Math.cos(heading), fy = Math.sin(heading);
+      const sx = -Math.sin(heading), sy = Math.cos(heading);
+
+      // Dashboard/window lights sit just behind Malcolm's front windshield, not on the roof.
+      const dashX = x + fx * 20;
+      const dashY = y + fy * 20;
+      const redX = dashX + sx * -7;
+      const redY = dashY + sy * -7;
+      const blueX = dashX + sx * 7;
+      const blueY = dashY + sy * 7;
+
+      const cycle = Math.sin(time * 0.033);
+      const redAlpha = cycle > 0 ? 0.95 : 0.18;
+      const blueAlpha = cycle > 0 ? 0.18 : 0.95;
+
+      this.drawStrobeBloom(g, redX, redY, 0xff1010, redAlpha * 0.78);
+      this.drawStrobeBloom(g, blueX, blueY, 0x205cff, blueAlpha * 0.78);
+
+      // Small hot cores so it reads as dash-mounted through the windshield.
+      g.fillStyle(0xffffff, 0.70);
+      g.fillCircle(redX, redY, 3);
+      g.fillCircle(blueX, blueY, 3);
+    };
+
+    GameScene.prototype.renderVehicleLights = function(time = 0) {
+      if (!this.vehicleLightGraphics) {
+        this.vehicleLightGraphics = this.add.graphics().setDepth(28);
+        try { this.vehicleLightGraphics.setBlendMode(Phaser.BlendModes.ADD); }
+        catch (e) { try { this.vehicleLightGraphics.setBlendMode('ADD'); } catch (_) {} }
+      }
+
+      const g = this.vehicleLightGraphics;
+      g.clear();
+
+      if (this.trafficCars?.length) {
+        for (const car of this.trafficCars) {
+          if (!car?.body) continue;
+          if (car.isPolicePatrol === true && this.policePatrolLightsOn !== false) {
+            this.drawPoliceStrobe(g, car.body.x, car.body.y, car.heading || 0, time, car);
+          }
+        }
+      }
+
+      if (this.car) {
+        if (GAME.car.visualState.lightsOn) {
+          const carLike = {
+            body: this.car,
+            heading: this.car.heading || 0,
+            vehicleKey: 'player_detective_sedan',
+            isPolicePatrol: false,
+            playerVehicle: true
+          };
+          this.drawVehicleLights(carLike, time, true);
+        }
+
+        if (this.playerPoliceLightsOn) {
+          this.drawPlayerDashPoliceStrobe(g, this.car.x, this.car.y, this.car.heading || 0, time);
+        }
+      }
+    };
+
+    // B on foot shoots. If Malcolm is close to the car, B still enters the car.
+    GameScene.prototype.handleCarOrArrest = function() {
+      if (this.canUseCar?.()) {
+        this.handleInteract?.();
+        return;
+      }
+      if (!this.inCar && typeof this.malcolmShoot === 'function') {
+        this.malcolmShoot();
+        return;
+      }
+      this.tryArrest?.();
+    };
+
+    const __rhHornUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      // Stop older wrappers from instantly toggling lights on JustDown(Z).
+      const saved = {
+        keyHotfixLights: this.keyHotfixLights,
+        keyRequestedLights: this.keyRequestedLights,
+        keyCleanLights: this.keyCleanLights,
+        keyDriveLights: this.keyDriveLights,
+        keyFinalLights: this.keyFinalLights,
+        keyCarLights: this.keyCarLights,
+        carHeadlightKey: this.carHeadlightKey,
+        headlightToggleKey: this.headlightToggleKey
+      };
+
+      this.keyHotfixLights = null;
+      this.keyRequestedLights = null;
+      this.keyCleanLights = null;
+      this.keyDriveLights = null;
+      this.keyFinalLights = null;
+      this.keyCarLights = null;
+      this.carHeadlightKey = null;
+      this.headlightToggleKey = null;
+
+      __rhHornUpdate.call(this, time, delta);
+
+      this.keyHornLights = this.keyHornLights || saved.keyHotfixLights;
+      this.keyHotfixLights = this.keyHornLights;
+      this.keyRequestedLights = null;
+      this.keyCleanLights = null;
+      this.keyDriveLights = null;
+      this.keyFinalLights = null;
+      this.keyCarLights = null;
+      this.carHeadlightKey = null;
+      this.headlightToggleKey = null;
+
+      const zDown = !!this.keyHornLights?.isDown;
+
+      if (!this.inCar) {
+        this._hornLightsKeyWasDown = zDown;
+        this._hornLightsHeld = false;
+        this._hornLightsDownAt = 0;
+        return;
+      }
+
+      if (zDown && !this._hornLightsKeyWasDown) {
+        this._hornLightsDownAt = time || 0;
+        this._hornLightsHeld = false;
+      }
+
+      if (zDown && !this._hornLightsHeld && (time || 0) - (this._hornLightsDownAt || 0) >= 430) {
+        this._hornLightsHeld = true;
+        this.playVehicleHorn();
+      }
+
+      if (!zDown && this._hornLightsKeyWasDown) {
+        const heldTime = (time || 0) - (this._hornLightsDownAt || 0);
+        if (!this._hornLightsHeld && heldTime < 430) this.togglePlayerEmergencyLights();
+        this._hornLightsHeld = false;
+        this._hornLightsDownAt = 0;
+      }
+
+      this._hornLightsKeyWasDown = zDown;
+    };
+
+    const __rhHornHud = GameScene.prototype.updateHUD;
+    GameScene.prototype.updateHUD = function() {
+      __rhHornHud.apply(this, arguments);
+      if (this.promptText && !this.inCar) {
+        const current = this.promptText.text || '';
+        this.promptText.setText(current
+          .replace('B car/arrest', 'B shoot/car')
+          .replace('B car/arrest', 'B shoot/car'));
+      }
+    };
+  }
+
+  if (typeof MobileControlsScene !== 'undefined') {
+    const __rhHornReleasePointer = MobileControlsScene.prototype.releasePointer;
+    MobileControlsScene.prototype.releasePointer = function(pointer) {
+      if (this._bReverseHotfixMode === 'car') {
+        const keys = this.activePointerControls?.get(pointer.id);
+        if (keys && keys.includes('lights')) {
+          const target = this.getTargetScene?.();
+          const meta = this._lightHoldMeta?.get(pointer.id);
+          const now = target?.time?.now || 0;
+          const heldMs = meta ? now - meta.downAt : 0;
+
+          if (target?.scene?.key === 'GameScene' && target.inCar && !meta?.horned && heldMs < 430) {
+            target.togglePlayerEmergencyLights?.();
+          }
+
+          this._lightHoldMeta?.delete(pointer.id);
+        }
+      }
+
+      return __rhHornReleasePointer.call(this, pointer);
+    };
+  }
 
   // MAP_CLARITY_DAY_NIGHT_PATCH_001
   // Adds a screen-space city lighting pass driven by existing shiftMinutes.
