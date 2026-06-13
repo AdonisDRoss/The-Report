@@ -4471,13 +4471,16 @@
 
   // WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001:
   // Adds a 4096x4096 game-ready chunk overlay and fixes fallback boxes by replacing them as soon as assets load.
-  const RH_SIDEWALK_PATCH_NODES = [{"id": "sw_station_01", "x": 760, "y": 560, "links": ["sw_station_02"]}, {"id": "sw_station_02", "x": 940, "y": 560, "links": ["sw_station_01", "sw_station_03", "sw_station_cross"]}, {"id": "sw_station_03", "x": 1220, "y": 560, "links": ["sw_station_02", "sw_station_04"]}, {"id": "sw_station_04", "x": 1500, "y": 680, "links": ["sw_station_03", "sw_market_01"]}, {"id": "sw_market_01", "x": 2220, "y": 520, "links": ["sw_station_04", "sw_market_02"]}, {"id": "sw_market_02", "x": 2420, "y": 520, "links": ["sw_market_01", "sw_market_03", "sw_market_lot"]}, {"id": "sw_market_03", "x": 2860, "y": 520, "links": ["sw_market_02", "sw_market_04"]}, {"id": "sw_market_04", "x": 3240, "y": 520, "links": ["sw_market_03", "sw_gas_01"]}, {"id": "sw_gas_01", "x": 3700, "y": 770, "links": ["sw_market_04", "sw_oldtown_01"]}, {"id": "sw_market_lot", "x": 2420, "y": 690, "links": ["sw_market_02", "sw_market_alley"]}, {"id": "sw_market_alley", "x": 2700, "y": 690, "links": ["sw_market_lot", "sw_market_03"]}, {"id": "sw_civic_01", "x": 720, "y": 2580, "links": ["sw_civic_02"]}, {"id": "sw_civic_02", "x": 990, "y": 2580, "links": ["sw_civic_01", "sw_civic_03", "sw_civic_park"]}, {"id": "sw_civic_03", "x": 1360, "y": 2580, "links": ["sw_civic_02", "sw_civic_04"]}, {"id": "sw_civic_04", "x": 1680, "y": 2760, "links": ["sw_civic_03", "sw_oldtown_01"]}, {"id": "sw_civic_park", "x": 1000, "y": 2880, "links": ["sw_civic_02", "sw_civic_05"]}, {"id": "sw_civic_05", "x": 1420, "y": 3260, "links": ["sw_civic_park"]}, {"id": "sw_oldtown_01", "x": 2240, "y": 2520, "links": ["sw_gas_01", "sw_oldtown_02", "sw_civic_04"]}, {"id": "sw_oldtown_02", "x": 2700, "y": 2520, "links": ["sw_oldtown_01", "sw_oldtown_03", "sw_oldtown_alley"]}, {"id": "sw_oldtown_03", "x": 3160, "y": 2520, "links": ["sw_oldtown_02", "sw_oldtown_04"]}, {"id": "sw_oldtown_04", "x": 3660, "y": 2520, "links": ["sw_oldtown_03", "sw_oldtown_yard"]}, {"id": "sw_oldtown_alley", "x": 2720, "y": 3050, "links": ["sw_oldtown_02", "sw_oldtown_river"]}, {"id": "sw_oldtown_yard", "x": 3660, "y": 3060, "links": ["sw_oldtown_04", "sw_oldtown_river"]}, {"id": "sw_oldtown_river", "x": 3180, "y": 3340, "links": ["sw_oldtown_alley", "sw_oldtown_yard"]}, {"id": "sw_station_cross", "x": 1010, "y": 720, "links": ["sw_station_02", "sw_civic_01"]}];
+  // REBUILT_BASE_NPC_TRAFFIC_NODES_002:
+  // Reroutes civilians and traffic for the unified one-picture 4096 Raven Hook base layer.
+  // This replaces the old four-chunk node layout while preserving controls, camera, day/night, and vehicle physics.
+  const RH_SIDEWALK_PATCH_NODES = [{"id":"sw_station_01","x":610,"y":420,"links":["sw_station_02","sw_station_left"]},{"id":"sw_station_02","x":980,"y":420,"links":["sw_station_01","sw_station_03"]},{"id":"sw_station_03","x":1390,"y":520,"links":["sw_station_02","sw_station_cross"]},{"id":"sw_station_cross","x":1400,"y":1020,"links":["sw_station_03","sw_station_south"]},{"id":"sw_station_south","x":1030,"y":1080,"links":["sw_station_cross","sw_market_lot","sw_midblock"]},{"id":"sw_station_left","x":520,"y":1040,"links":["sw_station_01","sw_left_mid"]},{"id":"sw_left_mid","x":520,"y":1670,"links":["sw_station_left","sw_civic_01"]},{"id":"sw_midblock","x":900,"y":1500,"links":["sw_station_south","sw_civic_01"]},{"id":"sw_market_lot","x":1780,"y":1340,"links":["sw_station_south","sw_market_01","sw_center_lot"]},{"id":"sw_center_lot","x":2050,"y":1970,"links":["sw_market_lot","sw_civic_03","sw_oldtown_01"]},{"id":"sw_market_01","x":2380,"y":900,"links":["sw_market_lot","sw_market_02"]},{"id":"sw_market_02","x":2780,"y":650,"links":["sw_market_01","sw_market_03"]},{"id":"sw_market_03","x":3180,"y":970,"links":["sw_market_02","sw_market_04"]},{"id":"sw_market_04","x":3560,"y":1260,"links":["sw_market_03","sw_gas_01"]},{"id":"sw_gas_01","x":3500,"y":1710,"links":["sw_market_04","sw_gas_south"]},{"id":"sw_gas_south","x":3320,"y":2220,"links":["sw_gas_01","sw_oldtown_04"]},{"id":"sw_civic_01","x":560,"y":2180,"links":["sw_left_mid","sw_civic_02"]},{"id":"sw_civic_02","x":880,"y":2500,"links":["sw_civic_01","sw_civic_park","sw_civic_03"]},{"id":"sw_civic_park","x":880,"y":2920,"links":["sw_civic_02","sw_civic_park_s"]},{"id":"sw_civic_park_s","x":920,"y":3200,"links":["sw_civic_park","sw_civic_05"]},{"id":"sw_civic_03","x":1450,"y":2450,"links":["sw_civic_02","sw_civic_04","sw_center_lot"]},{"id":"sw_civic_04","x":1650,"y":2760,"links":["sw_civic_03","sw_oldtown_01"]},{"id":"sw_civic_05","x":1450,"y":3500,"links":["sw_civic_park_s","sw_oldtown_river"]},{"id":"sw_oldtown_01","x":2450,"y":2060,"links":["sw_center_lot","sw_oldtown_02"]},{"id":"sw_oldtown_02","x":2730,"y":2320,"links":["sw_oldtown_01","sw_oldtown_03","sw_oldtown_alley"]},{"id":"sw_oldtown_03","x":3150,"y":2380,"links":["sw_oldtown_02","sw_oldtown_04"]},{"id":"sw_oldtown_04","x":3500,"y":2600,"links":["sw_oldtown_03","sw_gas_south","sw_oldtown_yard"]},{"id":"sw_oldtown_alley","x":2600,"y":2920,"links":["sw_oldtown_02","sw_oldtown_river"]},{"id":"sw_oldtown_yard","x":3340,"y":3020,"links":["sw_oldtown_04","sw_oldtown_river"]},{"id":"sw_oldtown_river","x":3000,"y":3260,"links":["sw_oldtown_alley","sw_oldtown_yard","sw_civic_05"]}];
   const RH_SW_PATCH_MAP = Object.fromEntries(RH_SIDEWALK_PATCH_NODES.map(n => [n.id, n]));
-  const RH_ROAD_PATCH_NODES = [{"id": "rd_station_w", "x": 280, "y": 760, "lane": "eastbound", "links": ["rd_station_mid"]}, {"id": "rd_station_mid", "x": 960, "y": 760, "lane": "eastbound", "stop": true, "intersection": "int_station", "links": ["rd_market_w", "rd_civic_n"]}, {"id": "rd_market_w", "x": 1820, "y": 760, "lane": "eastbound", "links": ["rd_market_mid"]}, {"id": "rd_market_mid", "x": 2420, "y": 760, "lane": "eastbound", "stop": true, "intersection": "int_market", "links": ["rd_market_e", "rd_oldtown_n"]}, {"id": "rd_market_e", "x": 3500, "y": 760, "lane": "eastbound", "stop": true, "intersection": "int_gas", "links": ["rd_gas_s", "rd_market_return"]}, {"id": "rd_market_return", "x": 3840, "y": 700, "lane": "westbound", "links": ["rd_market_e_w"]}, {"id": "rd_market_e_w", "x": 3500, "y": 700, "lane": "westbound", "stop": true, "intersection": "int_gas", "links": ["rd_market_mid_w"]}, {"id": "rd_market_mid_w", "x": 2420, "y": 700, "lane": "westbound", "stop": true, "intersection": "int_market", "links": ["rd_market_w_w", "rd_oldtown_n"]}, {"id": "rd_market_w_w", "x": 1820, "y": 700, "lane": "westbound", "links": ["rd_station_mid_w"]}, {"id": "rd_station_mid_w", "x": 960, "y": 700, "lane": "westbound", "stop": true, "intersection": "int_station", "links": ["rd_station_w_w", "rd_civic_n"]}, {"id": "rd_station_w_w", "x": 280, "y": 700, "lane": "westbound", "links": ["rd_station_w"]}, {"id": "rd_civic_n", "x": 960, "y": 1320, "lane": "southbound", "stop": true, "intersection": "int_station_s", "links": ["rd_civic_mid"]}, {"id": "rd_civic_mid", "x": 960, "y": 2200, "lane": "southbound", "links": ["rd_civic_s"]}, {"id": "rd_civic_s", "x": 960, "y": 3320, "lane": "southbound", "stop": true, "intersection": "int_civic", "links": ["rd_civic_loop_e"]}, {"id": "rd_civic_loop_e", "x": 1680, "y": 3320, "lane": "eastbound", "links": ["rd_oldtown_s"]}, {"id": "rd_oldtown_n", "x": 2420, "y": 1320, "lane": "southbound", "stop": true, "intersection": "int_market_s", "links": ["rd_oldtown_mid"]}, {"id": "rd_oldtown_mid", "x": 2420, "y": 2200, "lane": "southbound", "links": ["rd_oldtown_s"]}, {"id": "rd_oldtown_s", "x": 2420, "y": 3320, "lane": "eastbound", "stop": true, "intersection": "int_oldtown", "links": ["rd_river_s"]}, {"id": "rd_river_s", "x": 3480, "y": 3320, "lane": "eastbound", "stop": true, "intersection": "int_river", "links": ["rd_river_n"]}, {"id": "rd_river_n", "x": 3480, "y": 1320, "lane": "northbound", "stop": true, "intersection": "int_gas_s", "links": ["rd_gas_s"]}, {"id": "rd_gas_s", "x": 3480, "y": 900, "lane": "northbound", "links": ["rd_market_e_w"]}];
+  const RH_ROAD_PATCH_NODES = [{"id":"rd_west_top_630","x":630,"y":270,"lane":"grid_top","stop":true,"intersection":"int_west_top_630","links":["rd_west_top_1540","rd_left_1280"]},{"id":"rd_west_top_1540","x":1545,"y":270,"lane":"grid_top","stop":true,"intersection":"int_west_top_1540","links":["rd_east_top_2400","rd_mid_1280"]},{"id":"rd_east_top_2400","x":2400,"y":270,"lane":"grid_top","stop":true,"intersection":"int_east_top_2400","links":["rd_east_760","rd_ne_diag_2850_260"]},{"id":"rd_left_1280","x":630,"y":1280,"lane":"left_col","stop":true,"intersection":"int_left_1280","links":["rd_left_2000","rd_west_top_630","rd_midrow_1545"]},{"id":"rd_left_2000","x":630,"y":2000,"lane":"left_col","stop":true,"intersection":"int_left_2000","links":["rd_left_3000","rd_left_1280","rd_civicrow_1545"]},{"id":"rd_left_3000","x":630,"y":3000,"lane":"left_col","stop":true,"intersection":"int_left_3000","links":["rd_left_2000","rd_south_1545"]},{"id":"rd_mid_1280","x":1545,"y":1280,"lane":"mid_col","stop":true,"intersection":"int_mid_1280","links":["rd_mid_2000","rd_midrow_2120"]},{"id":"rd_mid_2000","x":1545,"y":2000,"lane":"mid_col","stop":true,"intersection":"int_mid_2000","links":["rd_mid_3000","rd_civicrow_2060"]},{"id":"rd_mid_3000","x":1545,"y":3000,"lane":"mid_col","stop":true,"intersection":"int_mid_3000","links":["rd_south_2480","rd_south_630"]},{"id":"rd_midrow_1545","x":1545,"y":1280,"lane":"midrow","stop":true,"intersection":"int_mid_1280","links":["rd_midrow_2120","rd_left_1280"]},{"id":"rd_midrow_2120","x":2120,"y":1280,"lane":"midrow","links":["rd_midrow_2480"]},{"id":"rd_midrow_2480","x":2480,"y":1280,"lane":"midrow","stop":true,"intersection":"int_center_1280","links":["rd_curve_2600_1700","rd_east_760"]},{"id":"rd_civicrow_1545","x":1545,"y":2000,"lane":"civicrow","stop":true,"intersection":"int_mid_2000","links":["rd_civicrow_2060","rd_left_2000"]},{"id":"rd_civicrow_2060","x":2060,"y":2000,"lane":"civicrow","links":["rd_civicrow_2480"]},{"id":"rd_civicrow_2480","x":2480,"y":2000,"lane":"civicrow","stop":true,"intersection":"int_center_2000","links":["rd_curve_2850_2050","rd_midrow_2480"]},{"id":"rd_south_630","x":630,"y":3000,"lane":"southrow","stop":true,"intersection":"int_left_3000","links":["rd_left_2000","rd_south_1545"]},{"id":"rd_south_1545","x":1545,"y":3000,"lane":"southrow","stop":true,"intersection":"int_mid_3000","links":["rd_south_2480","rd_mid_2000"]},{"id":"rd_south_2480","x":2480,"y":3000,"lane":"southrow","stop":true,"intersection":"int_center_3000","links":["rd_waterfront_2850_2860","rd_south_1545"]},{"id":"rd_east_760","x":2480,"y":760,"lane":"east_spine","stop":true,"intersection":"int_east_760","links":["rd_midrow_2480","rd_east_top_2400","rd_ne_diag_3020_870"]},{"id":"rd_ne_diag_2850_260","x":2850,"y":260,"lane":"ne_diag","links":["rd_ne_diag_3220_620"]},{"id":"rd_ne_diag_3220_620","x":3220,"y":620,"lane":"ne_diag","stop":true,"intersection":"int_ne_diag_cross","links":["rd_ne_diag_3600_980","rd_ne_return_3520_360"]},{"id":"rd_ne_diag_3600_980","x":3600,"y":980,"lane":"ne_diag","links":["rd_ne_return_3860_710","rd_ne_market_3340_1180"]},{"id":"rd_ne_return_3860_710","x":3860,"y":710,"lane":"ne_return","links":["rd_ne_return_3520_360"]},{"id":"rd_ne_return_3520_360","x":3520,"y":360,"lane":"ne_return","links":["rd_ne_diag_3220_620"]},{"id":"rd_ne_diag_3020_870","x":3020,"y":870,"lane":"ne_market","links":["rd_ne_market_3340_1180"]},{"id":"rd_ne_market_3340_1180","x":3340,"y":1180,"lane":"ne_market","links":["rd_curve_2600_1700"]},{"id":"rd_curve_2600_1700","x":2600,"y":1700,"lane":"canal_curve","links":["rd_curve_2850_2050"]},{"id":"rd_curve_2850_2050","x":2850,"y":2050,"lane":"canal_curve","stop":true,"intersection":"int_curve_mid","links":["rd_curve_3120_2240","rd_civicrow_2480"]},{"id":"rd_curve_3120_2240","x":3120,"y":2240,"lane":"canal_curve","links":["rd_curve_3040_2520"]},{"id":"rd_curve_3040_2520","x":3040,"y":2520,"lane":"canal_curve","links":["rd_curve_2860_2800"]},{"id":"rd_curve_2860_2800","x":2860,"y":2800,"lane":"canal_curve","links":["rd_waterfront_2850_2860"]},{"id":"rd_waterfront_2850_2860","x":2850,"y":2860,"lane":"waterfront","links":["rd_south_2480","rd_waterfront_3300_3000"]},{"id":"rd_waterfront_3300_3000","x":3300,"y":3000,"lane":"waterfront","links":["rd_waterfront_3600_2700"]},{"id":"rd_waterfront_3600_2700","x":3600,"y":2700,"lane":"waterfront","links":["rd_curve_3120_2240"]}];
   const RH_RD_PATCH_MAP = Object.fromEntries(RH_ROAD_PATCH_NODES.map(n => [n.id, n]));
-  const RH_INTERSECTION_PATCH = {"int_station": {"box": {"x": 860, "y": 660, "w": 220, "h": 220}}, "int_market": {"box": {"x": 2320, "y": 660, "w": 240, "h": 240}}, "int_gas": {"box": {"x": 3390, "y": 660, "w": 250, "h": 250}}, "int_station_s": {"box": {"x": 860, "y": 1220, "w": 220, "h": 220}}, "int_market_s": {"box": {"x": 2320, "y": 1220, "w": 240, "h": 240}}, "int_civic": {"box": {"x": 860, "y": 3220, "w": 260, "h": 260}}, "int_oldtown": {"box": {"x": 2320, "y": 3220, "w": 260, "h": 260}}, "int_river": {"box": {"x": 3380, "y": 3220, "w": 260, "h": 260}}, "int_gas_s": {"box": {"x": 3380, "y": 1220, "w": 260, "h": 260}}};
+  const RH_INTERSECTION_PATCH = {"int_west_top_630":{"box":{"x":520,"y":160,"w":220,"h":220}},"int_west_top_1540":{"box":{"x":1435,"y":160,"w":220,"h":220}},"int_east_top_2400":{"box":{"x":2290,"y":160,"w":220,"h":220}},"int_left_1280":{"box":{"x":520,"y":1170,"w":220,"h":220}},"int_left_2000":{"box":{"x":520,"y":1890,"w":220,"h":220}},"int_left_3000":{"box":{"x":520,"y":2890,"w":220,"h":220}},"int_mid_1280":{"box":{"x":1435,"y":1170,"w":220,"h":220}},"int_mid_2000":{"box":{"x":1435,"y":1890,"w":220,"h":220}},"int_mid_3000":{"box":{"x":1435,"y":2890,"w":220,"h":220}},"int_center_1280":{"box":{"x":2370,"y":1170,"w":220,"h":220}},"int_center_2000":{"box":{"x":2370,"y":1890,"w":220,"h":220}},"int_center_3000":{"box":{"x":2370,"y":2890,"w":220,"h":220}},"int_east_760":{"box":{"x":2370,"y":650,"w":220,"h":220}},"int_ne_diag_cross":{"box":{"x":3110,"y":510,"w":220,"h":220}},"int_curve_mid":{"box":{"x":2740,"y":1940,"w":220,"h":220}}};
   for (const v of Object.values(RH_INTERSECTION_PATCH)) { v.occupiedBy = null; }
-  const RH_TRAFFIC_SPAWNS = [{"key": "blackthorne_regent", "start": "rd_station_w", "police": false, "maxSpeed": 78}, {"key": "blackthorne_regent_taxi", "start": "rd_market_w", "police": false, "maxSpeed": 74}, {"key": "rustway_comet", "start": "rd_market_e_w", "police": false, "maxSpeed": 72}, {"key": "fairline_metro", "start": "rd_civic_n", "police": false, "maxSpeed": 76}, {"key": "ironcrest_hauler", "start": "rd_oldtown_n", "police": false, "maxSpeed": 60}, {"key": "blackthorne_regent", "start": "rd_oldtown_s", "police": false, "maxSpeed": 72}, {"key": "meridian_sentinel_patrol", "start": "rd_station_mid_w", "police": true, "maxSpeed": 64}, {"key": "meridian_sentinel_patrol", "start": "rd_river_s", "police": true, "maxSpeed": 64}];
+  const RH_TRAFFIC_SPAWNS = [{"key":"blackthorne_regent","start":"rd_west_top_630","police":false,"maxSpeed":70},{"key":"blackthorne_regent_taxi","start":"rd_west_top_1540","police":false,"maxSpeed":66},{"key":"rustway_comet","start":"rd_east_760","police":false,"maxSpeed":72},{"key":"fairline_metro","start":"rd_mid_1280","police":false,"maxSpeed":70},{"key":"ironcrest_hauler","start":"rd_curve_2600_1700","police":false,"maxSpeed":54},{"key":"blackthorne_regent","start":"rd_waterfront_3300_3000","police":false,"maxSpeed":66},{"key":"meridian_sentinel_patrol","start":"rd_left_2000","police":true,"maxSpeed":60},{"key":"meridian_sentinel_patrol","start":"rd_civicrow_2060","police":true,"maxSpeed":62}];
 
   function rhPickNextRoadNode(car) {
     const cur = RH_RD_PATCH_MAP[car.currentNodeId];
@@ -7761,15 +7764,15 @@
   // Touch circle now has a stronger steering curve, lower deadzone, and faster angular response.
 
   const CAR_STEERING_TUNING = {
-    touchDeadzone: 0.035,
-    touchSensitivity: 1.75,
-    touchCurve: 0.56,
+    touchDeadzone: 0.018,
+    touchSensitivity: 2.15,
+    touchCurve: 0.46,
     keyboardSensitivity: 1.0,
-    steeringPower: 7.2,
-    angularDamping: 0.91,
-    minTurnSpeed: 4,
+    steeringPower: 8.15,
+    angularDamping: 0.90,
+    minTurnSpeed: 2,
     handbrakeTurnBoost: 2.05,
-    angularVelocityLimit: 4.4
+    angularVelocityLimit: 5.15
   };
 
   function rhCurveSteer(v) {
@@ -7789,8 +7792,8 @@
       PLAYER_CAR_HEAVY_HANDLING.angularVelocityLimit = CAR_STEERING_TUNING.angularVelocityLimit;
     }
     if (typeof PLAYER_CAR_HANDLING !== 'undefined') {
-      PLAYER_CAR_HANDLING.turnRate = 4.4;
-      PLAYER_CAR_HANDLING.minTurnSpeed = 4;
+      PLAYER_CAR_HANDLING.turnRate = 5.15;
+      PLAYER_CAR_HANDLING.minTurnSpeed = 2;
       PLAYER_CAR_HANDLING.handbrakeTurnBoost = 2.0;
     }
   }
@@ -7850,7 +7853,7 @@
         const steer = Math.abs(m.carSteerX || 0) > CAR_STEERING_TUNING.touchDeadzone ? rhCurveSteer(m.carSteerX) : 0;
         const speed = Math.hypot(this.car.velocityX || this.car.vx || 0, this.car.velocityY || this.car.vy || 0);
         if (this.inCar && Math.abs(steer) > 0.1 && speed < 55) {
-          this.car.heading = (this.car.heading || -Math.PI / 2) + steer * 0.018;
+          this.car.heading = (this.car.heading || -Math.PI / 2) + steer * 0.026;
           this.car.setRotation((this.car.heading || -Math.PI / 2) + Math.PI / 2);
         }
       }
@@ -8138,12 +8141,12 @@
   // Hold and slide left/right for proportional steering. Release to center.
 
   const DYNAMIC_STICK = {
-    zoneW: Math.floor(VIEW_W * 0.52),
+    zoneW: Math.floor(VIEW_W * 0.56),
     zoneH: VIEW_H,
-    maxRadius: 96,
-    deadzone: 0.035,
-    sensitivity: 1.78,
-    curve: 0.58
+    maxRadius: 70,
+    deadzone: 0.016,
+    sensitivity: 2.20,
+    curve: 0.44
   };
 
   function rhDynamicStickSteerCurve(v) {
@@ -8451,10 +8454,10 @@
       const m = this.mobile || MOBILE_INPUT_STATE || {};
 
       let steering = 0;
-      if (Math.abs(m.carSteerX || 0) > 0.025) {
+      if (Math.abs(m.carSteerX || 0) > 0.012) {
         // Keep the working toggle/drag steering, but make it proportional.
         const raw = Phaser.Math.Clamp(m.carSteerX || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
       } else {
         if (m.left || this.keyFinalLeft?.isDown) steering -= 1;
         if (m.right || this.keyFinalRight?.isDown) steering += 1;
@@ -8556,7 +8559,7 @@
       this.dpadButtons.push(addBtn(dX + 72, dY, '▶', 'right'));
 
       // Keep the working dynamic/toggle steering area from this build.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
       this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
         .setScrollFactor(0)
         .setDepth(5012)
@@ -8795,9 +8798,9 @@
       const m = this.mobile || MOBILE_INPUT_STATE || {};
 
       let steering = 0;
-      if (Math.abs(m.carSteerX || 0) > 0.025) {
+      if (Math.abs(m.carSteerX || 0) > 0.012) {
         const raw = Phaser.Math.Clamp(m.carSteerX || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
       } else {
         if (m.left || this.keyDriveLeft?.isDown) steering -= 1;
         if (m.right || this.keyDriveRight?.isDown) steering += 1;
@@ -8895,7 +8898,7 @@
       this.dpadButtons.push(addBtn(dX + 72, dY, '▶', 'right', 0x111827, 30, '18px', 5000));
 
       // Preserve working in-car dynamic stick.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
       this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
         .setScrollFactor(0)
         .setDepth(5010)
@@ -9166,9 +9169,9 @@
 
       let steering = 0;
       const sx = Number.isFinite(m.carSteerX) ? m.carSteerX : (m.driveSteerX || 0);
-      if (Math.abs(sx || 0) > 0.025) {
+      if (Math.abs(sx || 0) > 0.012) {
         const raw = Phaser.Math.Clamp(sx || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
       } else {
         if (m.left || this.keyCleanLeft?.isDown) steering -= 1;
         if (m.right || this.keyCleanRight?.isDown) steering += 1;
@@ -9261,7 +9264,7 @@
       };
 
       // Preserve working steering/toggle style in car.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
       this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
         .setScrollFactor(0)
         .setDepth(5010)
@@ -9536,9 +9539,9 @@
 
       let steering = 0;
       const sx = Number.isFinite(m.driveSteerX) ? m.driveSteerX : (Number.isFinite(m.carSteerX) ? m.carSteerX : 0);
-      if (Math.abs(sx || 0) > 0.025) {
+      if (Math.abs(sx || 0) > 0.012) {
         const raw = Phaser.Math.Clamp(sx || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
       } else {
         if (this.keyRequestedLeft?.isDown) steering -= 1;
         if (this.keyRequestedRight?.isDown) steering += 1;
@@ -9657,7 +9660,7 @@
       };
 
       // Left-side driving touch zone. Touch/drag creates a temporary steering origin.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
       this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
         .setScrollFactor(0)
         .setDepth(5005)
@@ -9829,6 +9832,7 @@
 
 
 
+  // TOUCH_STEERING_RESPONSIVE_TUNE_001: smaller steering radius, lower deadzone, stronger curve.
   // USER_HOTFIX_CAR_INPUT_B_NOT_REVERSE_004:
   // Final hard override for in-car controls after the Z-headlights request.
   // Fixes reported issue where B behaved like reverse and X acceleration did not engage.
@@ -9933,9 +9937,9 @@
 
       let steering = 0;
       const steerX = Number.isFinite(m.driveSteerX) ? m.driveSteerX : (Number.isFinite(m.carSteerX) ? m.carSteerX : 0);
-      if (Math.abs(steerX || 0) > 0.025) {
+      if (Math.abs(steerX || 0) > 0.012) {
         const raw = Phaser.Math.Clamp(steerX || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
       } else {
         if (this.keyHotfixLeft?.isDown) steering -= 1;
         if (this.keyHotfixRight?.isDown) steering += 1;
@@ -10081,7 +10085,7 @@
       };
 
       // Left-side driving touch zone. Horizontal drag steers only; vertical drag never reverses.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
       this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
         .setScrollFactor(0)
         .setDepth(21000)
