@@ -58,10 +58,11 @@
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
 
   const CAMERA = {
-    playerZoom: 2.35,
-    carSlowZoom: 1.85,
-    carMidZoom: 1.45,
-    carFastZoom: 1.20,
+    // MAP_CLARITY_ZOOM_TUNE_001: slight zoom-out reduces visible blur on the rebuilt 4096 base layer.
+    playerZoom: 2.10,
+    carSlowZoom: 1.72,
+    carMidZoom: 1.52,
+    carFastZoom: 1.32,
     followLerp: 0.14
   };
 
@@ -5256,7 +5257,7 @@
 
       // Player car light engine uses car.heading directly.
       const movingSpeed = Math.hypot(vx, vy);
-      const targetZoom = movingSpeed > 220 ? 1.65 : (movingSpeed > 120 ? 1.78 : 1.9);
+      const targetZoom = movingSpeed > 220 ? CAMERA.carFastZoom : (movingSpeed > 120 ? CAMERA.carMidZoom : CAMERA.carSlowZoom);
       this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.045));
 
       this.lastCarPhysicsDebug = {
@@ -5917,7 +5918,7 @@
       this.updateHeavyBodyRollVisual(dt, lateralSlip, angularVelocity, Math.hypot(vx, vy));
 
       const movingSpeed = Math.hypot(vx, vy);
-      const targetZoom = movingSpeed > 240 ? 1.60 : (movingSpeed > 135 ? 1.76 : 1.90);
+      const targetZoom = movingSpeed > 240 ? CAMERA.carFastZoom : (movingSpeed > 135 ? CAMERA.carMidZoom : CAMERA.carSlowZoom);
       this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.045));
 
       this.lastCarPhysicsDebug = {
@@ -10231,6 +10232,80 @@
       if (this._bReverseHotfixMode !== 'car' && typeof __bReverseHotfixFootUpdate === 'function') {
         __bReverseHotfixFootUpdate.call(this, time, delta);
       }
+    };
+  }
+
+
+  // MAP_CLARITY_DAY_NIGHT_PATCH_001
+  // Adds a screen-space city lighting pass driven by existing shiftMinutes.
+  // Clock already existed in HUD; this adds visible morning/day/evening/night color without affecting UI controls.
+  const RAVEN_HOOK_DAY_NIGHT = {
+    enabled: true,
+    dawnHour: 6,
+    dayHour: 9,
+    duskHour: 18,
+    nightHour: 21,
+    maxNightAlpha: 0.46,
+    duskAlpha: 0.22,
+    dawnAlpha: 0.18
+  };
+
+  function rhSmoothStep(edge0, edge1, x) {
+    const t = Phaser.Math.Clamp((x - edge0) / Math.max(0.0001, edge1 - edge0), 0, 1);
+    return t * t * (3 - 2 * t);
+  }
+
+  if (typeof GameScene !== 'undefined') {
+    const __rhDayNightOldCreate = GameScene.prototype.create;
+    GameScene.prototype.create = function() {
+      __rhDayNightOldCreate.apply(this, arguments);
+      if (this.scene?.key !== 'GameScene') return;
+
+      this.dayNightOverlay = this.add.rectangle(0, 0, VIEW_W, VIEW_H, 0x061022, 0)
+        .setOrigin(0, 0)
+        .setScrollFactor(0)
+        .setDepth(95)
+        .setBlendMode(Phaser.BlendModes.MULTIPLY);
+
+      this.dayNightWarmth = this.add.rectangle(0, 0, VIEW_W, VIEW_H, 0xff8b3d, 0)
+        .setOrigin(0, 0)
+        .setScrollFactor(0)
+        .setDepth(96)
+        .setBlendMode(Phaser.BlendModes.ADD);
+
+      this.updateDayNightCycle?.();
+      this.refreshCameraIgnores?.();
+    };
+
+    GameScene.prototype.updateDayNightCycle = function() {
+      if (!RAVEN_HOOK_DAY_NIGHT.enabled || !this.dayNightOverlay) return;
+
+      const minutes = Number.isFinite(this.shiftMinutes) ? this.shiftMinutes : 8 * 60;
+      const hour = ((minutes / 60) % 24 + 24) % 24;
+
+      let nightAlpha = 0;
+      let warmAlpha = 0;
+
+      if (hour >= RAVEN_HOOK_DAY_NIGHT.nightHour || hour < RAVEN_HOOK_DAY_NIGHT.dawnHour) {
+        nightAlpha = RAVEN_HOOK_DAY_NIGHT.maxNightAlpha;
+      } else if (hour >= RAVEN_HOOK_DAY_NIGHT.dawnHour && hour < RAVEN_HOOK_DAY_NIGHT.dayHour) {
+        const t = rhSmoothStep(RAVEN_HOOK_DAY_NIGHT.dawnHour, RAVEN_HOOK_DAY_NIGHT.dayHour, hour);
+        nightAlpha = Phaser.Math.Linear(RAVEN_HOOK_DAY_NIGHT.maxNightAlpha, 0, t);
+        warmAlpha = Math.sin(t * Math.PI) * RAVEN_HOOK_DAY_NIGHT.dawnAlpha;
+      } else if (hour >= RAVEN_HOOK_DAY_NIGHT.duskHour && hour < RAVEN_HOOK_DAY_NIGHT.nightHour) {
+        const t = rhSmoothStep(RAVEN_HOOK_DAY_NIGHT.duskHour, RAVEN_HOOK_DAY_NIGHT.nightHour, hour);
+        nightAlpha = Phaser.Math.Linear(0, RAVEN_HOOK_DAY_NIGHT.maxNightAlpha, t);
+        warmAlpha = Math.sin(t * Math.PI) * RAVEN_HOOK_DAY_NIGHT.duskAlpha;
+      }
+
+      this.dayNightOverlay.setAlpha(nightAlpha);
+      this.dayNightWarmth?.setAlpha(warmAlpha);
+    };
+
+    const __rhDayNightOldUpdate = GameScene.prototype.update;
+    GameScene.prototype.update = function(time, delta) {
+      __rhDayNightOldUpdate.call(this, time, delta);
+      this.updateDayNightCycle?.();
     };
   }
 
