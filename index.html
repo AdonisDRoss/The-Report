@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central Mobile Safe Build — Building Placement Tuned</title>
+  <title>The Report — Raven Hook Central — Buildings + Traffic Nodes Updated</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -26,8 +26,6 @@
   window.addEventListener('gesturechange', (e) => e.preventDefault(), { passive: false });
   window.addEventListener('contextmenu', (e) => e.preventDefault());
 
-  // POLICE_LIGHTS_SIREN_SOUND_PATCH_001: dashboard police lights also start/stop siren audio.
-  // HORN_POLICE_LIGHTS_AND_B_SHOOT_PATCH_001: tap Z toggles dash police lights, hold Z horn, B shoots on foot.
   // BUILD_NOTE_LOCKED_CONTROLS_ROOFS_ZOOM: roof depth + enterable buildings + UI camera locked controls + close zoom.
   // STATION_SHEET_DIRECTION_FIX_002_SAFE: valid east/west row swap for new 96x128 Malcolm station sheet.
   // STATION_OVERLAY_GIT_PROPS_PATH_014: station props layer now uses existing Git props-folder overlay path.
@@ -60,11 +58,10 @@
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
 
   const CAMERA = {
-    // MAP_CLARITY_ZOOM_TUNE_001: slight zoom-out reduces visible blur on the rebuilt 4096 base layer.
-    playerZoom: 2.10,
-    carSlowZoom: 1.72,
-    carMidZoom: 1.52,
-    carFastZoom: 1.32,
+    playerZoom: 2.35,
+    carSlowZoom: 1.85,
+    carMidZoom: 1.45,
+    carFastZoom: 1.20,
     followLerp: 0.14
   };
 
@@ -116,403 +113,185 @@
     scene.scene.bringToTop('MobileControlsScene');
   }
 
-  // COLLISION_RECTS_UNIFIED_MAP_001:
-  // Forgiving collision layer for the one-picture Raven Hook base map.
-  // Buildings and deep water collide; roads, sidewalks, alleys, parking lots, and door approaches stay open.
   const COLLISION_RECTS = [
-    {
-        "id": "edge_nw_roof_01",
-        "x": 223,
-        "y": 14,
-        "w": 243,
-        "h": 87,
-        "type": "building"
-    },
-    {
-        "id": "edge_nw_roof_02",
-        "x": 821,
-        "y": 13,
-        "w": 194,
-        "h": 80,
-        "type": "building"
-    },
-    {
-        "id": "edge_nw_roof_03",
-        "x": 1829,
-        "y": 14,
-        "w": 437,
-        "h": 87,
-        "type": "building"
-    },
-    {
-        "id": "edge_ne_roof_01",
-        "x": 2671,
-        "y": 17,
-        "w": 228,
-        "h": 110,
-        "type": "building"
-    },
-    {
-        "id": "edge_ne_roof_02",
-        "x": 3763,
-        "y": 20,
-        "w": 274,
-        "h": 129,
-        "type": "building"
-    },
-    {
-        "id": "nw_left_block_north",
-        "x": 231,
-        "y": 481,
-        "w": 198,
-        "h": 228,
-        "type": "building"
-    },
-    {
-        "id": "nw_left_block_mid",
-        "x": 227,
-        "y": 883,
-        "w": 205,
-        "h": 274,
-        "type": "building"
-    },
-    {
-        "id": "nw_left_block_south",
-        "x": 232,
-        "y": 1648,
-        "w": 232,
-        "h": 270,
-        "type": "building"
-    },
-    {
-        "id": "nw_station_main",
-        "x": 891,
-        "y": 589,
-        "w": 543,
-        "h": 312,
-        "type": "building"
-    },
-    {
-        "id": "nw_station_annex",
-        "x": 2008,
-        "y": 512,
-        "w": 365,
-        "h": 266,
-        "type": "building"
-    },
-    {
-        "id": "nw_mid_office_a",
-        "x": 1976,
-        "y": 1150,
-        "w": 258,
-        "h": 160,
-        "type": "building"
-    },
-    {
-        "id": "nw_mid_office_b",
-        "x": 2264,
-        "y": 1155,
-        "w": 186,
-        "h": 160,
-        "type": "building"
-    },
-    {
-        "id": "nw_small_shop_row_01",
-        "x": 1957,
-        "y": 1709,
-        "w": 137,
-        "h": 312,
-        "type": "building"
-    },
-    {
-        "id": "nw_small_shop_row_02",
-        "x": 2283,
-        "y": 1703,
-        "w": 175,
-        "h": 114,
-        "type": "building"
-    },
-    {
-        "id": "nw_small_shop_row_03",
-        "x": 2258,
-        "y": 2236,
-        "w": 148,
-        "h": 228,
-        "type": "building"
-    },
-    {
-        "id": "nw_market_small_01",
-        "x": 832,
-        "y": 1741,
-        "w": 236,
-        "h": 228,
-        "type": "building"
-    },
-    {
-        "id": "nw_market_small_02",
-        "x": 1339,
-        "y": 1752,
-        "w": 281,
-        "h": 266,
-        "type": "building"
-    },
-    {
-        "id": "ne_diagonal_block_01",
-        "x": 2838,
-        "y": 225,
-        "w": 239,
-        "h": 190,
-        "type": "building"
-    },
-    {
-        "id": "ne_diagonal_block_02",
-        "x": 3162,
-        "y": 395,
-        "w": 327,
-        "h": 220,
-        "type": "building"
-    },
-    {
-        "id": "ne_diagonal_block_03",
-        "x": 3646,
-        "y": 532,
-        "w": 228,
-        "h": 205,
-        "type": "building"
-    },
-    {
-        "id": "ne_diagonal_block_04",
-        "x": 2955,
-        "y": 768,
-        "w": 220,
-        "h": 175,
-        "type": "building"
-    },
-    {
-        "id": "ne_diagonal_block_05",
-        "x": 3280,
-        "y": 936,
-        "w": 251,
-        "h": 228,
-        "type": "building"
-    },
-    {
-        "id": "ne_diagonal_block_06",
-        "x": 3673,
-        "y": 998,
-        "w": 243,
-        "h": 243,
-        "type": "building"
-    },
-    {
-        "id": "ne_market_wedge_a",
-        "x": 2686,
-        "y": 1425,
-        "w": 289,
-        "h": 346,
-        "type": "building"
-    },
-    {
-        "id": "ne_market_yard_a",
-        "x": 3115,
-        "y": 1569,
-        "w": 350,
-        "h": 213,
-        "type": "building"
-    },
-    {
-        "id": "ne_market_wedge_b",
-        "x": 3587,
-        "y": 1583,
-        "w": 327,
-        "h": 274,
-        "type": "building"
-    },
-    {
-        "id": "sw_civic_courthouse",
-        "x": 648,
-        "y": 2457,
-        "w": 494,
-        "h": 296,
-        "type": "building"
-    },
-    {
-        "id": "sw_left_lot_building",
-        "x": 243,
-        "y": 2676,
-        "w": 274,
-        "h": 163,
-        "type": "building"
-    },
-    {
-        "id": "sw_left_bottom_a",
-        "x": 252,
-        "y": 3232,
-        "w": 296,
-        "h": 201,
-        "type": "building"
-    },
-    {
-        "id": "sw_left_bottom_b",
-        "x": 865,
-        "y": 3416,
-        "w": 319,
-        "h": 323,
-        "type": "building"
-    },
-    {
-        "id": "sw_right_civic_main",
-        "x": 1601,
-        "y": 3424,
-        "w": 448,
-        "h": 312,
-        "type": "building"
-    },
-    {
-        "id": "sw_right_civic_north",
-        "x": 2101,
-        "y": 3190,
-        "w": 228,
-        "h": 160,
-        "type": "building"
-    },
-    {
-        "id": "sw_bottom_edge_small",
-        "x": 1426,
-        "y": 3905,
-        "w": 198,
-        "h": 160,
-        "type": "building"
-    },
-    {
-        "id": "sw_shop_column_01",
-        "x": 1448,
-        "y": 2211,
-        "w": 114,
-        "h": 167,
-        "type": "building"
-    },
-    {
-        "id": "sw_shop_column_02",
-        "x": 1467,
-        "y": 2507,
-        "w": 110,
-        "h": 141,
-        "type": "building"
-    },
-    {
-        "id": "sw_shop_column_03",
-        "x": 1469,
-        "y": 2829,
-        "w": 118,
-        "h": 182,
-        "type": "building"
-    },
-    {
-        "id": "se_canal_triangle_left",
-        "x": 2562,
-        "y": 1741,
-        "w": 395,
-        "h": 258,
-        "type": "building"
-    },
-    {
-        "id": "se_canal_bar_a",
-        "x": 2862,
-        "y": 2257,
-        "w": 395,
-        "h": 236,
-        "type": "building"
-    },
-    {
-        "id": "se_canal_bar_b",
-        "x": 3000,
-        "y": 2504,
-        "w": 251,
-        "h": 213,
-        "type": "building"
-    },
-    {
-        "id": "se_waterfront_large_a",
-        "x": 3406,
-        "y": 2600,
-        "w": 357,
-        "h": 380,
-        "type": "building"
-    },
-    {
-        "id": "se_waterfront_large_b",
-        "x": 3205,
-        "y": 2806,
-        "w": 251,
-        "h": 228,
-        "type": "building"
-    },
-    {
-        "id": "se_waterfront_warehouse",
-        "x": 2634,
-        "y": 3247,
-        "w": 471,
-        "h": 327,
-        "type": "building"
-    },
-    {
-        "id": "se_waterfront_small",
-        "x": 2300,
-        "y": 3488,
-        "w": 350,
-        "h": 243,
-        "type": "building"
-    },
-    {
-        "id": "se_center_shop_a",
-        "x": 2445,
-        "y": 2633,
-        "w": 160,
-        "h": 175,
-        "type": "building"
-    },
-    {
-        "id": "se_center_shop_b",
-        "x": 2245,
-        "y": 2555,
-        "w": 129,
-        "h": 319,
-        "type": "building"
-    },
-    {
-        "id": "water_east_deep",
-        "x": 3970,
-        "y": 1850,
-        "w": 126,
-        "h": 1900,
-        "type": "water"
-    },
-    {
-        "id": "water_southeast_deep",
-        "x": 3470,
-        "y": 3550,
-        "w": 626,
-        "h": 546,
-        "type": "water"
-    },
-    {
-        "id": "water_south_deep",
-        "x": 2520,
-        "y": 3840,
-        "w": 1576,
-        "h": 256,
-        "type": "water"
-    },
-    {
-        "id": "water_canal_inlet",
-        "x": 2250,
-        "y": 3730,
-        "w": 520,
-        "h": 366,
-        "type": "water"
-    }
-];
+    {"id": "rhpq_police_station", "x": 780, "y": 230, "w": 430, "h": 280, "type": "building"},
+    {"id": "precinct_annex", "x": 1260, "y": 225, "w": 280, "h": 190, "type": "building"},
+    {"id": "old_offices", "x": 130, "y": 365, "w": 270, "h": 145, "type": "building"},
+    {"id": "red_gull_edge", "x": 250, "y": 900, "w": 270, "h": 145, "type": "building"},
+    {"id": "records_office", "x": 775, "y": 950, "w": 300, "h": 165, "type": "building"},
+    {"id": "lockup_exterior", "x": 1250, "y": 945, "w": 340, "h": 175, "type": "building"},
+    {"id": "station_payphone_corner", "x": 1515, "y": 520, "w": 80, "h": 130, "type": "building"},
+    {"id": "gull_pump_station_edge", "x": 1520, "y": 1475, "w": 320, "h": 140, "type": "building"},
+    {"id": "bennys_market", "x": 2245, "y": 230, "w": 345, "h": 215, "type": "building"},
+    {"id": "red_gull_diner", "x": 2820, "y": 225, "w": 380, "h": 220, "type": "building"},
+    {"id": "raven_laundromat", "x": 3260, "y": 245, "w": 300, "h": 190, "type": "building"},
+    {"id": "gull_pump", "x": 3600, "y": 535, "w": 330, "h": 180, "type": "building"},
+    {"id": "pawn_shop", "x": 2200, "y": 920, "w": 270, "h": 160, "type": "building"},
+    {"id": "market_apartments", "x": 2525, "y": 980, "w": 300, "h": 150, "type": "building"},
+    {"id": "row_shops", "x": 2910, "y": 920, "w": 310, "h": 195, "type": "building"},
+    {"id": "auto_garage", "x": 3320, "y": 930, "w": 290, "h": 185, "type": "building"},
+    {"id": "raven_hook_courthouse", "x": 780, "y": 2210, "w": 480, "h": 320, "type": "building"},
+    {"id": "city_hall", "x": 1290, "y": 2240, "w": 370, "h": 260, "type": "building"},
+    {"id": "civic_clerk_office", "x": 240, "y": 2640, "w": 330, "h": 190, "type": "building"},
+    {"id": "law_offices", "x": 730, "y": 3010, "w": 330, "h": 170, "type": "building"},
+    {"id": "bail_bonds", "x": 1160, "y": 3000, "w": 400, "h": 190, "type": "building"},
+    {"id": "last_stop_dogs", "x": 320, "y": 3470, "w": 360, "h": 200, "type": "building"},
+    {"id": "city_archives", "x": 860, "y": 3480, "w": 410, "h": 210, "type": "building"},
+    {"id": "civic_service_tow", "x": 1360, "y": 3480, "w": 350, "h": 200, "type": "building"},
+    {"id": "old_town_block", "x": 2180, "y": 2220, "w": 390, "h": 230, "type": "building"},
+    {"id": "old_town_rooms", "x": 2650, "y": 2210, "w": 330, "h": 210, "type": "building"},
+    {"id": "river_warehouse", "x": 3050, "y": 2200, "w": 420, "h": 250, "type": "building"},
+    {"id": "harrows_auto_gas", "x": 3530, "y": 2185, "w": 370, "h": 250, "type": "building"},
+    {"id": "old_town_liquor", "x": 2220, "y": 2860, "w": 330, "h": 185, "type": "building"},
+    {"id": "canal_motel", "x": 2620, "y": 2865, "w": 350, "h": 190, "type": "building"},
+    {"id": "dock_office", "x": 3060, "y": 2860, "w": 350, "h": 200, "type": "building"},
+    {"id": "river_storage", "x": 3500, "y": 2860, "w": 390, "h": 210, "type": "building"},
+    {"id": "crow_burger", "x": 2360, "y": 3380, "w": 340, "h": 190, "type": "building"},
+    {"id": "filler_pad_000", "x": 720, "y": 89, "w": 84, "h": 58, "type": "building"},
+    {"id": "filler_pad_001", "x": 834, "y": 46, "w": 131, "h": 66, "type": "building"},
+    {"id": "filler_pad_002", "x": 990, "y": 37, "w": 78, "h": 91, "type": "building"},
+    {"id": "filler_pad_003", "x": 1089, "y": 32, "w": 133, "h": 75, "type": "building"},
+    {"id": "filler_pad_004", "x": 1239, "y": 50, "w": 86, "h": 86, "type": "building"},
+    {"id": "filler_pad_005", "x": 1353, "y": 41, "w": 118, "h": 83, "type": "building"},
+    {"id": "filler_pad_006", "x": 1491, "y": 46, "w": 78, "h": 99, "type": "building"},
+    {"id": "filler_pad_007", "x": 1600, "y": 38, "w": 125, "h": 68, "type": "building"},
+    {"id": "filler_pad_008", "x": 30, "y": 1230, "w": 90, "h": 77, "type": "building"},
+    {"id": "filler_pad_009", "x": 148, "y": 1230, "w": 117, "h": 92, "type": "building"},
+    {"id": "filler_pad_010", "x": 290, "y": 1230, "w": 115, "h": 63, "type": "building"},
+    {"id": "filler_pad_011", "x": 780, "y": 1170, "w": 115, "h": 98, "type": "building"},
+    {"id": "filler_pad_012", "x": 925, "y": 1179, "w": 95, "h": 57, "type": "building"},
+    {"id": "filler_pad_013", "x": 1051, "y": 1181, "w": 66, "h": 55, "type": "building"},
+    {"id": "filler_pad_014", "x": 1144, "y": 1186, "w": 113, "h": 72, "type": "building"},
+    {"id": "filler_pad_015", "x": 1282, "y": 1171, "w": 131, "h": 60, "type": "building"},
+    {"id": "filler_pad_016", "x": 1437, "y": 1186, "w": 76, "h": 58, "type": "building"},
+    {"id": "filler_pad_017", "x": 1538, "y": 1170, "w": 80, "h": 94, "type": "building"},
+    {"id": "filler_pad_018", "x": 60, "y": 1661, "w": 110, "h": 85, "type": "building"},
+    {"id": "filler_pad_019", "x": 191, "y": 1662, "w": 89, "h": 58, "type": "building"},
+    {"id": "filler_pad_020", "x": 309, "y": 1654, "w": 68, "h": 81, "type": "building"},
+    {"id": "filler_pad_021", "x": 410, "y": 1691, "w": 74, "h": 46, "type": "building"},
+    {"id": "filler_pad_022", "x": 518, "y": 1655, "w": 81, "h": 95, "type": "building"},
+    {"id": "filler_pad_023", "x": 628, "y": 1652, "w": 111, "h": 91, "type": "building"},
+    {"id": "filler_pad_024", "x": 757, "y": 1651, "w": 89, "h": 94, "type": "building"},
+    {"id": "filler_pad_025", "x": 863, "y": 1672, "w": 65, "h": 64, "type": "building"},
+    {"id": "filler_pad_026", "x": 956, "y": 1654, "w": 86, "h": 64, "type": "building"},
+    {"id": "filler_pad_027", "x": 1076, "y": 1653, "w": 99, "h": 90, "type": "building"},
+    {"id": "filler_pad_028", "x": 1189, "y": 1653, "w": 61, "h": 97, "type": "building"},
+    {"id": "filler_pad_029", "x": 1272, "y": 1660, "w": 111, "h": 86, "type": "building"},
+    {"id": "filler_pad_030", "x": 1407, "y": 1663, "w": 104, "h": 76, "type": "building"},
+    {"id": "filler_pad_031", "x": 1535, "y": 1684, "w": 72, "h": 54, "type": "building"},
+    {"id": "filler_pad_032", "x": 1623, "y": 1652, "w": 114, "h": 61, "type": "building"},
+    {"id": "filler_pad_033", "x": 2180, "y": 61, "w": 61, "h": 80, "type": "building"},
+    {"id": "filler_pad_034", "x": 2256, "y": 79, "w": 115, "h": 55, "type": "building"},
+    {"id": "filler_pad_035", "x": 2389, "y": 75, "w": 124, "h": 88, "type": "building"},
+    {"id": "filler_pad_036", "x": 2542, "y": 75, "w": 70, "h": 53, "type": "building"},
+    {"id": "filler_pad_037", "x": 2645, "y": 47, "w": 130, "h": 79, "type": "building"},
+    {"id": "filler_pad_038", "x": 2791, "y": 88, "w": 85, "h": 61, "type": "building"},
+    {"id": "filler_pad_039", "x": 2902, "y": 25, "w": 109, "h": 87, "type": "building"},
+    {"id": "filler_pad_040", "x": 3036, "y": 45, "w": 122, "h": 58, "type": "building"},
+    {"id": "filler_pad_041", "x": 3181, "y": 56, "w": 117, "h": 70, "type": "building"},
+    {"id": "filler_pad_042", "x": 3322, "y": 113, "w": 73, "h": 49, "type": "building"},
+    {"id": "filler_pad_043", "x": 3412, "y": 108, "w": 121, "h": 56, "type": "building"},
+    {"id": "filler_pad_044", "x": 3567, "y": 59, "w": 99, "h": 78, "type": "building"},
+    {"id": "filler_pad_045", "x": 3696, "y": 67, "w": 86, "h": 71, "type": "building"},
+    {"id": "filler_pad_046", "x": 3798, "y": 101, "w": 86, "h": 54, "type": "building"},
+    {"id": "filler_pad_047", "x": 2180, "y": 1134, "w": 87, "h": 75, "type": "building"},
+    {"id": "filler_pad_048", "x": 2284, "y": 1198, "w": 67, "h": 58, "type": "building"},
+    {"id": "filler_pad_049", "x": 2364, "y": 1163, "w": 125, "h": 70, "type": "building"},
+    {"id": "filler_pad_050", "x": 2509, "y": 1188, "w": 118, "h": 52, "type": "building"},
+    {"id": "filler_pad_051", "x": 2647, "y": 1137, "w": 135, "h": 65, "type": "building"},
+    {"id": "filler_pad_052", "x": 2812, "y": 1175, "w": 110, "h": 72, "type": "building"},
+    {"id": "filler_pad_053", "x": 2947, "y": 1161, "w": 73, "h": 99, "type": "building"},
+    {"id": "filler_pad_054", "x": 3053, "y": 1150, "w": 121, "h": 82, "type": "building"},
+    {"id": "filler_pad_055", "x": 3206, "y": 1143, "w": 74, "h": 47, "type": "building"},
+    {"id": "filler_pad_056", "x": 3303, "y": 1147, "w": 123, "h": 76, "type": "building"},
+    {"id": "filler_pad_057", "x": 3447, "y": 1156, "w": 69, "h": 77, "type": "building"},
+    {"id": "filler_pad_058", "x": 3543, "y": 1156, "w": 122, "h": 74, "type": "building"},
+    {"id": "filler_pad_059", "x": 3686, "y": 1131, "w": 75, "h": 98, "type": "building"},
+    {"id": "filler_pad_060", "x": 3791, "y": 1155, "w": 95, "h": 97, "type": "building"},
+    {"id": "filler_pad_061", "x": 2200, "y": 1528, "w": 115, "h": 68, "type": "building"},
+    {"id": "filler_pad_062", "x": 2342, "y": 1463, "w": 106, "h": 73, "type": "building"},
+    {"id": "filler_pad_063", "x": 2478, "y": 1467, "w": 73, "h": 98, "type": "building"},
+    {"id": "filler_pad_064", "x": 2572, "y": 1481, "w": 92, "h": 57, "type": "building"},
+    {"id": "filler_pad_065", "x": 2686, "y": 1524, "w": 134, "h": 62, "type": "building"},
+    {"id": "filler_pad_066", "x": 2848, "y": 1504, "w": 129, "h": 45, "type": "building"},
+    {"id": "filler_pad_067", "x": 2996, "y": 1478, "w": 103, "h": 65, "type": "building"},
+    {"id": "filler_pad_068", "x": 3116, "y": 1487, "w": 125, "h": 95, "type": "building"},
+    {"id": "filler_pad_069", "x": 3272, "y": 1500, "w": 93, "h": 49, "type": "building"},
+    {"id": "filler_pad_070", "x": 3383, "y": 1489, "w": 98, "h": 63, "type": "building"},
+    {"id": "filler_pad_071", "x": 3496, "y": 1495, "w": 100, "h": 56, "type": "building"},
+    {"id": "filler_pad_072", "x": 3615, "y": 1506, "w": 120, "h": 60, "type": "building"},
+    {"id": "filler_pad_073", "x": 3749, "y": 1474, "w": 63, "h": 80, "type": "building"},
+    {"id": "filler_pad_074", "x": 3846, "y": 1491, "w": 85, "h": 55, "type": "building"},
+    {"id": "filler_pad_075", "x": 40, "y": 2061, "w": 98, "h": 69, "type": "building"},
+    {"id": "filler_pad_076", "x": 155, "y": 2060, "w": 68, "h": 95, "type": "building"},
+    {"id": "filler_pad_077", "x": 239, "y": 2062, "w": 128, "h": 67, "type": "building"},
+    {"id": "filler_pad_078", "x": 401, "y": 2060, "w": 79, "h": 99, "type": "building"},
+    {"id": "filler_pad_079", "x": 700, "y": 2063, "w": 94, "h": 97, "type": "building"},
+    {"id": "filler_pad_080", "x": 809, "y": 2080, "w": 95, "h": 69, "type": "building"},
+    {"id": "filler_pad_081", "x": 925, "y": 2070, "w": 78, "h": 73, "type": "building"},
+    {"id": "filler_pad_082", "x": 1015, "y": 2060, "w": 74, "h": 81, "type": "building"},
+    {"id": "filler_pad_083", "x": 1123, "y": 2060, "w": 83, "h": 88, "type": "building"},
+    {"id": "filler_pad_084", "x": 1239, "y": 2079, "w": 115, "h": 72, "type": "building"},
+    {"id": "filler_pad_085", "x": 1376, "y": 2065, "w": 85, "h": 54, "type": "building"},
+    {"id": "filler_pad_086", "x": 1482, "y": 2081, "w": 134, "h": 59, "type": "building"},
+    {"id": "filler_pad_087", "x": 40, "y": 2864, "w": 105, "h": 84, "type": "building"},
+    {"id": "filler_pad_088", "x": 170, "y": 2866, "w": 94, "h": 84, "type": "building"},
+    {"id": "filler_pad_089", "x": 282, "y": 2862, "w": 81, "h": 91, "type": "building"},
+    {"id": "filler_pad_090", "x": 389, "y": 2871, "w": 62, "h": 84, "type": "building"},
+    {"id": "filler_pad_091", "x": 680, "y": 2843, "w": 112, "h": 93, "type": "building"},
+    {"id": "filler_pad_092", "x": 812, "y": 2871, "w": 129, "h": 62, "type": "building"},
+    {"id": "filler_pad_093", "x": 970, "y": 2891, "w": 101, "h": 64, "type": "building"},
+    {"id": "filler_pad_094", "x": 1095, "y": 2861, "w": 115, "h": 98, "type": "building"},
+    {"id": "filler_pad_095", "x": 1244, "y": 2845, "w": 107, "h": 99, "type": "building"},
+    {"id": "filler_pad_096", "x": 1371, "y": 2898, "w": 124, "h": 54, "type": "building"},
+    {"id": "filler_pad_097", "x": 1515, "y": 2870, "w": 130, "h": 45, "type": "building"},
+    {"id": "filler_pad_098", "x": 2180, "y": 2063, "w": 130, "h": 82, "type": "building"},
+    {"id": "filler_pad_099", "x": 2330, "y": 2060, "w": 107, "h": 45, "type": "building"},
+    {"id": "filler_pad_100", "x": 2461, "y": 2078, "w": 79, "h": 50, "type": "building"},
+    {"id": "filler_pad_101", "x": 2558, "y": 2060, "w": 103, "h": 97, "type": "building"},
+    {"id": "filler_pad_102", "x": 2683, "y": 2090, "w": 63, "h": 57, "type": "building"},
+    {"id": "filler_pad_103", "x": 2760, "y": 2080, "w": 103, "h": 51, "type": "building"},
+    {"id": "filler_pad_104", "x": 2897, "y": 2068, "w": 74, "h": 75, "type": "building"},
+    {"id": "filler_pad_105", "x": 2994, "y": 2062, "w": 119, "h": 90, "type": "building"},
+    {"id": "filler_pad_106", "x": 3130, "y": 2068, "w": 111, "h": 55, "type": "building"},
+    {"id": "filler_pad_107", "x": 3267, "y": 2070, "w": 95, "h": 87, "type": "building"},
+    {"id": "filler_pad_108", "x": 3397, "y": 2077, "w": 94, "h": 70, "type": "building"},
+    {"id": "filler_pad_109", "x": 3519, "y": 2097, "w": 68, "h": 52, "type": "building"},
+    {"id": "filler_pad_110", "x": 3599, "y": 2073, "w": 68, "h": 86, "type": "building"},
+    {"id": "filler_pad_111", "x": 3698, "y": 2060, "w": 92, "h": 100, "type": "building"},
+    {"id": "filler_pad_112", "x": 3812, "y": 2075, "w": 108, "h": 71, "type": "building"},
+    {"id": "filler_pad_113", "x": 2180, "y": 2626, "w": 101, "h": 87, "type": "building"},
+    {"id": "filler_pad_114", "x": 2309, "y": 2700, "w": 74, "h": 49, "type": "building"},
+    {"id": "filler_pad_115", "x": 2396, "y": 2654, "w": 66, "h": 70, "type": "building"},
+    {"id": "filler_pad_116", "x": 2488, "y": 2628, "w": 81, "h": 97, "type": "building"},
+    {"id": "filler_pad_117", "x": 2593, "y": 2639, "w": 80, "h": 91, "type": "building"},
+    {"id": "filler_pad_118", "x": 2695, "y": 2660, "w": 133, "h": 51, "type": "building"},
+    {"id": "filler_pad_119", "x": 2855, "y": 2686, "w": 92, "h": 55, "type": "building"},
+    {"id": "filler_pad_120", "x": 2961, "y": 2642, "w": 73, "h": 86, "type": "building"},
+    {"id": "filler_pad_121", "x": 3061, "y": 2703, "w": 79, "h": 48, "type": "building"},
+    {"id": "filler_pad_122", "x": 3156, "y": 2647, "w": 120, "h": 76, "type": "building"},
+    {"id": "filler_pad_123", "x": 3300, "y": 2628, "w": 62, "h": 92, "type": "building"},
+    {"id": "filler_pad_124", "x": 3374, "y": 2633, "w": 62, "h": 72, "type": "building"},
+    {"id": "filler_pad_125", "x": 3448, "y": 2656, "w": 95, "h": 97, "type": "building"},
+    {"id": "filler_pad_126", "x": 3577, "y": 2678, "w": 121, "h": 80, "type": "building"},
+    {"id": "filler_pad_127", "x": 3715, "y": 2628, "w": 110, "h": 93, "type": "building"},
+    {"id": "filler_pad_128", "x": 3840, "y": 2641, "w": 110, "h": 95, "type": "building"},
+    {"id": "filler_pad_129", "x": 2180, "y": 3421, "w": 68, "h": 89, "type": "building"},
+    {"id": "filler_pad_130", "x": 2279, "y": 3446, "w": 117, "h": 49, "type": "building"},
+    {"id": "filler_pad_131", "x": 2431, "y": 3433, "w": 99, "h": 74, "type": "building"},
+    {"id": "filler_pad_132", "x": 2553, "y": 3404, "w": 83, "h": 93, "type": "building"},
+    {"id": "filler_pad_133", "x": 2662, "y": 3427, "w": 87, "h": 86, "type": "building"},
+    {"id": "filler_pad_134", "x": 2779, "y": 3400, "w": 77, "h": 52, "type": "building"},
+    {"id": "filler_pad_135", "x": 2870, "y": 3403, "w": 114, "h": 49, "type": "building"},
+    {"id": "filler_pad_136", "x": 3014, "y": 3409, "w": 120, "h": 75, "type": "building"},
+    {"id": "filler_pad_137", "x": 3157, "y": 3414, "w": 132, "h": 84, "type": "building"},
+    {"id": "filler_pad_138", "x": 3313, "y": 3422, "w": 70, "h": 59, "type": "building"},
+    {"id": "filler_pad_139", "x": 3409, "y": 3460, "w": 127, "h": 56, "type": "building"},
+    {"id": "filler_pad_140", "x": 3565, "y": 3413, "w": 93, "h": 89, "type": "building"},
+    {"id": "filler_pad_141", "x": 3688, "y": 3415, "w": 123, "h": 92, "type": "building"},
+    {"id": "filler_pad_142", "x": 3835, "y": 3401, "w": 115, "h": 97, "type": "building"},
+    {"id": "river_deep_water", "x": 2500, "y": 3740, "w": 1596, "h": 356, "type": "water"}
+  ];
 
   const INTERACTION_ZONES = [
     {"id": "rhpq_police_station_door", "x": 951, "y": 490, "w": 88, "h": 60, "type": "door", "label": "Raven Hook Police Station"},
@@ -1024,7 +803,51 @@
     path: 'assets/reference/layer_02_building_exterior_sheet.png'
   };
 
-  const BUILDING_IMAGE_ASSETS = [];
+  const BUILDING_IMAGE_ASSETS = [
+    // RAVEN_HOOK_BUILDING_OVERLAY_UPDATE_002
+    // Top-left x/y placement on the 4096x4096 Raven Hook map.
+    // These are runtime building PNG overlays. Tune x/y/w/h after visual test if needed.
+
+    // Police / civic north
+    { key:'raven_hook_police_station_main_slotfit', name:'Raven Hook Police Station', path:'assets/buildings/hero/raven_hook_police_station_main_slotfit.png', place:[820, 470, 700, 470], depth:ROOF_DEPTH },
+    { key:'raven_hook_police_motor_pool_overlay_open', name:'Police Motor Pool Drive-Under Overlay', path:'assets/buildings/overlays/raven_hook_police_motor_pool_overlay_open.png', place:[1240, 600, 300, 250], depth:ROOF_DEPTH + 8 },
+
+    // East Market / nightlife strip
+    { key:'bennys_market_main_slotfit', name:"Benny's Market", path:'assets/buildings/hero/bennys_market_main_slotfit.png', place:[2180, 190, 620, 380], depth:ROOF_DEPTH },
+    { key:'red_gull_diner_main_slotfit', name:'Red Gull Diner', path:'assets/buildings/hero/red_gull_diner_main_slotfit.png', place:[2820, 205, 600, 350], depth:ROOF_DEPTH },
+    { key:'quick_wash_laundromat_main_slotfit', name:'Quick Wash', path:'assets/buildings/hero/quick_wash_laundromat_main_slotfit.png', place:[3260, 245, 360, 300], depth:ROOF_DEPTH },
+    { key:'raven_pawn_main_slotfit', name:'Raven Pawn', path:'assets/buildings/hero/raven_pawn_main_slotfit.png', place:[2135, 900, 420, 360], depth:ROOF_DEPTH },
+    { key:'kims_corner_market_malcolm_apartment_main_slotfit', name:"Kim's Corner Market / Malcolm Apartment", path:'assets/buildings/hero/kims_corner_market_malcolm_apartment_main_slotfit.png', place:[2500, 920, 430, 360], depth:ROOF_DEPTH },
+    { key:'russo_auto_body_main_roof_slotfit', name:'Russo Auto Body', path:'assets/buildings/hero/russo_auto_body_main_roof_slotfit.png', place:[3220, 890, 600, 390], depth:ROOF_DEPTH },
+    { key:'russo_auto_body_garage_overlay_open', name:'Russo Garage Drive-Under Overlay', path:'assets/buildings/overlays/russo_auto_body_garage_overlay_open.png', place:[3480, 1010, 310, 230], depth:ROOF_DEPTH + 8 },
+    { key:'south_hook_gas_service_main_slotfit', name:'South Hook Gas & Service', path:'assets/buildings/hero/south_hook_gas_service_main_slotfit.png', place:[3500, 610, 500, 360], depth:ROOF_DEPTH },
+    { key:'south_hook_gas_canopy_overlay', name:'South Hook Gas Canopy Overlay', path:'assets/buildings/overlays/south_hook_gas_canopy_overlay.png', place:[3540, 660, 430, 250], depth:ROOF_DEPTH + 8 },
+    { key:'neon_nights_main_slotfit', name:'Neon Nights', path:'assets/buildings/hero/neon_nights_main_slotfit.png', place:[2660, 1500, 560, 390], depth:ROOF_DEPTH },
+    { key:'blue_lantern_supper_club_main_slotfit', name:'Blue Lantern Supper Club', path:'assets/buildings/hero/blue_lantern_supper_club_main_slotfit.png', place:[3050, 2120, 520, 360], depth:ROOF_DEPTH },
+    { key:'adult_playhouse_main_slotfit', name:'Adult Playhouse', path:'assets/buildings/hero/adult_playhouse_main_slotfit.png', place:[3550, 1540, 500, 360], depth:ROOF_DEPTH },
+
+    // Courthouse / legal / civic
+    { key:'courthouse_city_hall_large_main_slotfit', name:'Courthouse & City Hall', path:'assets/buildings/hero/courthouse_city_hall_large_main_slotfit.png', place:[610, 2350, 640, 440], depth:ROOF_DEPTH },
+    { key:'march_legal_services_main_slotfit', name:'March Legal Services', path:'assets/buildings/hero/march_legal_services_main_slotfit.png', place:[735, 3020, 430, 310], depth:ROOF_DEPTH },
+    { key:'civic_service_tow_main_slotfit', name:'Civic Service & Tow', path:'assets/buildings/hero/civic_service_tow_main_slotfit.png', place:[1345, 3440, 470, 330], depth:ROOF_DEPTH },
+
+    // South / canal / mob / warehouse district
+    { key:'red_velvet_lounge_main_slotfit', name:'Red Velvet Lounge', path:'assets/buildings/hero/red_velvet_lounge_main_slotfit.png', place:[2220, 2380, 500, 340], depth:ROOF_DEPTH },
+    { key:'moretti_social_club_main_slotfit', name:'Moretti Social Club', path:'assets/buildings/hero/moretti_social_club_main_slotfit.png', place:[2740, 2360, 520, 350], depth:ROOF_DEPTH },
+    { key:'vescari_social_club_main_slotfit', name:'Vescari Social Club', path:'assets/buildings/hero/vescari_social_club_main_slotfit.png', place:[3120, 2520, 520, 360], depth:ROOF_DEPTH },
+    { key:'bell_cartage_cold_storage_main_slotfit', name:'Bell Cartage & Cold Storage', path:'assets/buildings/hero/bell_cartage_cold_storage_main_slotfit.png', place:[2625, 3170, 620, 420], depth:ROOF_DEPTH },
+
+    // Fillers
+    { key:'filler_small_brick_office_main_slotfit', name:'Filler Small Brick Office', path:'assets/buildings/fillers/filler_small_brick_office_main_slotfit.png', place:[190, 420, 320, 260], depth:ROOF_DEPTH },
+    { key:'filler_medium_old_apartment_block_main_slotfit', name:'Filler Apartment Block', path:'assets/buildings/fillers/filler_medium_old_apartment_block_main_slotfit.png', place:[1250, 1670, 400, 340], depth:ROOF_DEPTH },
+    { key:'filler_narrow_row_storefront_main_slotfit', name:'Filler Row Storefront', path:'assets/buildings/fillers/filler_narrow_row_storefront_main_slotfit.png', place:[2240, 1690, 250, 330], depth:ROOF_DEPTH },
+    { key:'filler_generic_warehouse_main_slotfit', name:'Filler Warehouse', path:'assets/buildings/fillers/filler_generic_warehouse_main_slotfit.png', place:[2560, 3345, 520, 340], depth:ROOF_DEPTH },
+    { key:'filler_corner_office_building_main_slotfit', name:'Filler Corner Office', path:'assets/buildings/fillers/filler_corner_office_building_main_slotfit.png', place:[1970, 1120, 500, 340], depth:ROOF_DEPTH },
+    { key:'filler_industrial_garage_shell_main_slotfit', name:'Filler Industrial Garage', path:'assets/buildings/fillers/filler_industrial_garage_shell_main_slotfit.png', place:[3090, 1520, 560, 350], depth:ROOF_DEPTH },
+    { key:'filler_plain_downtown_commercial_block_main_slotfit', name:'Filler Downtown Commercial', path:'assets/buildings/fillers/filler_plain_downtown_commercial_block_main_slotfit.png', place:[1430, 2170, 360, 300], depth:ROOF_DEPTH },
+    { key:'filler_small_clinic_main_slotfit', name:'Filler Small Clinic', path:'assets/buildings/fillers/filler_small_clinic_main_slotfit.png', place:[2030, 2480, 350, 260], depth:ROOF_DEPTH },
+    { key:'filler_storage_building_main_slotfit', name:'Filler Storage Building', path:'assets/buildings/fillers/filler_storage_building_main_slotfit.png', place:[3440, 2930, 390, 290], depth:ROOF_DEPTH }
+  ];
 
   const TITLE_ASSET = {
     key: 'title_raven_hook_clean_960x540',
@@ -1207,49 +1030,80 @@
 
   // Pedestrian sidewalk graph — safe zones between building edges and road lanes
   const CITY_SIDEWALK_NODES = [
-    { id:'sw_a1', x: 840, y: 555, links:['sw_a2'] },
-    { id:'sw_a2', x: 960, y: 555, links:['sw_a1','sw_a3'] },
-    { id:'sw_a3', x:1100, y: 555, links:['sw_a2','sw_a4'] },
-    { id:'sw_a4', x:1230, y: 555, links:['sw_a3'] },
-    { id:'sw_b1', x:2280, y: 510, links:['sw_b2'] },
-    { id:'sw_b2', x:2440, y: 510, links:['sw_b1','sw_b3'] },
-    { id:'sw_b3', x:2900, y: 510, links:['sw_b2','sw_b4'] },
-    { id:'sw_b4', x:3150, y: 510, links:['sw_b3'] },
-    { id:'sw_c1', x: 820, y:2590, links:['sw_c2'] },
-    { id:'sw_c2', x:1010, y:2590, links:['sw_c1','sw_c3'] },
-    { id:'sw_c3', x:1350, y:2590, links:['sw_c2'] },
-    { id:'sw_d1', x:2250, y:2490, links:['sw_d2'] },
-    { id:'sw_d2', x:2680, y:2490, links:['sw_d1','sw_d3'] },
-    { id:'sw_d3', x:3100, y:2490, links:['sw_d2'] },
+    // RAVEN_HOOK_NPC_NODE_UPDATE_002 — updated for named buildings and current 4096 map chunk.
+    { id:'sw_station_w', x: 780, y: 590, links:['sw_station_door','sw_station_e'] },
+    { id:'sw_station_door', x:1010, y: 570, links:['sw_station_w','sw_station_e','sw_payphone'] },
+    { id:'sw_station_e', x:1260, y: 590, links:['sw_station_door','sw_payphone'] },
+    { id:'sw_payphone', x:1515, y: 610, links:['sw_station_e','sw_bennys_w'] },
+
+    { id:'sw_bennys_w', x:2220, y: 560, links:['sw_payphone','sw_bennys_door','sw_redgull_w'] },
+    { id:'sw_bennys_door', x:2415, y: 535, links:['sw_bennys_w','sw_redgull_w','sw_kims'] },
+    { id:'sw_redgull_w', x:2820, y: 560, links:['sw_bennys_door','sw_redgull_door'] },
+    { id:'sw_redgull_door', x:3020, y: 535, links:['sw_redgull_w','sw_quickwash','sw_kims'] },
+    { id:'sw_quickwash', x:3420, y: 525, links:['sw_redgull_door','sw_russo','sw_gas'] },
+    { id:'sw_kims', x:2675, y:1190, links:['sw_bennys_door','sw_redgull_door','sw_pawn','sw_russo','sw_neon'] },
+    { id:'sw_pawn', x:2335, y:1160, links:['sw_kims','sw_russo','sw_civic_north'] },
+    { id:'sw_russo', x:3465, y:1195, links:['sw_quickwash','sw_kims','sw_pawn','sw_gas','sw_adult_strip'] },
+    { id:'sw_gas', x:3765, y: 800, links:['sw_quickwash','sw_russo'] },
+    { id:'sw_neon', x:2880, y:1880, links:['sw_kims','sw_adult_strip','sw_blue_lantern'] },
+    { id:'sw_adult_strip', x:3560, y:1880, links:['sw_russo','sw_neon','sw_blue_lantern'] },
+    { id:'sw_blue_lantern', x:3180, y:2260, links:['sw_neon','sw_adult_strip','sw_oldtown'] },
+
+    { id:'sw_courthouse_w', x: 770, y:2790, links:['sw_courthouse_door','sw_law'] },
+    { id:'sw_courthouse_door', x:1010, y:2830, links:['sw_courthouse_w','sw_cityhall','sw_law'] },
+    { id:'sw_cityhall', x:1475, y:2585, links:['sw_courthouse_door','sw_civic_tow','sw_civic_north'] },
+    { id:'sw_law', x: 895, y:3260, links:['sw_courthouse_w','sw_courthouse_door','sw_civic_tow'] },
+    { id:'sw_civic_tow', x:1535, y:3740, links:['sw_cityhall','sw_law','sw_civic_north'] },
+    { id:'sw_civic_north', x:2220, y:2490, links:['sw_pawn','sw_cityhall','sw_oldtown','sw_canal'] },
+
+    { id:'sw_oldtown', x:2360, y:3030, links:['sw_civic_north','sw_canal','sw_warehouse','sw_blue_lantern','sw_moretti'] },
+    { id:'sw_canal', x:2780, y:3035, links:['sw_civic_north','sw_oldtown','sw_dock','sw_moretti'] },
+    { id:'sw_moretti', x:2860, y:2700, links:['sw_oldtown','sw_canal','sw_vescari'] },
+    { id:'sw_vescari', x:3300, y:2880, links:['sw_moretti','sw_dock','sw_storage'] },
+    { id:'sw_dock', x:3210, y:3050, links:['sw_canal','sw_warehouse','sw_storage','sw_vescari'] },
+    { id:'sw_warehouse', x:2890, y:3570, links:['sw_oldtown','sw_dock','sw_storage'] },
+    { id:'sw_storage', x:3650, y:3050, links:['sw_dock','sw_warehouse','sw_vescari'] }
   ];
   const CITY_SW_MAP = Object.fromEntries(CITY_SIDEWALK_NODES.map(n => [n.id, n]));
 
   // NPC traffic routes — looping waypoint arrays. stop:true = intersection pause.
   const CITY_TRAFFIC_ROUTES = [
-    { id:'rte_ue', waypoints:[
-      {x: 300,y:760},{x: 600,y:760,stop:true},{x:1000,y:760,stop:true},{x:1700,y:760},
-      {x:2300,y:760,stop:true},{x:2900,y:760},{x:3500,y:760,stop:true},{x:3860,y:760},
-      {x:3860,y:700},{x:3500,y:700,stop:true},{x:2900,y:700},{x:2300,y:700,stop:true},
-      {x:1700,y:700},{x:1000,y:700,stop:true},{x: 600,y:700,stop:true},{x: 300,y:700}
+    // RAVEN_HOOK_TRAFFIC_NODE_UPDATE_002 — wider loops around new building pads.
+    { id:'rte_north_eastbound', waypoints:[
+      {x:260,y:760},{x:620,y:760,stop:true},{x:1010,y:760,stop:true},{x:1510,y:760},
+      {x:2300,y:760,stop:true},{x:2940,y:760},{x:3500,y:760,stop:true},{x:3860,y:760}
     ]},
-    { id:'rte_uw', waypoints:[
-      {x:3860,y:700},{x:3500,y:700,stop:true},{x:2900,y:700},{x:2300,y:700,stop:true},
-      {x:1700,y:700},{x:1000,y:700,stop:true},{x: 600,y:700,stop:true},{x: 300,y:700},
-      {x: 300,y:760},{x: 600,y:760,stop:true},{x:1000,y:760,stop:true},{x:1700,y:760},
-      {x:2300,y:760,stop:true},{x:2900,y:760},{x:3500,y:760,stop:true},{x:3860,y:760}
+    { id:'rte_north_westbound', waypoints:[
+      {x:3860,y:700},{x:3500,y:700,stop:true},{x:2940,y:700},{x:2300,y:700,stop:true},
+      {x:1510,y:700},{x:1010,y:700,stop:true},{x:620,y:700,stop:true},{x:260,y:700}
     ]},
-    { id:'rte_le', waypoints:[
-      {x: 300,y:1320},{x: 600,y:1320,stop:true},{x:1100,y:1320,stop:true},{x:1700,y:1320},
-      {x:2300,y:1320,stop:true},{x:2900,y:1320},{x:3500,y:1320,stop:true},{x:3860,y:1320},
-      {x:3860,y:1260},{x:3500,y:1260,stop:true},{x:2900,y:1260},{x:2300,y:1260,stop:true},
-      {x:1700,y:1260},{x:1100,y:1260,stop:true},{x: 600,y:1260,stop:true},{x: 300,y:1260}
+    { id:'rte_market_loop', waypoints:[
+      {x:2260,y:1320,stop:true},{x:2900,y:1320},{x:3500,y:1320,stop:true},{x:3860,y:1320},
+      {x:3860,y:1260},{x:3500,y:1260,stop:true},{x:2900,y:1260},{x:2260,y:1260,stop:true}
     ]},
-    { id:'rte_pa', waypoints:[
-      {x:1000,y:760,stop:true},{x:1700,y:760},{x:1700,y:700},{x:1000,y:700,stop:true}
+    { id:'rte_civic_loop', waypoints:[
+      {x:360,y:2460},{x:980,y:2460,stop:true},{x:1510,y:2460,stop:true},{x:2200,y:2460},
+      {x:2200,y:2390},{x:1510,y:2390,stop:true},{x:980,y:2390,stop:true},{x:360,y:2390}
     ]},
-    { id:'rte_pb', waypoints:[
-      {x:2300,y:760,stop:true},{x:2900,y:760},{x:2900,y:700},{x:2300,y:700,stop:true}
+    { id:'rte_south_canal_loop', waypoints:[
+      {x:2260,y:3060,stop:true},{x:2780,y:3060},{x:3220,y:3060,stop:true},{x:3700,y:3060},
+      {x:3700,y:2985},{x:3220,y:2985,stop:true},{x:2780,y:2985},{x:2260,y:2985,stop:true}
     ]},
+    { id:'rte_west_vertical', waypoints:[
+      {x:620,y:700,stop:true},{x:620,y:1320,stop:true},{x:620,y:2460,stop:true},{x:620,y:3300},
+      {x:700,y:3300},{x:700,y:2460,stop:true},{x:700,y:1320,stop:true},{x:700,y:700,stop:true}
+    ]},
+    { id:'rte_center_vertical', waypoints:[
+      {x:1700,y:700},{x:1700,y:1320,stop:true},{x:1700,y:2460,stop:true},{x:1700,y:3500},
+      {x:1780,y:3500},{x:1780,y:2460,stop:true},{x:1780,y:1320,stop:true},{x:1780,y:700}
+    ]},
+    { id:'rte_east_vertical', waypoints:[
+      {x:3500,y:700,stop:true},{x:3500,y:1320,stop:true},{x:3500,y:2460,stop:true},{x:3500,y:3060,stop:true},
+      {x:3580,y:3060,stop:true},{x:3580,y:2460,stop:true},{x:3580,y:1320,stop:true},{x:3580,y:700,stop:true}
+    ]},
+    { id:'rte_diner_to_gas_short', waypoints:[
+      {x:2940,y:760},{x:3500,y:760,stop:true},{x:3760,y:760},{x:3760,y:1260},{x:3500,y:1260,stop:true},{x:2940,y:1260}
+    ]}
   ];
 
   // Police station NPC patrol routes (interior pixel coords)
@@ -1695,7 +1549,8 @@
         ...CIVILIAN_ASSETS.map(a => ({ type:'spritesheet', key:a.key, path:a.path, fw:a.fw, fh:a.fh })),
         ...POLICE_NPC_ASSETS.map(a => ({ type:'spritesheet', key:a.key, path:a.path, fw:a.fw, fh:a.fh })),
         ...TRAFFIC_VEHICLE_ASSETS.map(a => ({ type:'spritesheet', key:a.key, path:a.path, fw:a.fw, fh:a.fh })),
-        ...SINGLE_VEHICLE_ASSETS.map(a => ({ type:'image', key:a.key, path:a.path }))
+        ...SINGLE_VEHICLE_ASSETS.map(a => ({ type:'image', key:a.key, path:a.path })),
+        ...BUILDING_IMAGE_ASSETS.map(b => ({ type:'image', key:b.key, path:b.path }))
       ];
 
       this.assetErrors = [];
@@ -1754,7 +1609,6 @@
       this.input.keyboard.on('keydown-F', () => this.malcolmShoot());
       this.input.keyboard.on('keydown-R', () => this.tryReport());
       this.input.keyboard.on('keydown-C', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
-      this.input.keyboard.on('keydown-G', () => { this.debug.collision = !this.debug.collision; this.redrawDebug(); });
       this.input.keyboard.on('keydown-I', () => { this.debug.interaction = !this.debug.interaction; this.redrawDebug(); });
       this.input.keyboard.on('keydown-P', () => { this.debug.spawns = !this.debug.spawns; this.redrawDebug(); });
       this.input.keyboard.on('keydown-N', () => this.toggleRouteDebug());
@@ -1855,7 +1709,7 @@
       // Base page already contains building footprint pads.
       // Keep this empty so old Raven Hook Central building overlays do not fight the rebuilt 4096x4096 map.
       this.buildingLabels = [];
-      this.buildingGraphics = this.add.graphics().setDepth(ROOF_DEPTH);
+      this.buildingGraphics = this.add.graphics().setDepth(b.depth ?? ROOF_DEPTH);
     }
 
     createCollision() {
@@ -2862,7 +2716,7 @@
     }
     handleTrunk(){ const actor=this.inCar?this.car:this.player; if(dist(actor,this.car)>100){ this.message='Move near the detective sedan trunk.'; this.messageTimer=2500; return; } GAME.car.visualState.trunkOpen=true; this.syncVehicleSprites(); this.time.delayedCall(2200,()=>{GAME.car.visualState.trunkOpen=false;this.syncVehicleSprites();}); if(this.playerInventory.includes('stolen_cigarettes')&&!GAME.case.evidenceInTrunk){ GAME.case.evidenceInTrunk=true; GAME.car.trunk.push('stolen_cigarettes'); this.message='Stored evidence in trunk: stolen cigarettes.'; } else this.message=GAME.case.evidenceInTrunk?'Trunk contains: stolen cigarettes.':'Trunk empty. Collect evidence first.'; this.messageTimer=3000; }
     tryReport(){ const rz=INTERACTION_ZONES.find(z=>z.id==='report_desk'); if(overlap(rz,this.inCar?this.car:this.player)) this.scene.start('ReportScene'); else { this.message='Return to the Report Room desk at Raven Hook Precinct.'; this.messageTimer=2800; } }
-    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook World Base v0.4 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:(this.isRamosNearPlayer()?'A/E interact | X car/shoot | B car/arrest | Y Ramos talk | T trunk':'A/E interact | X car/shoot | B car/arrest | Y talk | T trunk')); this.layerText.setText(`Debug C/G:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
+    updateHUD(){ const speed=Math.round(Math.hypot(this.car.vx||0,this.car.vy||0)/4.7); const hour=Math.floor(this.shiftMinutes/60)%24; const min=Math.floor(this.shiftMinutes%60).toString().padStart(2,'0'); const flags=[GAME.case.active?'CASE':'PATROL', GAME.case.suspectArrested?'ARREST':'NO ARREST', GAME.case.evidenceCollected?'EVIDENCE':'NO EVIDENCE', GAME.case.witnessStatement?'WITNESS':'NO WITNESS', GAME.case.evidenceInTrunk?'TRUNK':'NO TRUNK'].join(' | '); this.hudText.setText(`Raven Hook World Base v0.4 | Day ${GAME.day} ${hour}:${min} | ${GAME.rank} XP ${GAME.xp}\n${this.dispatch}\n${this.objective}\n${flags}`); const vs=GAME.car.visualState; const carState=vs.trunkOpen?'TRUNK':vs.driverDoorOpen?'DOOR':(vs.smokeFire||GAME.car.damage>=70)?'SMOKE':'NORMAL'; this.carText.setText(`MPH ${speed} | Fuel ${GAME.car.fuel.toFixed(0)}% | Damage ${GAME.car.damage}% | Frame ${this.car.rotationFrame??0} | Car ${carState} | CarArt ${this.spriteLayersMade?'SPRITE':'FALLBACK'} | Player ${this.playerSprite?'SPRITE':'loading'} | Eddie ${this.eddieSprite?'SPRITE':'fallback'} | Map ${this.realGround?'PNG':'fallback'} | Bldg ${this.realBuildingImages?'pngs':this.realBuildingSheet?'sheet':'fallback'} | Music ${THEME_MUSIC?.isPlaying?'ON':'off'}`); this.promptText.setText(this.closestZone?`A/E: ${this.closestZone.label||this.closestZone.type}`:(this.isRamosNearPlayer()?'A/E interact | X car/shoot | B car/arrest | Y Ramos talk | T trunk':'A/E interact | X car/shoot | B car/arrest | Y talk | T trunk')); this.layerText.setText(`Debug C:${this.debug.collision?'ON':'off'} I:${this.debug.interaction?'ON':'off'} P:${this.debug.spawns?'ON':'off'} | STICK:${this.mobile.useStick?'ON':'off'} | ZOOM:${this.cameras.main.zoom.toFixed(2)}`); this.messageText.setText(this.messageTimer>0?this.message:''); }
     redrawDebug(){ this.debugGraphics.clear(); if(this.debug.collision) for(const r of COLLISION_RECTS){ const color=r.type==='large_prop'?COLORS.orange:COLORS.red; this.debugGraphics.fillStyle(color,0.22).fillRect(r.x,r.y,r.w,r.h); this.debugGraphics.lineStyle(3,color,0.9).strokeRect(r.x,r.y,r.w,r.h);} if(this.debug.interaction) for(const z of INTERACTION_ZONES){ const color=z.type==='door'?COLORS.blue:z.type==='evidence'?COLORS.yellow:z.type==='witness'?COLORS.purple:z.type==='crime_trigger'?COLORS.orange:z.type==='report'?COLORS.cyan:0xffffff; this.debugGraphics.fillStyle(color,0.25).fillRect(z.x,z.y,z.w,z.h); this.debugGraphics.lineStyle(2,color,0.95).strokeRect(z.x,z.y,z.w,z.h);} if(this.debug.spawns) for(const s of SPAWN_POINTS){ const color=s.type==='player'?COLORS.blue:s.type==='vehicle'?0xffffff:s.type==='suspect'?COLORS.red:s.type==='witness'?COLORS.purple:s.type==='evidence'?COLORS.yellow:0xaaaaaa; this.debugGraphics.fillStyle(color,0.85).fillCircle(s.x,s.y,11); this.debugGraphics.lineStyle(2,0,0.7).strokeCircle(s.x,s.y,11);} }
   }
 
@@ -4692,15 +4546,13 @@
 
   // WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001:
   // Adds a 4096x4096 game-ready chunk overlay and fixes fallback boxes by replacing them as soon as assets load.
-  // REBUILT_BASE_NPC_TRAFFIC_NODES_001:
-  // Reroutes civilians to sidewalk strips and traffic to visible road-center lanes on the rebuilt 4096 base layer.
-  const RH_SIDEWALK_PATCH_NODES = [{"id":"sw_station_01","x":610,"y":555,"links":["sw_station_02","sw_station_left"]},{"id":"sw_station_02","x":805,"y":555,"links":["sw_station_01","sw_station_03","sw_station_cross"]},{"id":"sw_station_03","x":1045,"y":555,"links":["sw_station_02","sw_station_04"]},{"id":"sw_station_04","x":1325,"y":555,"links":["sw_station_03","sw_station_east"]},{"id":"sw_station_left","x":610,"y":875,"links":["sw_station_01","sw_civic_01"]},{"id":"sw_station_east","x":1580,"y":760,"links":["sw_station_04","sw_market_01"]},{"id":"sw_station_cross","x":1010,"y":875,"links":["sw_station_02","sw_civic_02"]},{"id":"sw_market_01","x":2220,"y":560,"links":["sw_station_east","sw_market_02"]},{"id":"sw_market_02","x":2460,"y":560,"links":["sw_market_01","sw_market_03","sw_market_lot"]},{"id":"sw_market_03","x":2865,"y":560,"links":["sw_market_02","sw_market_04","sw_market_alley"]},{"id":"sw_market_04","x":3260,"y":560,"links":["sw_market_03","sw_gas_01"]},{"id":"sw_gas_01","x":3680,"y":790,"links":["sw_market_04","sw_gas_south"]},{"id":"sw_gas_south","x":3600,"y":1260,"links":["sw_gas_01","sw_oldtown_04"]},{"id":"sw_market_lot","x":2460,"y":710,"links":["sw_market_02","sw_market_alley"]},{"id":"sw_market_alley","x":2810,"y":710,"links":["sw_market_lot","sw_market_03"]},{"id":"sw_civic_01","x":610,"y":2485,"links":["sw_station_left","sw_civic_02"]},{"id":"sw_civic_02","x":975,"y":2485,"links":["sw_civic_01","sw_civic_03","sw_civic_park"]},{"id":"sw_civic_03","x":1390,"y":2485,"links":["sw_civic_02","sw_civic_04"]},{"id":"sw_civic_04","x":1660,"y":2760,"links":["sw_civic_03","sw_oldtown_01"]},{"id":"sw_civic_park","x":1000,"y":2920,"links":["sw_civic_02","sw_civic_05","sw_civic_park_s"]},{"id":"sw_civic_park_s","x":1000,"y":3180,"links":["sw_civic_park","sw_civic_05"]},{"id":"sw_civic_05","x":1420,"y":3260,"links":["sw_civic_park","sw_civic_park_s"]},{"id":"sw_oldtown_01","x":2245,"y":2505,"links":["sw_civic_04","sw_oldtown_02"]},{"id":"sw_oldtown_02","x":2700,"y":2505,"links":["sw_oldtown_01","sw_oldtown_03","sw_oldtown_alley"]},{"id":"sw_oldtown_03","x":3165,"y":2505,"links":["sw_oldtown_02","sw_oldtown_04","sw_oldtown_river"]},{"id":"sw_oldtown_04","x":3650,"y":2505,"links":["sw_oldtown_03","sw_gas_south","sw_oldtown_yard"]},{"id":"sw_oldtown_alley","x":2700,"y":3050,"links":["sw_oldtown_02","sw_oldtown_river"]},{"id":"sw_oldtown_yard","x":3650,"y":3050,"links":["sw_oldtown_04","sw_oldtown_river"]},{"id":"sw_oldtown_river","x":3185,"y":3370,"links":["sw_oldtown_alley","sw_oldtown_yard","sw_oldtown_03"]}];
+  const RH_SIDEWALK_PATCH_NODES = [{"id": "sw_station_01", "x": 760, "y": 560, "links": ["sw_station_02"]}, {"id": "sw_station_02", "x": 940, "y": 560, "links": ["sw_station_01", "sw_station_03", "sw_station_cross"]}, {"id": "sw_station_03", "x": 1220, "y": 560, "links": ["sw_station_02", "sw_station_04"]}, {"id": "sw_station_04", "x": 1500, "y": 680, "links": ["sw_station_03", "sw_market_01"]}, {"id": "sw_market_01", "x": 2220, "y": 520, "links": ["sw_station_04", "sw_market_02"]}, {"id": "sw_market_02", "x": 2420, "y": 520, "links": ["sw_market_01", "sw_market_03", "sw_market_lot"]}, {"id": "sw_market_03", "x": 2860, "y": 520, "links": ["sw_market_02", "sw_market_04"]}, {"id": "sw_market_04", "x": 3240, "y": 520, "links": ["sw_market_03", "sw_gas_01"]}, {"id": "sw_gas_01", "x": 3700, "y": 770, "links": ["sw_market_04", "sw_oldtown_01"]}, {"id": "sw_market_lot", "x": 2420, "y": 690, "links": ["sw_market_02", "sw_market_alley"]}, {"id": "sw_market_alley", "x": 2700, "y": 690, "links": ["sw_market_lot", "sw_market_03"]}, {"id": "sw_civic_01", "x": 720, "y": 2580, "links": ["sw_civic_02"]}, {"id": "sw_civic_02", "x": 990, "y": 2580, "links": ["sw_civic_01", "sw_civic_03", "sw_civic_park"]}, {"id": "sw_civic_03", "x": 1360, "y": 2580, "links": ["sw_civic_02", "sw_civic_04"]}, {"id": "sw_civic_04", "x": 1680, "y": 2760, "links": ["sw_civic_03", "sw_oldtown_01"]}, {"id": "sw_civic_park", "x": 1000, "y": 2880, "links": ["sw_civic_02", "sw_civic_05"]}, {"id": "sw_civic_05", "x": 1420, "y": 3260, "links": ["sw_civic_park"]}, {"id": "sw_oldtown_01", "x": 2240, "y": 2520, "links": ["sw_gas_01", "sw_oldtown_02", "sw_civic_04"]}, {"id": "sw_oldtown_02", "x": 2700, "y": 2520, "links": ["sw_oldtown_01", "sw_oldtown_03", "sw_oldtown_alley"]}, {"id": "sw_oldtown_03", "x": 3160, "y": 2520, "links": ["sw_oldtown_02", "sw_oldtown_04"]}, {"id": "sw_oldtown_04", "x": 3660, "y": 2520, "links": ["sw_oldtown_03", "sw_oldtown_yard"]}, {"id": "sw_oldtown_alley", "x": 2720, "y": 3050, "links": ["sw_oldtown_02", "sw_oldtown_river"]}, {"id": "sw_oldtown_yard", "x": 3660, "y": 3060, "links": ["sw_oldtown_04", "sw_oldtown_river"]}, {"id": "sw_oldtown_river", "x": 3180, "y": 3340, "links": ["sw_oldtown_alley", "sw_oldtown_yard"]}, {"id": "sw_station_cross", "x": 1010, "y": 720, "links": ["sw_station_02", "sw_civic_01"]}];
   const RH_SW_PATCH_MAP = Object.fromEntries(RH_SIDEWALK_PATCH_NODES.map(n => [n.id, n]));
-  const RH_ROAD_PATCH_NODES = [{"id":"rd_top_w","x":240,"y":840,"lane":"top_east","links":["rd_top_left"]},{"id":"rd_top_left","x":620,"y":840,"lane":"top_east","stop":true,"intersection":"int_left_top","links":["rd_top_station"]},{"id":"rd_top_station","x":1120,"y":840,"lane":"top_east","links":["rd_top_center_w"]},{"id":"rd_top_center_w","x":1880,"y":840,"lane":"top_east","stop":true,"intersection":"int_center_top_w","links":["rd_top_center_e","rd_center_s_1340"]},{"id":"rd_top_center_e","x":2065,"y":840,"lane":"top_east","stop":true,"intersection":"int_center_top_e","links":["rd_top_market","rd_center_n_1340"]},{"id":"rd_top_market","x":2440,"y":840,"lane":"top_east","links":["rd_top_east","rd_market_s_1340"]},{"id":"rd_top_east","x":2840,"y":840,"lane":"top_east","stop":true,"intersection":"int_market_top","links":["rd_top_river","rd_market_s_1340"]},{"id":"rd_top_river","x":3540,"y":840,"lane":"top_east","stop":true,"intersection":"int_river_top","links":["rd_river_1340"]},{"id":"rd_river_1340","x":3540,"y":1340,"lane":"river_south","stop":true,"intersection":"int_river_mid_n","links":["rd_river_2260"]},{"id":"rd_river_2260","x":3540,"y":2260,"lane":"river_south","stop":true,"intersection":"int_river_mid_s","links":["rd_river_3260"]},{"id":"rd_river_3260","x":3540,"y":3260,"lane":"river_south","stop":true,"intersection":"int_river_south","links":["rd_south_oldtown"]},{"id":"rd_south_oldtown","x":2840,"y":3260,"lane":"south_west","stop":true,"intersection":"int_oldtown_south","links":["rd_south_center_e"]},{"id":"rd_south_center_e","x":2065,"y":3260,"lane":"south_west","stop":true,"intersection":"int_center_south_e","links":["rd_center_n_2260","rd_south_center_w"]},{"id":"rd_south_center_w","x":1880,"y":3260,"lane":"south_west","stop":true,"intersection":"int_center_south_w","links":["rd_south_left","rd_center_s_2260"]},{"id":"rd_south_left","x":620,"y":3260,"lane":"south_west","stop":true,"intersection":"int_left_south","links":["rd_left_2760"]},{"id":"rd_left_2760","x":620,"y":2760,"lane":"left_north","links":["rd_left_2260"]},{"id":"rd_left_2260","x":620,"y":2260,"lane":"left_north","stop":true,"intersection":"int_left_civic","links":["rd_left_1800","rd_civic_center_w"]},{"id":"rd_left_1800","x":620,"y":1800,"lane":"left_north","links":["rd_left_1340"]},{"id":"rd_left_1340","x":620,"y":1340,"lane":"left_north","stop":true,"intersection":"int_left_mid","links":["rd_top_left"]},{"id":"rd_civic_center_w","x":1880,"y":2260,"lane":"civic_east","stop":true,"intersection":"int_center_civic_w","links":["rd_civic_center_e","rd_center_s_3260"]},{"id":"rd_civic_center_e","x":2065,"y":2260,"lane":"civic_east","stop":true,"intersection":"int_center_civic_e","links":["rd_civic_oldtown","rd_center_n_1340"]},{"id":"rd_civic_oldtown","x":2840,"y":2260,"lane":"civic_east","stop":true,"intersection":"int_oldtown_civic","links":["rd_river_2260","rd_market_s_3260"]},{"id":"rd_center_s_1340","x":1880,"y":1340,"lane":"center_south","stop":true,"intersection":"int_center_mid_w","links":["rd_center_s_2260"]},{"id":"rd_center_s_2260","x":1880,"y":2260,"lane":"center_south","stop":true,"intersection":"int_center_civic_w","links":["rd_center_s_3260"]},{"id":"rd_center_s_3260","x":1880,"y":3260,"lane":"center_south","stop":true,"intersection":"int_center_south_w","links":["rd_south_center_w"]},{"id":"rd_center_n_2260","x":2065,"y":2260,"lane":"center_north","stop":true,"intersection":"int_center_civic_e","links":["rd_center_n_1340"]},{"id":"rd_center_n_1340","x":2065,"y":1340,"lane":"center_north","stop":true,"intersection":"int_center_mid_e","links":["rd_top_center_e"]},{"id":"rd_market_s_1340","x":2840,"y":1340,"lane":"market_south","stop":true,"intersection":"int_market_mid","links":["rd_market_s_2260"]},{"id":"rd_market_s_2260","x":2840,"y":2260,"lane":"market_south","stop":true,"intersection":"int_oldtown_civic","links":["rd_market_s_3260"]},{"id":"rd_market_s_3260","x":2840,"y":3260,"lane":"market_south","stop":true,"intersection":"int_oldtown_south","links":["rd_south_oldtown"]}];
+  const RH_ROAD_PATCH_NODES = [{"id": "rd_station_w", "x": 280, "y": 760, "lane": "eastbound", "links": ["rd_station_mid"]}, {"id": "rd_station_mid", "x": 960, "y": 760, "lane": "eastbound", "stop": true, "intersection": "int_station", "links": ["rd_market_w", "rd_civic_n"]}, {"id": "rd_market_w", "x": 1820, "y": 760, "lane": "eastbound", "links": ["rd_market_mid"]}, {"id": "rd_market_mid", "x": 2420, "y": 760, "lane": "eastbound", "stop": true, "intersection": "int_market", "links": ["rd_market_e", "rd_oldtown_n"]}, {"id": "rd_market_e", "x": 3500, "y": 760, "lane": "eastbound", "stop": true, "intersection": "int_gas", "links": ["rd_gas_s", "rd_market_return"]}, {"id": "rd_market_return", "x": 3840, "y": 700, "lane": "westbound", "links": ["rd_market_e_w"]}, {"id": "rd_market_e_w", "x": 3500, "y": 700, "lane": "westbound", "stop": true, "intersection": "int_gas", "links": ["rd_market_mid_w"]}, {"id": "rd_market_mid_w", "x": 2420, "y": 700, "lane": "westbound", "stop": true, "intersection": "int_market", "links": ["rd_market_w_w", "rd_oldtown_n"]}, {"id": "rd_market_w_w", "x": 1820, "y": 700, "lane": "westbound", "links": ["rd_station_mid_w"]}, {"id": "rd_station_mid_w", "x": 960, "y": 700, "lane": "westbound", "stop": true, "intersection": "int_station", "links": ["rd_station_w_w", "rd_civic_n"]}, {"id": "rd_station_w_w", "x": 280, "y": 700, "lane": "westbound", "links": ["rd_station_w"]}, {"id": "rd_civic_n", "x": 960, "y": 1320, "lane": "southbound", "stop": true, "intersection": "int_station_s", "links": ["rd_civic_mid"]}, {"id": "rd_civic_mid", "x": 960, "y": 2200, "lane": "southbound", "links": ["rd_civic_s"]}, {"id": "rd_civic_s", "x": 960, "y": 3320, "lane": "southbound", "stop": true, "intersection": "int_civic", "links": ["rd_civic_loop_e"]}, {"id": "rd_civic_loop_e", "x": 1680, "y": 3320, "lane": "eastbound", "links": ["rd_oldtown_s"]}, {"id": "rd_oldtown_n", "x": 2420, "y": 1320, "lane": "southbound", "stop": true, "intersection": "int_market_s", "links": ["rd_oldtown_mid"]}, {"id": "rd_oldtown_mid", "x": 2420, "y": 2200, "lane": "southbound", "links": ["rd_oldtown_s"]}, {"id": "rd_oldtown_s", "x": 2420, "y": 3320, "lane": "eastbound", "stop": true, "intersection": "int_oldtown", "links": ["rd_river_s"]}, {"id": "rd_river_s", "x": 3480, "y": 3320, "lane": "eastbound", "stop": true, "intersection": "int_river", "links": ["rd_river_n"]}, {"id": "rd_river_n", "x": 3480, "y": 1320, "lane": "northbound", "stop": true, "intersection": "int_gas_s", "links": ["rd_gas_s"]}, {"id": "rd_gas_s", "x": 3480, "y": 900, "lane": "northbound", "links": ["rd_market_e_w"]}];
   const RH_RD_PATCH_MAP = Object.fromEntries(RH_ROAD_PATCH_NODES.map(n => [n.id, n]));
-  const RH_INTERSECTION_PATCH = {"int_left_top":{"box":{"x":520,"y":740,"w":200,"h":200}},"int_center_top_w":{"box":{"x":1780,"y":740,"w":200,"h":200}},"int_center_top_e":{"box":{"x":1965,"y":740,"w":200,"h":200}},"int_market_top":{"box":{"x":2740,"y":740,"w":220,"h":220}},"int_river_top":{"box":{"x":3440,"y":740,"w":220,"h":220}},"int_river_mid_n":{"box":{"x":3440,"y":1240,"w":220,"h":220}},"int_river_mid_s":{"box":{"x":3440,"y":2160,"w":220,"h":220}},"int_river_south":{"box":{"x":3440,"y":3160,"w":220,"h":220}},"int_oldtown_south":{"box":{"x":2740,"y":3160,"w":220,"h":220}},"int_center_south_e":{"box":{"x":1965,"y":3160,"w":200,"h":200}},"int_center_south_w":{"box":{"x":1780,"y":3160,"w":200,"h":200}},"int_left_south":{"box":{"x":520,"y":3160,"w":220,"h":220}},"int_left_civic":{"box":{"x":520,"y":2160,"w":220,"h":220}},"int_left_mid":{"box":{"x":520,"y":1240,"w":220,"h":220}},"int_center_civic_w":{"box":{"x":1780,"y":2160,"w":200,"h":200}},"int_center_civic_e":{"box":{"x":1965,"y":2160,"w":200,"h":200}},"int_oldtown_civic":{"box":{"x":2740,"y":2160,"w":220,"h":220}},"int_center_mid_w":{"box":{"x":1780,"y":1240,"w":200,"h":200}},"int_center_mid_e":{"box":{"x":1965,"y":1240,"w":200,"h":200}},"int_market_mid":{"box":{"x":2740,"y":1240,"w":220,"h":220}}};
+  const RH_INTERSECTION_PATCH = {"int_station": {"box": {"x": 860, "y": 660, "w": 220, "h": 220}}, "int_market": {"box": {"x": 2320, "y": 660, "w": 240, "h": 240}}, "int_gas": {"box": {"x": 3390, "y": 660, "w": 250, "h": 250}}, "int_station_s": {"box": {"x": 860, "y": 1220, "w": 220, "h": 220}}, "int_market_s": {"box": {"x": 2320, "y": 1220, "w": 240, "h": 240}}, "int_civic": {"box": {"x": 860, "y": 3220, "w": 260, "h": 260}}, "int_oldtown": {"box": {"x": 2320, "y": 3220, "w": 260, "h": 260}}, "int_river": {"box": {"x": 3380, "y": 3220, "w": 260, "h": 260}}, "int_gas_s": {"box": {"x": 3380, "y": 1220, "w": 260, "h": 260}}};
   for (const v of Object.values(RH_INTERSECTION_PATCH)) { v.occupiedBy = null; }
-  const RH_TRAFFIC_SPAWNS = [{"key":"blackthorne_regent","start":"rd_top_w","police":false,"maxSpeed":72},{"key":"blackthorne_regent_taxi","start":"rd_top_market","police":false,"maxSpeed":68},{"key":"rustway_comet","start":"rd_market_s_1340","police":false,"maxSpeed":70},{"key":"fairline_metro","start":"rd_center_s_1340","police":false,"maxSpeed":70},{"key":"ironcrest_hauler","start":"rd_river_2260","police":false,"maxSpeed":56},{"key":"blackthorne_regent","start":"rd_south_oldtown","police":false,"maxSpeed":68},{"key":"meridian_sentinel_patrol","start":"rd_left_2260","police":true,"maxSpeed":62},{"key":"meridian_sentinel_patrol","start":"rd_south_center_e","police":true,"maxSpeed":62}];
+  const RH_TRAFFIC_SPAWNS = [{"key": "blackthorne_regent", "start": "rd_station_w", "police": false, "maxSpeed": 78}, {"key": "blackthorne_regent_taxi", "start": "rd_market_w", "police": false, "maxSpeed": 74}, {"key": "rustway_comet", "start": "rd_market_e_w", "police": false, "maxSpeed": 72}, {"key": "fairline_metro", "start": "rd_civic_n", "police": false, "maxSpeed": 76}, {"key": "ironcrest_hauler", "start": "rd_oldtown_n", "police": false, "maxSpeed": 60}, {"key": "blackthorne_regent", "start": "rd_oldtown_s", "police": false, "maxSpeed": 72}, {"key": "meridian_sentinel_patrol", "start": "rd_station_mid_w", "police": true, "maxSpeed": 64}, {"key": "meridian_sentinel_patrol", "start": "rd_river_s", "police": true, "maxSpeed": 64}];
 
   function rhPickNextRoadNode(car) {
     const cur = RH_RD_PATCH_MAP[car.currentNodeId];
@@ -5480,7 +5332,7 @@
 
       // Player car light engine uses car.heading directly.
       const movingSpeed = Math.hypot(vx, vy);
-      const targetZoom = movingSpeed > 220 ? CAMERA.carFastZoom : (movingSpeed > 120 ? CAMERA.carMidZoom : CAMERA.carSlowZoom);
+      const targetZoom = movingSpeed > 220 ? 1.65 : (movingSpeed > 120 ? 1.78 : 1.9);
       this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.045));
 
       this.lastCarPhysicsDebug = {
@@ -6141,7 +5993,7 @@
       this.updateHeavyBodyRollVisual(dt, lateralSlip, angularVelocity, Math.hypot(vx, vy));
 
       const movingSpeed = Math.hypot(vx, vy);
-      const targetZoom = movingSpeed > 240 ? CAMERA.carFastZoom : (movingSpeed > 135 ? CAMERA.carMidZoom : CAMERA.carSlowZoom);
+      const targetZoom = movingSpeed > 240 ? 1.60 : (movingSpeed > 135 ? 1.76 : 1.90);
       this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.045));
 
       this.lastCarPhysicsDebug = {
@@ -7984,15 +7836,15 @@
   // Touch circle now has a stronger steering curve, lower deadzone, and faster angular response.
 
   const CAR_STEERING_TUNING = {
-    touchDeadzone: 0.018,
-    touchSensitivity: 2.15,
-    touchCurve: 0.46,
+    touchDeadzone: 0.035,
+    touchSensitivity: 1.75,
+    touchCurve: 0.56,
     keyboardSensitivity: 1.0,
-    steeringPower: 8.15,
-    angularDamping: 0.90,
-    minTurnSpeed: 2,
+    steeringPower: 7.2,
+    angularDamping: 0.91,
+    minTurnSpeed: 4,
     handbrakeTurnBoost: 2.05,
-    angularVelocityLimit: 5.15
+    angularVelocityLimit: 4.4
   };
 
   function rhCurveSteer(v) {
@@ -8012,8 +7864,8 @@
       PLAYER_CAR_HEAVY_HANDLING.angularVelocityLimit = CAR_STEERING_TUNING.angularVelocityLimit;
     }
     if (typeof PLAYER_CAR_HANDLING !== 'undefined') {
-      PLAYER_CAR_HANDLING.turnRate = 5.15;
-      PLAYER_CAR_HANDLING.minTurnSpeed = 2;
+      PLAYER_CAR_HANDLING.turnRate = 4.4;
+      PLAYER_CAR_HANDLING.minTurnSpeed = 4;
       PLAYER_CAR_HANDLING.handbrakeTurnBoost = 2.0;
     }
   }
@@ -8073,7 +7925,7 @@
         const steer = Math.abs(m.carSteerX || 0) > CAR_STEERING_TUNING.touchDeadzone ? rhCurveSteer(m.carSteerX) : 0;
         const speed = Math.hypot(this.car.velocityX || this.car.vx || 0, this.car.velocityY || this.car.vy || 0);
         if (this.inCar && Math.abs(steer) > 0.1 && speed < 55) {
-          this.car.heading = (this.car.heading || -Math.PI / 2) + steer * 0.026;
+          this.car.heading = (this.car.heading || -Math.PI / 2) + steer * 0.018;
           this.car.setRotation((this.car.heading || -Math.PI / 2) + Math.PI / 2);
         }
       }
@@ -8361,12 +8213,12 @@
   // Hold and slide left/right for proportional steering. Release to center.
 
   const DYNAMIC_STICK = {
-    zoneW: Math.floor(VIEW_W * 0.56),
+    zoneW: Math.floor(VIEW_W * 0.52),
     zoneH: VIEW_H,
-    maxRadius: 70,
-    deadzone: 0.016,
-    sensitivity: 2.20,
-    curve: 0.44
+    maxRadius: 96,
+    deadzone: 0.035,
+    sensitivity: 1.78,
+    curve: 0.58
   };
 
   function rhDynamicStickSteerCurve(v) {
@@ -8674,10 +8526,10 @@
       const m = this.mobile || MOBILE_INPUT_STATE || {};
 
       let steering = 0;
-      if (Math.abs(m.carSteerX || 0) > 0.012) {
+      if (Math.abs(m.carSteerX || 0) > 0.025) {
         // Keep the working toggle/drag steering, but make it proportional.
         const raw = Phaser.Math.Clamp(m.carSteerX || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
       } else {
         if (m.left || this.keyFinalLeft?.isDown) steering -= 1;
         if (m.right || this.keyFinalRight?.isDown) steering += 1;
@@ -8779,7 +8631,7 @@
       this.dpadButtons.push(addBtn(dX + 72, dY, '▶', 'right'));
 
       // Keep the working dynamic/toggle steering area from this build.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
       this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
         .setScrollFactor(0)
         .setDepth(5012)
@@ -9018,9 +8870,9 @@
       const m = this.mobile || MOBILE_INPUT_STATE || {};
 
       let steering = 0;
-      if (Math.abs(m.carSteerX || 0) > 0.012) {
+      if (Math.abs(m.carSteerX || 0) > 0.025) {
         const raw = Phaser.Math.Clamp(m.carSteerX || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
       } else {
         if (m.left || this.keyDriveLeft?.isDown) steering -= 1;
         if (m.right || this.keyDriveRight?.isDown) steering += 1;
@@ -9118,7 +8970,7 @@
       this.dpadButtons.push(addBtn(dX + 72, dY, '▶', 'right', 0x111827, 30, '18px', 5000));
 
       // Preserve working in-car dynamic stick.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
       this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
         .setScrollFactor(0)
         .setDepth(5010)
@@ -9389,9 +9241,9 @@
 
       let steering = 0;
       const sx = Number.isFinite(m.carSteerX) ? m.carSteerX : (m.driveSteerX || 0);
-      if (Math.abs(sx || 0) > 0.012) {
+      if (Math.abs(sx || 0) > 0.025) {
         const raw = Phaser.Math.Clamp(sx || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
       } else {
         if (m.left || this.keyCleanLeft?.isDown) steering -= 1;
         if (m.right || this.keyCleanRight?.isDown) steering += 1;
@@ -9484,7 +9336,7 @@
       };
 
       // Preserve working steering/toggle style in car.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
       this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
         .setScrollFactor(0)
         .setDepth(5010)
@@ -9759,9 +9611,9 @@
 
       let steering = 0;
       const sx = Number.isFinite(m.driveSteerX) ? m.driveSteerX : (Number.isFinite(m.carSteerX) ? m.carSteerX : 0);
-      if (Math.abs(sx || 0) > 0.012) {
+      if (Math.abs(sx || 0) > 0.025) {
         const raw = Phaser.Math.Clamp(sx || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
+        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.55) * 1.75, -1, 1);
       } else {
         if (this.keyRequestedLeft?.isDown) steering -= 1;
         if (this.keyRequestedRight?.isDown) steering += 1;
@@ -9880,7 +9732,7 @@
       };
 
       // Left-side driving touch zone. Touch/drag creates a temporary steering origin.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
+      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.52), zoneH: VIEW_H, maxRadius: 96 };
       this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
         .setScrollFactor(0)
         .setDepth(5005)
@@ -10047,879 +9899,6 @@
       if (this._requestedControlMode !== 'car' && typeof __requestedFootUpdate === 'function') {
         __requestedFootUpdate.call(this, time, delta);
       }
-    };
-  }
-
-
-
-  // TOUCH_STEERING_RESPONSIVE_TUNE_001: smaller steering radius, lower deadzone, stronger curve.
-  // USER_HOTFIX_CAR_INPUT_B_NOT_REVERSE_004:
-  // Final hard override for in-car controls after the Z-headlights request.
-  // Fixes reported issue where B behaved like reverse and X acceleration did not engage.
-  // In car: X = gas, Y = reverse, A = handbrake, B = enter/exit only, Z = headlights.
-  // While driving, no raw mobile x/y/a/b/z/down/analogY state is allowed to feed car movement.
-  Object.assign(MOBILE_INPUT_STATE, {
-    driveGas:false,
-    driveBrake:false,
-    driveHandbrake:false,
-    driveSteerX:0,
-    driveSteerY:0,
-    carGas:false,
-    carBrake:false,
-    carHandbrake:false,
-    carSteerX:0,
-    carSteerY:0,
-    z:false
-  });
-
-  function rhBReverseHotfixClearRawDrivingLeak() {
-    // Clear every legacy/mobile path older car wrappers used for throttle/reverse.
-    MOBILE_INPUT_STATE.x = false;
-    MOBILE_INPUT_STATE.y = false;
-    MOBILE_INPUT_STATE.a = false;
-    MOBILE_INPUT_STATE.b = false;
-    MOBILE_INPUT_STATE.z = false;
-    MOBILE_INPUT_STATE.up = false;
-    MOBILE_INPUT_STATE.down = false;
-    MOBILE_INPUT_STATE.carGas = false;
-    MOBILE_INPUT_STATE.carBrake = false;
-    MOBILE_INPUT_STATE.carHandbrake = false;
-    // Keep steering independent from the old walking analog Y so drag steering cannot become reverse.
-    MOBILE_INPUT_STATE.analogY = 0;
-  }
-
-  function rhBReverseHotfixClearDriveButtons() {
-    MOBILE_INPUT_STATE.driveGas = false;
-    MOBILE_INPUT_STATE.driveBrake = false;
-    MOBILE_INPUT_STATE.driveHandbrake = false;
-    rhBReverseHotfixClearRawDrivingLeak();
-  }
-
-  function rhBReverseHotfixClearSteer() {
-    MOBILE_INPUT_STATE.driveSteerX = 0;
-    MOBILE_INPUT_STATE.driveSteerY = 0;
-    MOBILE_INPUT_STATE.carSteerX = 0;
-    MOBILE_INPUT_STATE.carSteerY = 0;
-    MOBILE_INPUT_STATE.analogX = 0;
-    MOBILE_INPUT_STATE.analogY = 0;
-  }
-
-  function rhBReverseHotfixClearAllCarInput() {
-    rhBReverseHotfixClearDriveButtons();
-    rhBReverseHotfixClearSteer();
-  }
-
-  if (typeof GameScene !== 'undefined') {
-    const __bReverseHotfixCreate = GameScene.prototype.create;
-    GameScene.prototype.create = function() {
-      __bReverseHotfixCreate.apply(this, arguments);
-
-      if (this.input?.keyboard) {
-        this.keyHotfixGas = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X);
-        this.keyHotfixReverse = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
-        this.keyHotfixHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
-        this.keyHotfixExit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
-        this.keyHotfixLights = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-        this.keyHotfixSpaceHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
-        this.keyHotfixLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
-        this.keyHotfixRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
-        this.keyHotfixUp = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
-        this.keyHotfixDown = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
-        this.keyHotfixW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
-        this.keyHotfixS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
-      }
-
-      // Disable older aliases whose meanings changed across patches.
-      this.headlightToggleKey = null;
-      this.carHeadlightKey = null;
-      this.keyCarLights = null;
-      this.keyFinalLights = null;
-      this.keyDriveLights = null;
-      this.keyCleanLights = null;
-      this.keyRequestedLights = null;
-      this.carEnterExitKey = null;
-      this.keyCarExit = null;
-      this.keyFinalExit = null;
-      this.keyDriveExit = null;
-      this.keyCleanExit = null;
-      this.keyRequestedExit = null;
-
-      // Repoint legacy names to harmless/current meanings for any older wrapper that still reads them.
-      this.accelerateButtonKey = this.keyHotfixGas;
-      this.carAccelKey = this.keyHotfixGas;
-      this.carBrakeKey = this.keyHotfixReverse;
-      this.handbrakeKey = this.keyHotfixHandbrake;
-      this.carHandbrakeKey = this.keyHotfixHandbrake;
-    };
-
-    GameScene.prototype.readPlayerCarInput = function() {
-      const m = this.mobile || MOBILE_INPUT_STATE || {};
-
-      let steering = 0;
-      const steerX = Number.isFinite(m.driveSteerX) ? m.driveSteerX : (Number.isFinite(m.carSteerX) ? m.carSteerX : 0);
-      if (Math.abs(steerX || 0) > 0.012) {
-        const raw = Phaser.Math.Clamp(steerX || 0, -1, 1);
-        steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.44) * 2.25, -1, 1);
-      } else {
-        if (this.keyHotfixLeft?.isDown) steering -= 1;
-        if (this.keyHotfixRight?.isDown) steering += 1;
-      }
-
-      let throttle = 0;
-      if (m.driveGas || this.keyHotfixGas?.isDown || this.keyHotfixUp?.isDown || this.keyHotfixW?.isDown) throttle = 1;
-      if (m.driveBrake || this.keyHotfixReverse?.isDown || this.keyHotfixDown?.isDown || this.keyHotfixS?.isDown) throttle = -1;
-
-      const handbrake = !!(m.driveHandbrake || this.keyHotfixHandbrake?.isDown || this.keyHotfixSpaceHandbrake?.isDown);
-      return { throttle, steering: Phaser.Math.Clamp(steering, -1, 1), handbrake };
-    };
-
-    const __bReverseHotfixUpdate = GameScene.prototype.update;
-    GameScene.prototype.update = function(time, delta) {
-      if (this.inCar) {
-        rhBReverseHotfixClearRawDrivingLeak();
-        // Keep old wrappers from seeing legacy light/exit aliases.
-        this.headlightToggleKey = null;
-        this.carHeadlightKey = null;
-        this.keyCarLights = null;
-        this.keyFinalLights = null;
-        this.keyDriveLights = null;
-        this.keyCleanLights = null;
-        this.keyRequestedLights = null;
-        this.carEnterExitKey = null;
-        this.keyCarExit = null;
-        this.keyFinalExit = null;
-        this.keyDriveExit = null;
-        this.keyCleanExit = null;
-        this.keyRequestedExit = null;
-      }
-
-      __bReverseHotfixUpdate.call(this, time, delta);
-
-      if (this.inCar) {
-        rhBReverseHotfixClearRawDrivingLeak();
-
-        if (this.keyHotfixLights && Phaser.Input.Keyboard.JustDown(this.keyHotfixLights)) {
-          this.togglePlayerHeadlights?.();
-        }
-
-        if (this.keyHotfixExit && Phaser.Input.Keyboard.JustDown(this.keyHotfixExit)) {
-          rhBReverseHotfixClearAllCarInput();
-          this.handleCarOrArrest?.();
-        }
-      }
-    };
-
-    const __bReverseHotfixHandleInteract = GameScene.prototype.handleInteract;
-    GameScene.prototype.handleInteract = function() {
-      const wasInCar = !!this.inCar;
-      const result = __bReverseHotfixHandleInteract.apply(this, arguments);
-      if (wasInCar !== !!this.inCar) rhBReverseHotfixClearAllCarInput();
-      return result;
-    };
-  }
-
-  if (typeof MobileControlsScene !== 'undefined') {
-    const __bReverseHotfixFootDrawControls = MobileControlsScene.prototype.drawControls;
-    const __bReverseHotfixFootSetControl = MobileControlsScene.prototype.setControl;
-    const __bReverseHotfixFootFireAction = MobileControlsScene.prototype.fireAction;
-    const __bReverseHotfixFootReleasePointer = MobileControlsScene.prototype.releasePointer;
-    const __bReverseHotfixFootUpdate = MobileControlsScene.prototype.update;
-
-    MobileControlsScene.prototype.isBReverseHotfixDriving = function() {
-      const target = this.getTargetScene?.();
-      return !!(target?.scene?.key === 'GameScene' && target.inCar);
-    };
-
-    MobileControlsScene.prototype.drawBReverseHotfixCarControls = function() {
-      this.children.removeAll(true);
-      this.input.topOnly = true;
-      this.activePointerControls = new Map();
-      this.dynamicStickPointerId = null;
-      this.dynamicStickCenter = null;
-      this._bReverseHotfixMode = 'car';
-
-      if (this._bReverseHotfixMoveHandler) this.input.off('pointermove', this._bReverseHotfixMoveHandler);
-      if (this._bReverseHotfixUpHandler) this.input.off('pointerup', this._bReverseHotfixUpHandler);
-      if (this._bReverseHotfixUpOutsideHandler) this.input.off('pointerupoutside', this._bReverseHotfixUpOutsideHandler);
-
-      const isDriving = () => this.isBReverseHotfixDriving?.();
-
-      const addVisualButton = (x, y, label, color, radius = 34, depth = 22000, font = '18px') => {
-        const c = this.add.container(x, y).setScrollFactor(0).setDepth(depth);
-        const bg = this.add.circle(0, 0, radius, color, 0.88).setStrokeStyle(3, 0xffffff, 0.78);
-        const tx = this.add.text(0, -8, label, {
-          fontFamily: 'Courier New',
-          fontSize: font,
-          color: '#fff',
-          stroke: '#000',
-          strokeThickness: 3
-        }).setOrigin(0.5);
-        c.add([bg, tx]);
-        return c;
-      };
-
-      const addCarButtonZone = (x, y, w, h, semanticKey) => {
-        const zone = this.add.zone(x, y, w, h)
-          .setScrollFactor(0)
-          .setDepth(23000)
-          .setInteractive({ useHandCursor: false });
-
-        zone.on('pointerdown', (pointer) => {
-          if (!isDriving()) return;
-          pointer.event?.stopPropagation?.();
-          rhBReverseHotfixClearRawDrivingLeak();
-
-          if (semanticKey === 'driveGas') {
-            MOBILE_INPUT_STATE.driveGas = true;
-            this.activePointerControls.set(pointer.id, ['driveGas']);
-            return;
-          }
-          if (semanticKey === 'driveBrake') {
-            MOBILE_INPUT_STATE.driveBrake = true;
-            this.activePointerControls.set(pointer.id, ['driveBrake']);
-            return;
-          }
-          if (semanticKey === 'driveHandbrake') {
-            MOBILE_INPUT_STATE.driveHandbrake = true;
-            this.activePointerControls.set(pointer.id, ['driveHandbrake']);
-            return;
-          }
-          if (semanticKey === 'lights') {
-            this.activePointerControls.set(pointer.id, ['lights']);
-            const target = this.getTargetScene?.();
-            if (!this._lightHoldMeta) this._lightHoldMeta = new Map();
-            this._lightHoldMeta.set(pointer.id, { downAt: target?.time?.now || 0, horned: false });
-            target?.time?.delayedCall?.(430, () => {
-              const meta = this._lightHoldMeta?.get(pointer.id);
-              const stillHeld = this.activePointerControls?.get(pointer.id)?.includes('lights');
-              if (meta && stillHeld && target?.scene?.key === 'GameScene' && target.inCar) {
-                meta.horned = true;
-                target.playVehicleHorn?.();
-              }
-            });
-            return;
-          }
-          if (semanticKey === 'exit') {
-            this.activePointerControls.set(pointer.id, ['exit']);
-            rhBReverseHotfixClearAllCarInput();
-            const target = this.getTargetScene?.();
-            if (target?.scene?.key === 'GameScene' && target.inCar) target.handleCarOrArrest?.();
-          }
-        });
-
-        zone.on('pointerup', (pointer) => this.releasePointer(pointer));
-        zone.on('pointerout', (pointer) => this.releasePointer(pointer));
-        zone.on('pointerupoutside', (pointer) => this.releasePointer(pointer));
-        return zone;
-      };
-
-      // Left-side driving touch zone. Horizontal drag steers only; vertical drag never reverses.
-      const stick = (typeof DYNAMIC_STICK !== 'undefined') ? DYNAMIC_STICK : { zoneW: Math.floor(VIEW_W * 0.56), zoneH: VIEW_H, maxRadius: 70 };
-      this.dynamicStickZone = this.add.zone(stick.zoneW / 2, VIEW_H / 2, stick.zoneW, stick.zoneH)
-        .setScrollFactor(0)
-        .setDepth(21000)
-        .setInteractive();
-
-      this.dynamicStickVisual = this.add.container(0, 0).setScrollFactor(0).setDepth(21001).setVisible(false);
-      this.dynamicStickOuter = this.add.circle(0, 0, stick.maxRadius, 0x0b111a, 0.15).setStrokeStyle(4, 0xffffff, 0.28);
-      this.dynamicStickInner = this.add.circle(0, 0, 42, 0x8ac7ff, 0.07).setStrokeStyle(2, 0x9bd4ff, 0.22);
-      this.dynamicStickKnob = this.add.circle(0, 0, 22, 0x9bd4ff, 0.30).setStrokeStyle(2, 0xffffff, 0.42);
-      this.dynamicStickLabel = this.add.text(0, -9, 'STEER', {
-        fontFamily: 'Courier New',
-        fontSize: '12px',
-        color: '#d7ecff',
-        stroke: '#000',
-        strokeThickness: 2
-      }).setOrigin(0.5).setAlpha(0.70);
-      this.dynamicStickVisual.add([this.dynamicStickOuter, this.dynamicStickInner, this.dynamicStickKnob, this.dynamicStickLabel]);
-
-      this.updateBReverseHotfixStick = (pointer) => {
-        if (!this.dynamicStickCenter) {
-          this.dynamicStickCenter = { x: pointer.x, y: pointer.y };
-          this.dynamicStickVisual.setPosition(pointer.x, pointer.y).setVisible(true);
-        }
-        let dx = pointer.x - this.dynamicStickCenter.x;
-        let dy = pointer.y - this.dynamicStickCenter.y;
-        const mag = Math.hypot(dx, dy);
-        const r = stick.maxRadius || 96;
-        if (mag > r) { dx = (dx / mag) * r; dy = (dy / mag) * r; }
-        MOBILE_INPUT_STATE.driveSteerX = Phaser.Math.Clamp(dx / r, -1, 1);
-        MOBILE_INPUT_STATE.driveSteerY = Phaser.Math.Clamp(dy / r, -1, 1);
-        MOBILE_INPUT_STATE.carSteerX = MOBILE_INPUT_STATE.driveSteerX;
-        MOBILE_INPUT_STATE.carSteerY = MOBILE_INPUT_STATE.driveSteerY;
-        MOBILE_INPUT_STATE.analogY = 0;
-        this.dynamicStickKnob.setPosition(dx, dy);
-      };
-
-      this.dynamicStickZone.on('pointerdown', (pointer) => {
-        if (!isDriving()) return;
-        pointer.event?.stopPropagation?.();
-        this.dynamicStickPointerId = pointer.id;
-        this.dynamicStickCenter = { x: pointer.x, y: pointer.y };
-        this.activePointerControls.set(pointer.id, ['dynamicStick']);
-        this.dynamicStickVisual.setPosition(pointer.x, pointer.y).setVisible(true);
-        this.dynamicStickKnob.setPosition(0, 0);
-        rhBReverseHotfixClearSteer();
-        this.updateBReverseHotfixStick(pointer);
-      });
-
-      this._bReverseHotfixMoveHandler = (pointer) => {
-        if (this.dynamicStickPointerId === pointer.id && this.updateBReverseHotfixStick) this.updateBReverseHotfixStick(pointer);
-      };
-      this._bReverseHotfixUpHandler = (pointer) => this.releasePointer(pointer);
-      this._bReverseHotfixUpOutsideHandler = (pointer) => this.releasePointer(pointer);
-      this.input.on('pointermove', this._bReverseHotfixMoveHandler);
-      this.input.on('pointerup', this._bReverseHotfixUpHandler);
-      this.input.on('pointerupoutside', this._bReverseHotfixUpOutsideHandler);
-
-      // Spread out the diamond so B cannot overlap the reverse zone.
-      //       Z lights
-      //       X gas
-      // B exit          A handbrake
-      //       Y reverse
-      const baseX = VIEW_W - 124;
-      const baseY = VIEW_H - 322;
-      const btn = [
-        { x: baseX,       y: baseY - 70,  w: 92,  h: 84, label:'Z', color:0x402050, state:'lights' },
-        { x: baseX,       y: baseY,       w: 96,  h: 88, label:'X', color:0x1f314d, state:'driveGas' },
-        { x: baseX,       y: baseY + 150, w: 96,  h: 88, label:'Y', color:0x4d3b1f, state:'driveBrake' },
-        { x: baseX + 84,  y: baseY + 76,  w: 92,  h: 88, label:'A', color:0x1f4d2f, state:'driveHandbrake' },
-        { x: baseX - 122, y: baseY + 76,  w: 100, h: 88, label:'B', color:0x4d1f1f, state:'exit' }
-      ];
-
-      for (const b of btn) {
-        addVisualButton(b.x, b.y, b.label, b.color, 34, 22000);
-        addCarButtonZone(b.x, b.y, b.w, b.h, b.state);
-      }
-
-      // Visual-only middle controls while driving.
-      addVisualButton(Math.floor(VIEW_W * 0.46), VIEW_H - 132, 'SEL', 0x263241, 20, 21500, '10px');
-      addVisualButton(Math.floor(VIEW_W * 0.55), VIEW_H - 132, 'STA', 0x263241, 20, 21500, '10px');
-    };
-
-    MobileControlsScene.prototype.drawControls = function() {
-      if (this.isBReverseHotfixDriving?.()) {
-        this.drawBReverseHotfixCarControls();
-        return;
-      }
-      __bReverseHotfixFootDrawControls.call(this);
-      this._bReverseHotfixMode = 'foot';
-    };
-
-    MobileControlsScene.prototype.releasePointer = function(pointer) {
-      if (this._bReverseHotfixMode !== 'car') return __bReverseHotfixFootReleasePointer.call(this, pointer);
-
-      const keys = this.activePointerControls.get(pointer.id);
-      if (!keys) return;
-
-      for (const key of keys) {
-        if (key === 'dynamicStick') {
-          this.dynamicStickPointerId = null;
-          this.dynamicStickCenter = null;
-          this.dynamicStickVisual?.setVisible(false);
-          this.dynamicStickKnob?.setPosition(0, 0);
-          rhBReverseHotfixClearSteer();
-        } else if (key === 'driveGas') {
-          MOBILE_INPUT_STATE.driveGas = false;
-        } else if (key === 'driveBrake') {
-          MOBILE_INPUT_STATE.driveBrake = false;
-        } else if (key === 'driveHandbrake') {
-          MOBILE_INPUT_STATE.driveHandbrake = false;
-        } else if (key === 'exit') {
-          rhBReverseHotfixClearAllCarInput();
-        } else {
-          rhBReverseHotfixClearRawDrivingLeak();
-        }
-      }
-
-      this.activePointerControls.delete(pointer.id);
-    };
-
-    MobileControlsScene.prototype.setControl = function(key, value) {
-      if (this._bReverseHotfixMode !== 'car') return __bReverseHotfixFootSetControl.call(this, key, value);
-      // No raw x/y/a/b/z state is accepted while driving.
-      if (key in MOBILE_INPUT_STATE && !['x','y','a','b','z','up','down'].includes(key)) MOBILE_INPUT_STATE[key] = !!value;
-    };
-
-    MobileControlsScene.prototype.fireAction = function(key) {
-      if (this._bReverseHotfixMode !== 'car') return __bReverseHotfixFootFireAction.call(this, key);
-      // Car actions are handled by the dedicated zones above. B cannot become reverse here.
-      return;
-    };
-
-    MobileControlsScene.prototype.update = function(time, delta) {
-      const driving = this.isBReverseHotfixDriving?.();
-
-      if (driving && this._bReverseHotfixMode !== 'car') {
-        this.drawBReverseHotfixCarControls();
-        return;
-      }
-
-      if (!driving && this._bReverseHotfixMode === 'car') {
-        rhBReverseHotfixClearAllCarInput();
-        __bReverseHotfixFootDrawControls.call(this);
-        this._bReverseHotfixMode = 'foot';
-        return;
-      }
-
-      if (this._bReverseHotfixMode !== 'car' && typeof __bReverseHotfixFootUpdate === 'function') {
-        __bReverseHotfixFootUpdate.call(this, time, delta);
-      }
-    };
-  }
-
-
-
-  // HORN_POLICE_LIGHTS_AND_B_SHOOT_PATCH_001
-  // In car:
-  // - Tap Z/lights = toggle Malcolm's dashboard police lights.
-  // - Hold Z/lights = horn.
-  // - NPC police patrol strobes can be controlled by policePatrolLightsOn.
-  // On foot:
-  // - B shoots Malcolm's weapon unless he is close enough to enter the car.
-  if (typeof GameScene !== 'undefined') {
-    function rhIsPlayerPoliceVehicle(scene) {
-      // Malcolm drives an unmarked police sedan. Dash lights are inside the front windshield/dashboard.
-      return true;
-    }
-
-    const __rhHornCreate = GameScene.prototype.create;
-    GameScene.prototype.create = function() {
-      __rhHornCreate.apply(this, arguments);
-
-      if (this.input?.keyboard) {
-        this.keyHornLights = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
-      }
-
-      if (typeof this.playerPoliceLightsOn !== 'boolean') this.playerPoliceLightsOn = false;
-      if (typeof this.policePatrolLightsOn !== 'boolean') this.policePatrolLightsOn = true;
-
-      // Route all older Z/lights aliases through this new tap/hold handler.
-      this.keyHotfixLights = this.keyHornLights;
-      this.keyRequestedLights = null;
-      this.keyCleanLights = null;
-      this.keyDriveLights = null;
-      this.keyFinalLights = null;
-      this.keyCarLights = null;
-      this.carHeadlightKey = null;
-      this.headlightToggleKey = null;
-    };
-
-    GameScene.prototype.playVehicleHorn = function() {
-      const now = this.time?.now || 0;
-      if (now - (this.lastHornAt || 0) < 520) return;
-      this.lastHornAt = now;
-
-      const ctx = this.sound?.context;
-      if (ctx) {
-        try {
-          const gain = ctx.createGain();
-          gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-          gain.gain.exponentialRampToValueAtTime(0.11, ctx.currentTime + 0.025);
-          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.22);
-          gain.connect(ctx.destination);
-
-          const oscA = ctx.createOscillator();
-          const oscB = ctx.createOscillator();
-          oscA.type = 'square';
-          oscB.type = 'square';
-          oscA.frequency.setValueAtTime(220, ctx.currentTime);
-          oscB.frequency.setValueAtTime(275, ctx.currentTime);
-          oscA.connect(gain);
-          oscB.connect(gain);
-          oscA.start();
-          oscB.start();
-          oscA.stop(ctx.currentTime + 0.24);
-          oscB.stop(ctx.currentTime + 0.24);
-        } catch (e) {
-          // Fallback below still gives player feedback.
-        }
-      }
-
-      this.message = 'HORN';
-      this.messageTimer = 520;
-    };
-
-    GameScene.prototype.togglePlayerEmergencyLights = function() {
-      if (rhIsPlayerPoliceVehicle(this)) {
-        this.playerPoliceLightsOn = !this.playerPoliceLightsOn;
-        GAME.car.visualState.policeLightsOn = this.playerPoliceLightsOn;
-        this.message = this.playerPoliceLightsOn ? 'Dashboard police lights on.' : 'Dashboard police lights off.';
-        this.messageTimer = 1200;
-        return;
-      }
-
-      GAME.car.visualState.lightsOn = !GAME.car.visualState.lightsOn;
-      this.playerHeadlightsOn = GAME.car.visualState.lightsOn;
-      this.message = GAME.car.visualState.lightsOn ? 'Headlights on.' : 'Headlights off.';
-      this.messageTimer = 1200;
-    };
-
-    GameScene.prototype.drawPlayerDashPoliceStrobe = function(g, x, y, heading, time = 0) {
-      const fx = Math.cos(heading), fy = Math.sin(heading);
-      const sx = -Math.sin(heading), sy = Math.cos(heading);
-
-      // Dashboard/window lights sit just behind Malcolm's front windshield, not on the roof.
-      const dashX = x + fx * 20;
-      const dashY = y + fy * 20;
-      const redX = dashX + sx * -7;
-      const redY = dashY + sy * -7;
-      const blueX = dashX + sx * 7;
-      const blueY = dashY + sy * 7;
-
-      const cycle = Math.sin(time * 0.033);
-      const redAlpha = cycle > 0 ? 0.95 : 0.18;
-      const blueAlpha = cycle > 0 ? 0.18 : 0.95;
-
-      this.drawStrobeBloom(g, redX, redY, 0xff1010, redAlpha * 0.78);
-      this.drawStrobeBloom(g, blueX, blueY, 0x205cff, blueAlpha * 0.78);
-
-      // Small hot cores so it reads as dash-mounted through the windshield.
-      g.fillStyle(0xffffff, 0.70);
-      g.fillCircle(redX, redY, 3);
-      g.fillCircle(blueX, blueY, 3);
-    };
-
-    GameScene.prototype.renderVehicleLights = function(time = 0) {
-      if (!this.vehicleLightGraphics) {
-        this.vehicleLightGraphics = this.add.graphics().setDepth(28);
-        try { this.vehicleLightGraphics.setBlendMode(Phaser.BlendModes.ADD); }
-        catch (e) { try { this.vehicleLightGraphics.setBlendMode('ADD'); } catch (_) {} }
-      }
-
-      const g = this.vehicleLightGraphics;
-      g.clear();
-
-      if (this.trafficCars?.length) {
-        for (const car of this.trafficCars) {
-          if (!car?.body) continue;
-          if (car.isPolicePatrol === true && this.policePatrolLightsOn !== false) {
-            this.drawPoliceStrobe(g, car.body.x, car.body.y, car.heading || 0, time, car);
-          }
-        }
-      }
-
-      if (this.car) {
-        if (GAME.car.visualState.lightsOn) {
-          const carLike = {
-            body: this.car,
-            heading: this.car.heading || 0,
-            vehicleKey: 'player_detective_sedan',
-            isPolicePatrol: false,
-            playerVehicle: true
-          };
-          this.drawVehicleLights(carLike, time, true);
-        }
-
-        if (this.playerPoliceLightsOn) {
-          this.drawPlayerDashPoliceStrobe(g, this.car.x, this.car.y, this.car.heading || 0, time);
-        }
-      }
-    };
-
-    // B on foot shoots. If Malcolm is close to the car, B still enters the car.
-    GameScene.prototype.handleCarOrArrest = function() {
-      if (this.canUseCar?.()) {
-        this.handleInteract?.();
-        return;
-      }
-      if (!this.inCar && typeof this.malcolmShoot === 'function') {
-        this.malcolmShoot();
-        return;
-      }
-      this.tryArrest?.();
-    };
-
-    const __rhHornUpdate = GameScene.prototype.update;
-    GameScene.prototype.update = function(time, delta) {
-      // Stop older wrappers from instantly toggling lights on JustDown(Z).
-      const saved = {
-        keyHotfixLights: this.keyHotfixLights,
-        keyRequestedLights: this.keyRequestedLights,
-        keyCleanLights: this.keyCleanLights,
-        keyDriveLights: this.keyDriveLights,
-        keyFinalLights: this.keyFinalLights,
-        keyCarLights: this.keyCarLights,
-        carHeadlightKey: this.carHeadlightKey,
-        headlightToggleKey: this.headlightToggleKey
-      };
-
-      this.keyHotfixLights = null;
-      this.keyRequestedLights = null;
-      this.keyCleanLights = null;
-      this.keyDriveLights = null;
-      this.keyFinalLights = null;
-      this.keyCarLights = null;
-      this.carHeadlightKey = null;
-      this.headlightToggleKey = null;
-
-      __rhHornUpdate.call(this, time, delta);
-
-      this.keyHornLights = this.keyHornLights || saved.keyHotfixLights;
-      this.keyHotfixLights = this.keyHornLights;
-      this.keyRequestedLights = null;
-      this.keyCleanLights = null;
-      this.keyDriveLights = null;
-      this.keyFinalLights = null;
-      this.keyCarLights = null;
-      this.carHeadlightKey = null;
-      this.headlightToggleKey = null;
-
-      const zDown = !!this.keyHornLights?.isDown;
-
-      if (!this.inCar) {
-        this._hornLightsKeyWasDown = zDown;
-        this._hornLightsHeld = false;
-        this._hornLightsDownAt = 0;
-        return;
-      }
-
-      if (zDown && !this._hornLightsKeyWasDown) {
-        this._hornLightsDownAt = time || 0;
-        this._hornLightsHeld = false;
-      }
-
-      if (zDown && !this._hornLightsHeld && (time || 0) - (this._hornLightsDownAt || 0) >= 430) {
-        this._hornLightsHeld = true;
-        this.playVehicleHorn();
-      }
-
-      if (!zDown && this._hornLightsKeyWasDown) {
-        const heldTime = (time || 0) - (this._hornLightsDownAt || 0);
-        if (!this._hornLightsHeld && heldTime < 430) this.togglePlayerEmergencyLights();
-        this._hornLightsHeld = false;
-        this._hornLightsDownAt = 0;
-      }
-
-      this._hornLightsKeyWasDown = zDown;
-    };
-
-    const __rhHornHud = GameScene.prototype.updateHUD;
-    GameScene.prototype.updateHUD = function() {
-      __rhHornHud.apply(this, arguments);
-      if (this.promptText && !this.inCar) {
-        const current = this.promptText.text || '';
-        this.promptText.setText(current
-          .replace('B car/arrest', 'B shoot/car')
-          .replace('B car/arrest', 'B shoot/car'));
-      }
-    };
-  }
-
-  if (typeof MobileControlsScene !== 'undefined') {
-    const __rhHornReleasePointer = MobileControlsScene.prototype.releasePointer;
-    MobileControlsScene.prototype.releasePointer = function(pointer) {
-      if (this._bReverseHotfixMode === 'car') {
-        const keys = this.activePointerControls?.get(pointer.id);
-        if (keys && keys.includes('lights')) {
-          const target = this.getTargetScene?.();
-          const meta = this._lightHoldMeta?.get(pointer.id);
-          const now = target?.time?.now || 0;
-          const heldMs = meta ? now - meta.downAt : 0;
-
-          if (target?.scene?.key === 'GameScene' && target.inCar && !meta?.horned && heldMs < 430) {
-            target.togglePlayerEmergencyLights?.();
-          }
-
-          this._lightHoldMeta?.delete(pointer.id);
-        }
-      }
-
-      return __rhHornReleasePointer.call(this, pointer);
-    };
-  }
-
-
-  // POLICE_LIGHTS_SIREN_SOUND_PATCH_001
-  // Malcolm's dashboard police lights also control a looping siren.
-  // Lights ON = siren ON. Lights OFF = siren OFF.
-  if (typeof GameScene !== 'undefined') {
-    GameScene.prototype.startPlayerSiren = function() {
-      if (this.playerSiren?.active) return;
-
-      const ctx = this.sound?.context;
-      if (!ctx) {
-        this.playerSiren = { active: true, fallback: true };
-        return;
-      }
-
-      try {
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.0001, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.045, ctx.currentTime + 0.12);
-        gain.connect(ctx.destination);
-
-        const oscA = ctx.createOscillator();
-        const oscB = ctx.createOscillator();
-        oscA.type = 'sawtooth';
-        oscB.type = 'square';
-        oscA.frequency.setValueAtTime(520, ctx.currentTime);
-        oscB.frequency.setValueAtTime(680, ctx.currentTime);
-
-        oscA.connect(gain);
-        oscB.connect(gain);
-        oscA.start();
-        oscB.start();
-
-        this.playerSiren = {
-          active: true,
-          ctx,
-          gain,
-          oscA,
-          oscB,
-          startedAt: this.time?.now || 0
-        };
-      } catch (e) {
-        this.playerSiren = { active: true, fallback: true };
-      }
-    };
-
-    GameScene.prototype.stopPlayerSiren = function() {
-      const siren = this.playerSiren;
-      if (!siren?.active) return;
-
-      if (siren.ctx && siren.gain) {
-        try {
-          const t = siren.ctx.currentTime;
-          siren.gain.gain.cancelScheduledValues(t);
-          siren.gain.gain.setValueAtTime(Math.max(0.0001, siren.gain.gain.value || 0.0001), t);
-          siren.gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
-
-          siren.oscA?.stop(t + 0.18);
-          siren.oscB?.stop(t + 0.18);
-
-          setTimeout(() => {
-            try { siren.gain?.disconnect(); } catch (_) {}
-            try { siren.oscA?.disconnect(); } catch (_) {}
-            try { siren.oscB?.disconnect(); } catch (_) {}
-          }, 240);
-        } catch (e) {
-          try { siren.oscA?.stop(); } catch (_) {}
-          try { siren.oscB?.stop(); } catch (_) {}
-        }
-      }
-
-      this.playerSiren = null;
-    };
-
-    GameScene.prototype.updatePlayerSirenSound = function(time = 0) {
-      const siren = this.playerSiren;
-      if (!siren?.active || !siren.ctx || !siren.oscA || !siren.oscB) return;
-
-      try {
-        const ctx = siren.ctx;
-        const t = ctx.currentTime;
-        const phase = ((time - (siren.startedAt || 0)) / 1000) % 1.6;
-        const sweep = 0.5 + 0.5 * Math.sin(phase * Math.PI * 2);
-        const freqA = 430 + sweep * 410;
-        const freqB = 570 + (1 - sweep) * 360;
-
-        siren.oscA.frequency.setTargetAtTime(freqA, t, 0.045);
-        siren.oscB.frequency.setTargetAtTime(freqB, t, 0.045);
-      } catch (e) {
-        // If WebAudio fails, disable the siren object cleanly.
-        this.playerSiren = null;
-      }
-    };
-
-    const __rhSirenToggle = GameScene.prototype.togglePlayerEmergencyLights;
-    GameScene.prototype.togglePlayerEmergencyLights = function() {
-      __rhSirenToggle.apply(this, arguments);
-
-      if (this.playerPoliceLightsOn) this.startPlayerSiren();
-      else this.stopPlayerSiren();
-    };
-
-    const __rhSirenUpdate = GameScene.prototype.update;
-    GameScene.prototype.update = function(time, delta) {
-      __rhSirenUpdate.call(this, time, delta);
-
-      if (this.playerPoliceLightsOn) {
-        this.startPlayerSiren();
-        this.updatePlayerSirenSound(time);
-      } else {
-        this.stopPlayerSiren();
-      }
-    };
-
-    const __rhSirenShutdown = GameScene.prototype.shutdown;
-    GameScene.prototype.shutdown = function() {
-      this.stopPlayerSiren?.();
-      if (__rhSirenShutdown) __rhSirenShutdown.apply(this, arguments);
-    };
-  }
-
-
-  // MAP_CLARITY_DAY_NIGHT_PATCH_001
-  // Adds a screen-space city lighting pass driven by existing shiftMinutes.
-  // Clock already existed in HUD; this adds visible morning/day/evening/night color without affecting UI controls.
-  const RAVEN_HOOK_DAY_NIGHT = {
-    enabled: true,
-    dawnHour: 6,
-    dayHour: 9,
-    duskHour: 18,
-    nightHour: 21,
-    maxNightAlpha: 0.46,
-    duskAlpha: 0.22,
-    dawnAlpha: 0.18
-  };
-
-  function rhSmoothStep(edge0, edge1, x) {
-    const t = Phaser.Math.Clamp((x - edge0) / Math.max(0.0001, edge1 - edge0), 0, 1);
-    return t * t * (3 - 2 * t);
-  }
-
-  if (typeof GameScene !== 'undefined') {
-    const __rhDayNightOldCreate = GameScene.prototype.create;
-    GameScene.prototype.create = function() {
-      __rhDayNightOldCreate.apply(this, arguments);
-      if (this.scene?.key !== 'GameScene') return;
-
-      this.dayNightOverlay = this.add.rectangle(0, 0, VIEW_W, VIEW_H, 0x061022, 0)
-        .setOrigin(0, 0)
-        .setScrollFactor(0)
-        .setDepth(95)
-        .setBlendMode(Phaser.BlendModes.MULTIPLY);
-
-      this.dayNightWarmth = this.add.rectangle(0, 0, VIEW_W, VIEW_H, 0xff8b3d, 0)
-        .setOrigin(0, 0)
-        .setScrollFactor(0)
-        .setDepth(96)
-        .setBlendMode(Phaser.BlendModes.ADD);
-
-      this.updateDayNightCycle?.();
-      this.refreshCameraIgnores?.();
-    };
-
-    GameScene.prototype.updateDayNightCycle = function() {
-      if (!RAVEN_HOOK_DAY_NIGHT.enabled || !this.dayNightOverlay) return;
-
-      const minutes = Number.isFinite(this.shiftMinutes) ? this.shiftMinutes : 8 * 60;
-      const hour = ((minutes / 60) % 24 + 24) % 24;
-
-      let nightAlpha = 0;
-      let warmAlpha = 0;
-
-      if (hour >= RAVEN_HOOK_DAY_NIGHT.nightHour || hour < RAVEN_HOOK_DAY_NIGHT.dawnHour) {
-        nightAlpha = RAVEN_HOOK_DAY_NIGHT.maxNightAlpha;
-      } else if (hour >= RAVEN_HOOK_DAY_NIGHT.dawnHour && hour < RAVEN_HOOK_DAY_NIGHT.dayHour) {
-        const t = rhSmoothStep(RAVEN_HOOK_DAY_NIGHT.dawnHour, RAVEN_HOOK_DAY_NIGHT.dayHour, hour);
-        nightAlpha = Phaser.Math.Linear(RAVEN_HOOK_DAY_NIGHT.maxNightAlpha, 0, t);
-        warmAlpha = Math.sin(t * Math.PI) * RAVEN_HOOK_DAY_NIGHT.dawnAlpha;
-      } else if (hour >= RAVEN_HOOK_DAY_NIGHT.duskHour && hour < RAVEN_HOOK_DAY_NIGHT.nightHour) {
-        const t = rhSmoothStep(RAVEN_HOOK_DAY_NIGHT.duskHour, RAVEN_HOOK_DAY_NIGHT.nightHour, hour);
-        nightAlpha = Phaser.Math.Linear(0, RAVEN_HOOK_DAY_NIGHT.maxNightAlpha, t);
-        warmAlpha = Math.sin(t * Math.PI) * RAVEN_HOOK_DAY_NIGHT.duskAlpha;
-      }
-
-      this.dayNightOverlay.setAlpha(nightAlpha);
-      this.dayNightWarmth?.setAlpha(warmAlpha);
-    };
-
-    const __rhDayNightOldUpdate = GameScene.prototype.update;
-    GameScene.prototype.update = function(time, delta) {
-      __rhDayNightOldUpdate.call(this, time, delta);
-      this.updateDayNightCycle?.();
     };
   }
 
