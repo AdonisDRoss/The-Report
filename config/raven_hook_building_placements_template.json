@@ -1,0 +1,327 @@
+{
+  "map": "assets/map/raven_hook_world_base_page_01_clean_4096x4096.png",
+  "layers": [
+    {
+      "name": "baseMap",
+      "depth": 0
+    },
+    {
+      "name": "buildingBody",
+      "depth": 20
+    },
+    {
+      "name": "vehicles",
+      "depth": 35
+    },
+    {
+      "name": "driveUnderOverlays",
+      "depth": 45
+    },
+    {
+      "name": "ui",
+      "depth": 100
+    }
+  ],
+  "placements": [
+    {
+      "key": "raven_hook_police_station",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_plus_front_projection",
+      "needsManualCut": false,
+      "notes": "Police station main body. Use motor pool overlay above car."
+    },
+    {
+      "key": "courthouse_city_hall",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_plus_entrance_projection",
+      "needsManualCut": false,
+      "notes": "Large courthouse replacement with corrected sign and taller entrance."
+    },
+    {
+      "key": "bennys_market",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_plus_right_stockroom",
+      "needsManualCut": false,
+      "notes": "Redone Benny's Market; check exact pad scale manually."
+    },
+    {
+      "key": "red_gull_diner",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "rounded_rect_body_only",
+      "needsManualCut": false,
+      "notes": "Locked Red Gull Diner."
+    },
+    {
+      "key": "russo_auto_body_main",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_plus_lower_left_office",
+      "needsManualCut": false,
+      "notes": "Russo main roof/body. Garage overlay goes over lower-right drive-in area."
+    },
+    {
+      "key": "bell_cartage_cold_storage",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_warehouse_body",
+      "needsManualCut": false,
+      "notes": "Waterfront/warehouse pad."
+    },
+    {
+      "key": "civic_service_tow",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Municipal tow/service building."
+    },
+    {
+      "key": "quick_wash_laundromat",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Small laundromat storefront."
+    },
+    {
+      "key": "march_legal_services",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Legal office near courthouse/civic district."
+    },
+    {
+      "key": "red_velvet_lounge",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Nightlife/lounge building."
+    },
+    {
+      "key": "moretti_social_club",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Moretti Crew social club."
+    },
+    {
+      "key": "vescari_social_club",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Vescari social club."
+    },
+    {
+      "key": "raven_pawn",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_body_ignore_side_props",
+      "needsManualCut": false,
+      "notes": "Accepted Raven Pawn direction."
+    },
+    {
+      "key": "neon_nights",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_body_ignore_neon_overhangs",
+      "needsManualCut": true,
+      "notes": "Accepted Neon Nights direction."
+    },
+    {
+      "key": "blue_lantern_supper_club",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_body_ignore_freestanding_board",
+      "needsManualCut": false,
+      "notes": "Accepted Blue Lantern direction."
+    },
+    {
+      "key": "adult_playhouse",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_body_ignore_sign_overhangs",
+      "needsManualCut": false,
+      "notes": "Optional nightlife/adult front."
+    },
+    {
+      "key": "kims_corner_market_malcolm_apartment",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_ignore_fire_escape_roof_props",
+      "needsManualCut": false,
+      "notes": "Malcolm's home/save/morning-start location."
+    },
+    {
+      "key": "south_hook_gas_service_main",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "office_rect_plus_pump_islands",
+      "needsManualCut": false,
+      "notes": "Gas station office + pumps."
+    },
+    {
+      "key": "police_motor_pool_overlay_open",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 45,
+      "collision": "posts_only",
+      "needsManualCut": false,
+      "notes": "Police motor pool drive-under overlay."
+    },
+    {
+      "key": "russo_auto_body_garage_overlay_open",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 45,
+      "collision": "side_posts_only",
+      "needsManualCut": false,
+      "notes": "Russo repair bay drive-under overlay."
+    },
+    {
+      "key": "south_hook_gas_canopy_overlay",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 45,
+      "collision": "support_posts_only",
+      "needsManualCut": false,
+      "notes": "Gas canopy drive-under overlay."
+    },
+    {
+      "key": "filler_small_brick_office",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Plain small brick office filler."
+    },
+    {
+      "key": "filler_medium_old_apartment_block",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_ignore_fire_escapes",
+      "needsManualCut": false,
+      "notes": "Medium old apartment block filler."
+    },
+    {
+      "key": "filler_narrow_row_storefront",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Narrow row storefront filler."
+    },
+    {
+      "key": "filler_generic_warehouse",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Generic warehouse filler."
+    },
+    {
+      "key": "filler_corner_office_building",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_polygon_body",
+      "needsManualCut": false,
+      "notes": "Corner office filler; use polygon collision if possible."
+    },
+    {
+      "key": "filler_industrial_garage_shell",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Industrial garage shell filler."
+    },
+    {
+      "key": "filler_plain_downtown_commercial_block",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Plain downtown commercial block filler."
+    },
+    {
+      "key": "filler_small_clinic",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Small neighborhood clinic filler."
+    },
+    {
+      "key": "filler_storage_building",
+      "x": null,
+      "y": null,
+      "scale": 1,
+      "depth": 20,
+      "collision": "main_rect_body",
+      "needsManualCut": false,
+      "notes": "Generic storage/utility building filler."
+    }
+  ]
+}
