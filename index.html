@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Buildings + Traffic Nodes Updated</title>
+  <title>The Report — Raven Hook Central — Exit Freeze Fix</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -803,7 +803,12 @@
     path: 'assets/reference/layer_02_building_exterior_sheet.png'
   };
 
-  const BUILDING_IMAGE_ASSETS = [
+  // EXIT_FREEZE_FIX_001:
+  // Heavy 4096 map + many large building PNG overlays can freeze mobile when leaving the station.
+  // Keep car/civilian nodes active, but do not load building overlays until street exit is stable.
+  const ENABLE_BUILDING_IMAGE_OVERLAYS = false;
+
+  const RAVEN_HOOK_BUILDING_IMAGE_ASSETS_ALL = [
     // RAVEN_HOOK_BUILDING_OVERLAY_UPDATE_002
     // Top-left x/y placement on the 4096x4096 Raven Hook map.
     // These are runtime building PNG overlays. Tune x/y/w/h after visual test if needed.
@@ -848,6 +853,8 @@
     { key:'filler_small_clinic_main_slotfit', name:'Filler Small Clinic', path:'assets/buildings/fillers/filler_small_clinic_main_slotfit.png', place:[2030, 2480, 350, 260], depth:ROOF_DEPTH },
     { key:'filler_storage_building_main_slotfit', name:'Filler Storage Building', path:'assets/buildings/fillers/filler_storage_building_main_slotfit.png', place:[3440, 2930, 390, 290], depth:ROOF_DEPTH }
   ];
+
+  const BUILDING_IMAGE_ASSETS = ENABLE_BUILDING_IMAGE_OVERLAYS ? RAVEN_HOOK_BUILDING_IMAGE_ASSETS_ALL : [];
 
   const TITLE_ASSET = {
     key: 'title_raven_hook_clean_960x540',
@@ -940,9 +947,9 @@
 
 
   // ─── NPC & TRAFFIC SYSTEM CONSTANTS ──────────────────────────────────────
-  const MAX_CITY_CIVILIANS = 12;
-  const MAX_CITY_TRAFFIC   = 6;
-  const MAX_POLICE_PATROLS = 2;
+  const MAX_CITY_CIVILIANS = 6;
+  const MAX_CITY_TRAFFIC   = 3;
+  const MAX_POLICE_PATROLS = 1;
   const MAX_STATION_POLICE = 4;
 
   const CIVILIAN_ASSETS = [
