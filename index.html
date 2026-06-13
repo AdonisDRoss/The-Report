@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Exit Freeze Fix V2</title>
+  <title>The Report — Raven Hook Central — Controls Restored + Buildings Batch 1</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -803,59 +803,22 @@
     path: 'assets/reference/layer_02_building_exterior_sheet.png'
   };
 
-  // EXIT_FREEZE_FIX_002: fixes drawBuildings ReferenceError that froze station exit.
-  // EXIT_FREEZE_FIX_001:
-  // Heavy 4096 map + many large building PNG overlays can freeze mobile when leaving the station.
-  // Keep car/civilian nodes active, but do not load building overlays until street exit is stable.
-  const ENABLE_BUILDING_IMAGE_OVERLAYS = false;
+  const BUILDING_IMAGE_ASSETS = [
+    // CONTROLS_RESTORE_BUILDINGS_BATCH1_001
+    // Safe first batch: enough buildings to prove the pipeline without freezing mobile.
+    // Car controls are untouched from the known-good base index.
 
-  const RAVEN_HOOK_BUILDING_IMAGE_ASSETS_ALL = [
-    // RAVEN_HOOK_BUILDING_OVERLAY_UPDATE_002
-    // Top-left x/y placement on the 4096x4096 Raven Hook map.
-    // These are runtime building PNG overlays. Tune x/y/w/h after visual test if needed.
-
-    // Police / civic north
     { key:'raven_hook_police_station_main_slotfit', name:'Raven Hook Police Station', path:'assets/buildings/hero/raven_hook_police_station_main_slotfit.png', place:[820, 470, 700, 470], depth:ROOF_DEPTH },
-    { key:'raven_hook_police_motor_pool_overlay_open', name:'Police Motor Pool Drive-Under Overlay', path:'assets/buildings/overlays/raven_hook_police_motor_pool_overlay_open.png', place:[1240, 600, 300, 250], depth:ROOF_DEPTH + 8 },
-
-    // East Market / nightlife strip
     { key:'bennys_market_main_slotfit', name:"Benny's Market", path:'assets/buildings/hero/bennys_market_main_slotfit.png', place:[2180, 190, 620, 380], depth:ROOF_DEPTH },
     { key:'red_gull_diner_main_slotfit', name:'Red Gull Diner', path:'assets/buildings/hero/red_gull_diner_main_slotfit.png', place:[2820, 205, 600, 350], depth:ROOF_DEPTH },
-    { key:'quick_wash_laundromat_main_slotfit', name:'Quick Wash', path:'assets/buildings/hero/quick_wash_laundromat_main_slotfit.png', place:[3260, 245, 360, 300], depth:ROOF_DEPTH },
     { key:'raven_pawn_main_slotfit', name:'Raven Pawn', path:'assets/buildings/hero/raven_pawn_main_slotfit.png', place:[2135, 900, 420, 360], depth:ROOF_DEPTH },
     { key:'kims_corner_market_malcolm_apartment_main_slotfit', name:"Kim's Corner Market / Malcolm Apartment", path:'assets/buildings/hero/kims_corner_market_malcolm_apartment_main_slotfit.png', place:[2500, 920, 430, 360], depth:ROOF_DEPTH },
     { key:'russo_auto_body_main_roof_slotfit', name:'Russo Auto Body', path:'assets/buildings/hero/russo_auto_body_main_roof_slotfit.png', place:[3220, 890, 600, 390], depth:ROOF_DEPTH },
-    { key:'russo_auto_body_garage_overlay_open', name:'Russo Garage Drive-Under Overlay', path:'assets/buildings/overlays/russo_auto_body_garage_overlay_open.png', place:[3480, 1010, 310, 230], depth:ROOF_DEPTH + 8 },
-    { key:'south_hook_gas_service_main_slotfit', name:'South Hook Gas & Service', path:'assets/buildings/hero/south_hook_gas_service_main_slotfit.png', place:[3500, 610, 500, 360], depth:ROOF_DEPTH },
-    { key:'south_hook_gas_canopy_overlay', name:'South Hook Gas Canopy Overlay', path:'assets/buildings/overlays/south_hook_gas_canopy_overlay.png', place:[3540, 660, 430, 250], depth:ROOF_DEPTH + 8 },
-    { key:'neon_nights_main_slotfit', name:'Neon Nights', path:'assets/buildings/hero/neon_nights_main_slotfit.png', place:[2660, 1500, 560, 390], depth:ROOF_DEPTH },
-    { key:'blue_lantern_supper_club_main_slotfit', name:'Blue Lantern Supper Club', path:'assets/buildings/hero/blue_lantern_supper_club_main_slotfit.png', place:[3050, 2120, 520, 360], depth:ROOF_DEPTH },
-    { key:'adult_playhouse_main_slotfit', name:'Adult Playhouse', path:'assets/buildings/hero/adult_playhouse_main_slotfit.png', place:[3550, 1540, 500, 360], depth:ROOF_DEPTH },
-
-    // Courthouse / legal / civic
     { key:'courthouse_city_hall_large_main_slotfit', name:'Courthouse & City Hall', path:'assets/buildings/hero/courthouse_city_hall_large_main_slotfit.png', place:[610, 2350, 640, 440], depth:ROOF_DEPTH },
-    { key:'march_legal_services_main_slotfit', name:'March Legal Services', path:'assets/buildings/hero/march_legal_services_main_slotfit.png', place:[735, 3020, 430, 310], depth:ROOF_DEPTH },
     { key:'civic_service_tow_main_slotfit', name:'Civic Service & Tow', path:'assets/buildings/hero/civic_service_tow_main_slotfit.png', place:[1345, 3440, 470, 330], depth:ROOF_DEPTH },
-
-    // South / canal / mob / warehouse district
-    { key:'red_velvet_lounge_main_slotfit', name:'Red Velvet Lounge', path:'assets/buildings/hero/red_velvet_lounge_main_slotfit.png', place:[2220, 2380, 500, 340], depth:ROOF_DEPTH },
-    { key:'moretti_social_club_main_slotfit', name:'Moretti Social Club', path:'assets/buildings/hero/moretti_social_club_main_slotfit.png', place:[2740, 2360, 520, 350], depth:ROOF_DEPTH },
-    { key:'vescari_social_club_main_slotfit', name:'Vescari Social Club', path:'assets/buildings/hero/vescari_social_club_main_slotfit.png', place:[3120, 2520, 520, 360], depth:ROOF_DEPTH },
     { key:'bell_cartage_cold_storage_main_slotfit', name:'Bell Cartage & Cold Storage', path:'assets/buildings/hero/bell_cartage_cold_storage_main_slotfit.png', place:[2625, 3170, 620, 420], depth:ROOF_DEPTH },
-
-    // Fillers
-    { key:'filler_small_brick_office_main_slotfit', name:'Filler Small Brick Office', path:'assets/buildings/fillers/filler_small_brick_office_main_slotfit.png', place:[190, 420, 320, 260], depth:ROOF_DEPTH },
-    { key:'filler_medium_old_apartment_block_main_slotfit', name:'Filler Apartment Block', path:'assets/buildings/fillers/filler_medium_old_apartment_block_main_slotfit.png', place:[1250, 1670, 400, 340], depth:ROOF_DEPTH },
-    { key:'filler_narrow_row_storefront_main_slotfit', name:'Filler Row Storefront', path:'assets/buildings/fillers/filler_narrow_row_storefront_main_slotfit.png', place:[2240, 1690, 250, 330], depth:ROOF_DEPTH },
-    { key:'filler_generic_warehouse_main_slotfit', name:'Filler Warehouse', path:'assets/buildings/fillers/filler_generic_warehouse_main_slotfit.png', place:[2560, 3345, 520, 340], depth:ROOF_DEPTH },
-    { key:'filler_corner_office_building_main_slotfit', name:'Filler Corner Office', path:'assets/buildings/fillers/filler_corner_office_building_main_slotfit.png', place:[1970, 1120, 500, 340], depth:ROOF_DEPTH },
-    { key:'filler_industrial_garage_shell_main_slotfit', name:'Filler Industrial Garage', path:'assets/buildings/fillers/filler_industrial_garage_shell_main_slotfit.png', place:[3090, 1520, 560, 350], depth:ROOF_DEPTH },
-    { key:'filler_plain_downtown_commercial_block_main_slotfit', name:'Filler Downtown Commercial', path:'assets/buildings/fillers/filler_plain_downtown_commercial_block_main_slotfit.png', place:[1430, 2170, 360, 300], depth:ROOF_DEPTH },
-    { key:'filler_small_clinic_main_slotfit', name:'Filler Small Clinic', path:'assets/buildings/fillers/filler_small_clinic_main_slotfit.png', place:[2030, 2480, 350, 260], depth:ROOF_DEPTH },
     { key:'filler_storage_building_main_slotfit', name:'Filler Storage Building', path:'assets/buildings/fillers/filler_storage_building_main_slotfit.png', place:[3440, 2930, 390, 290], depth:ROOF_DEPTH }
   ];
-
-  const BUILDING_IMAGE_ASSETS = ENABLE_BUILDING_IMAGE_OVERLAYS ? RAVEN_HOOK_BUILDING_IMAGE_ASSETS_ALL : [];
 
   const TITLE_ASSET = {
     key: 'title_raven_hook_clean_960x540',
@@ -948,9 +911,9 @@
 
 
   // ─── NPC & TRAFFIC SYSTEM CONSTANTS ──────────────────────────────────────
-  const MAX_CITY_CIVILIANS = 6;
-  const MAX_CITY_TRAFFIC   = 3;
-  const MAX_POLICE_PATROLS = 1;
+  const MAX_CITY_CIVILIANS = 12;
+  const MAX_CITY_TRAFFIC   = 6;
+  const MAX_POLICE_PATROLS = 2;
   const MAX_STATION_POLICE = 4;
 
   const CIVILIAN_ASSETS = [
@@ -1038,7 +1001,7 @@
 
   // Pedestrian sidewalk graph — safe zones between building edges and road lanes
   const CITY_SIDEWALK_NODES = [
-    // RAVEN_HOOK_NPC_NODE_UPDATE_002 — updated for named buildings and current 4096 map chunk.
+    // RAVEN_HOOK_NPC_NODE_UPDATE_SAFE_001
     { id:'sw_station_w', x: 780, y: 590, links:['sw_station_door','sw_station_e'] },
     { id:'sw_station_door', x:1010, y: 570, links:['sw_station_w','sw_station_e','sw_payphone'] },
     { id:'sw_station_e', x:1260, y: 590, links:['sw_station_door','sw_payphone'] },
@@ -1049,13 +1012,10 @@
     { id:'sw_redgull_w', x:2820, y: 560, links:['sw_bennys_door','sw_redgull_door'] },
     { id:'sw_redgull_door', x:3020, y: 535, links:['sw_redgull_w','sw_quickwash','sw_kims'] },
     { id:'sw_quickwash', x:3420, y: 525, links:['sw_redgull_door','sw_russo','sw_gas'] },
-    { id:'sw_kims', x:2675, y:1190, links:['sw_bennys_door','sw_redgull_door','sw_pawn','sw_russo','sw_neon'] },
+    { id:'sw_kims', x:2675, y:1190, links:['sw_bennys_door','sw_redgull_door','sw_pawn','sw_russo'] },
     { id:'sw_pawn', x:2335, y:1160, links:['sw_kims','sw_russo','sw_civic_north'] },
-    { id:'sw_russo', x:3465, y:1195, links:['sw_quickwash','sw_kims','sw_pawn','sw_gas','sw_adult_strip'] },
+    { id:'sw_russo', x:3465, y:1195, links:['sw_quickwash','sw_kims','sw_pawn','sw_gas'] },
     { id:'sw_gas', x:3765, y: 800, links:['sw_quickwash','sw_russo'] },
-    { id:'sw_neon', x:2880, y:1880, links:['sw_kims','sw_adult_strip','sw_blue_lantern'] },
-    { id:'sw_adult_strip', x:3560, y:1880, links:['sw_russo','sw_neon','sw_blue_lantern'] },
-    { id:'sw_blue_lantern', x:3180, y:2260, links:['sw_neon','sw_adult_strip','sw_oldtown'] },
 
     { id:'sw_courthouse_w', x: 770, y:2790, links:['sw_courthouse_door','sw_law'] },
     { id:'sw_courthouse_door', x:1010, y:2830, links:['sw_courthouse_w','sw_cityhall','sw_law'] },
@@ -1064,19 +1024,17 @@
     { id:'sw_civic_tow', x:1535, y:3740, links:['sw_cityhall','sw_law','sw_civic_north'] },
     { id:'sw_civic_north', x:2220, y:2490, links:['sw_pawn','sw_cityhall','sw_oldtown','sw_canal'] },
 
-    { id:'sw_oldtown', x:2360, y:3030, links:['sw_civic_north','sw_canal','sw_warehouse','sw_blue_lantern','sw_moretti'] },
-    { id:'sw_canal', x:2780, y:3035, links:['sw_civic_north','sw_oldtown','sw_dock','sw_moretti'] },
-    { id:'sw_moretti', x:2860, y:2700, links:['sw_oldtown','sw_canal','sw_vescari'] },
-    { id:'sw_vescari', x:3300, y:2880, links:['sw_moretti','sw_dock','sw_storage'] },
-    { id:'sw_dock', x:3210, y:3050, links:['sw_canal','sw_warehouse','sw_storage','sw_vescari'] },
+    { id:'sw_oldtown', x:2360, y:3030, links:['sw_civic_north','sw_canal','sw_warehouse'] },
+    { id:'sw_canal', x:2780, y:3035, links:['sw_civic_north','sw_oldtown','sw_dock'] },
+    { id:'sw_dock', x:3210, y:3050, links:['sw_canal','sw_warehouse','sw_storage'] },
     { id:'sw_warehouse', x:2890, y:3570, links:['sw_oldtown','sw_dock','sw_storage'] },
-    { id:'sw_storage', x:3650, y:3050, links:['sw_dock','sw_warehouse','sw_vescari'] }
+    { id:'sw_storage', x:3650, y:3050, links:['sw_dock','sw_warehouse'] }
   ];
   const CITY_SW_MAP = Object.fromEntries(CITY_SIDEWALK_NODES.map(n => [n.id, n]));
 
   // NPC traffic routes — looping waypoint arrays. stop:true = intersection pause.
   const CITY_TRAFFIC_ROUTES = [
-    // RAVEN_HOOK_TRAFFIC_NODE_UPDATE_002 — wider loops around new building pads.
+    // RAVEN_HOOK_TRAFFIC_NODE_UPDATE_SAFE_001
     { id:'rte_north_eastbound', waypoints:[
       {x:260,y:760},{x:620,y:760,stop:true},{x:1010,y:760,stop:true},{x:1510,y:760},
       {x:2300,y:760,stop:true},{x:2940,y:760},{x:3500,y:760,stop:true},{x:3860,y:760}
@@ -1101,16 +1059,9 @@
       {x:620,y:700,stop:true},{x:620,y:1320,stop:true},{x:620,y:2460,stop:true},{x:620,y:3300},
       {x:700,y:3300},{x:700,y:2460,stop:true},{x:700,y:1320,stop:true},{x:700,y:700,stop:true}
     ]},
-    { id:'rte_center_vertical', waypoints:[
-      {x:1700,y:700},{x:1700,y:1320,stop:true},{x:1700,y:2460,stop:true},{x:1700,y:3500},
-      {x:1780,y:3500},{x:1780,y:2460,stop:true},{x:1780,y:1320,stop:true},{x:1780,y:700}
-    ]},
     { id:'rte_east_vertical', waypoints:[
       {x:3500,y:700,stop:true},{x:3500,y:1320,stop:true},{x:3500,y:2460,stop:true},{x:3500,y:3060,stop:true},
       {x:3580,y:3060,stop:true},{x:3580,y:2460,stop:true},{x:3580,y:1320,stop:true},{x:3580,y:700,stop:true}
-    ]},
-    { id:'rte_diner_to_gas_short', waypoints:[
-      {x:2940,y:760},{x:3500,y:760,stop:true},{x:3760,y:760},{x:3760,y:1260},{x:3500,y:1260,stop:true},{x:2940,y:1260}
     ]}
   ];
 
@@ -1778,31 +1729,42 @@
 
 
     applyBuildingImages() {
-      if (this.realBuildingImages) return;
-      const allReady = BUILDING_IMAGE_ASSETS.every(b => this.textures.exists(b.key));
-      if (!allReady) return;
+      // BUILDING_PROGRESSIVE_LOAD_FIX_001:
+      // Draw building images as each one finishes loading. One missing/bad file no longer blocks all buildings.
+      if (!this._buildingImageKeys) this._buildingImageKeys = new Set();
+      if (!this.realBuildingImages) this.realBuildingImages = [];
 
       if (this.realBuildingSheet) {
         this.realBuildingSheet.forEach(img => img.destroy());
         this.realBuildingSheet = null;
       }
 
-      this.realBuildingImages = [];
+      let added = 0;
       for (const b of BUILDING_IMAGE_ASSETS) {
+        if (this._buildingImageKeys.has(b.key)) continue;
+        if (!this.textures.exists(b.key)) continue;
+
         const [x, y, w, h] = b.place;
         const img = this.add.image(x, y, b.key)
           .setOrigin(0, 0)
           .setDisplaySize(w, h)
           .setDepth(b.depth ?? ROOF_DEPTH);
+
         img.setName(b.name);
         this.realBuildingImages.push(img);
+        this._buildingImageKeys.add(b.key);
+        added++;
       }
 
-      if (this.buildingGraphics) this.buildingGraphics.setVisible(false);
-      if (this.buildingLabels) this.buildingLabels.forEach(t => t.setVisible(false));
+      if (this.realBuildingImages.length > 0) {
+        if (this.buildingGraphics) this.buildingGraphics.setVisible(false);
+        if (this.buildingLabels) this.buildingLabels.forEach(t => t.setVisible(false));
+      }
 
-      this.message = 'Building PNGs loaded from assets/buildings.';
-      this.messageTimer = 2600;
+      if (added > 0) {
+        this.message = `Building PNGs loaded: ${this.realBuildingImages.length}/${BUILDING_IMAGE_ASSETS.length}`;
+        this.messageTimer = 1800;
+      }
     }
 
     applyBuildingSheet() {
@@ -9517,9 +9479,9 @@
   }
 
 
-  // USER_REQUESTED_IN_CAR_DIAMOND_003_HEADLIGHTS_Z:
+  // USER_REQUESTED_IN_CAR_DIAMOND_002:
   // Preserve reverted on-foot controls. Replace only the active in-car mobile layer.
-  // In car: X = gas, Y = reverse, A = handbrake, B = enter/exit only, Z = headlights.
+  // In car: X = gas, Y = reverse, A = handbrake, B = enter/exit only.
   // Raw x/y/a/b/z mobile flags are never used for driving while in car.
   Object.assign(MOBILE_INPUT_STATE, {
     driveGas: false,
@@ -9575,7 +9537,6 @@
         this.keyRequestedBrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Y);
         this.keyRequestedHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A);
         this.keyRequestedExit = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
-        this.keyRequestedLights = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z);
         this.keyRequestedSpaceHandbrake = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
         this.keyRequestedLeft = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         this.keyRequestedRight = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
@@ -9654,10 +9615,6 @@
 
       __requestedCarUpdate.call(this, time, delta);
 
-      if (this.inCar && this.keyRequestedLights && Phaser.Input.Keyboard.JustDown(this.keyRequestedLights)) {
-        this.togglePlayerHeadlights?.();
-      }
-
       if (this.inCar && this.keyRequestedExit && Phaser.Input.Keyboard.JustDown(this.keyRequestedExit)) {
         rhRequestedClearAllDriveState();
         this.handleCarOrArrest?.();
@@ -9718,12 +9675,6 @@
           if (semanticKey === 'driveGas') MOBILE_INPUT_STATE.driveGas = true;
           else if (semanticKey === 'driveBrake') MOBILE_INPUT_STATE.driveBrake = true;
           else if (semanticKey === 'driveHandbrake') MOBILE_INPUT_STATE.driveHandbrake = true;
-          else if (semanticKey === 'lights') {
-            const target = this.getTargetScene?.();
-            if (target?.scene?.key === 'GameScene' && target.inCar) target.togglePlayerHeadlights?.();
-            this.activePointerControls.set(pointer.id, ['lights']);
-            return;
-          }
           else if (semanticKey === 'exit') {
             rhRequestedClearAllDriveState();
             this.activePointerControls.set(pointer.id, ['exit']);
@@ -9801,7 +9752,6 @@
       this.input.on('pointerupoutside', this._requestedUpOutsideHandler);
 
       // Rebuilt in-car diamond, moved up and clear of the bottom edge.
-      //      Z headlights
       //      X gas
       // B exit   A handbrake
       //      Y reverse
@@ -9809,7 +9759,6 @@
       const baseY = VIEW_H - 310;
       const radius = 32;
       const buttons = [
-        { x: baseX,      y: baseY - 64,  label: 'Z', color: 0x402050, state: 'lights' },
         { x: baseX,      y: baseY,       label: 'X', color: 0x1f314d, state: 'driveGas' },
         { x: baseX,      y: baseY + 124, label: 'Y', color: 0x4d3b1f, state: 'driveBrake' },
         { x: baseX + 62, y: baseY + 62,  label: 'A', color: 0x1f4d2f, state: 'driveHandbrake' },
@@ -9854,8 +9803,6 @@
           MOBILE_INPUT_STATE.driveBrake = false;
         } else if (key === 'driveHandbrake') {
           MOBILE_INPUT_STATE.driveHandbrake = false;
-        } else if (key === 'lights') {
-          rhRequestedClearRawMobileButtons();
         } else if (key === 'exit') {
           rhRequestedClearAllDriveState();
         }
@@ -9884,7 +9831,7 @@
           rhRequestedClearAllDriveState();
           target.handleCarOrArrest?.();
         }
-        // X/Y/A are held semantic driving states only. Z toggles headlights through its own touch zone.
+        // X/Y/A are held semantic driving states only.
         return;
       }
     };
