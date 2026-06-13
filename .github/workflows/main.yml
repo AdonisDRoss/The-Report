@@ -1,9 +1,6 @@
-mkdir -p .github/workflows
+name: Import Raven Hook Assets
 
-cat > .github/workflows/main.yml <<'YAML'
-name: Import Raven Hook Assets 1-4
-
-"on":
+on:
   workflow_dispatch:
 
 permissions:
@@ -14,22 +11,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Install unzip
+      - name: Check zip files
         run: |
-          sudo apt-get update
-          sudo apt-get install -y unzip
-
-      - name: Check required ZIP files in root
-        run: |
+          ls -lah
           test -f the_report_raven_hook_FINAL_KIMS_FIXED_part01a_hero_processed.zip
           test -f the_report_raven_hook_FINAL_KIMS_FIXED_part01b_hero_processed.zip
           test -f the_report_raven_hook_FINAL_KIMS_FIXED_part02_fillers_processed.zip
           test -f the_report_raven_hook_FINAL_KIMS_FIXED_part03_overlays_config_docs.zip
 
-      - name: Make folders
+      - name: Create folders
         run: |
           mkdir -p assets/buildings/hero
           mkdir -p assets/buildings/fillers
@@ -39,44 +31,19 @@ jobs:
           mkdir -p src
           mkdir -p docs
 
-      - name: Import hero buildings part 1
+      - name: Unzip Raven Hook assets
         run: |
           unzip -o the_report_raven_hook_FINAL_KIMS_FIXED_part01a_hero_processed.zip
-
-      - name: Import hero buildings part 2
-        run: |
           unzip -o the_report_raven_hook_FINAL_KIMS_FIXED_part01b_hero_processed.zip
-
-      - name: Import filler buildings
-        run: |
           unzip -o the_report_raven_hook_FINAL_KIMS_FIXED_part02_fillers_processed.zip
-
-      - name: Import overlays config docs
-        run: |
           unzip -o the_report_raven_hook_FINAL_KIMS_FIXED_part03_overlays_config_docs.zip
 
-      - name: Skip map and backups
+      - name: Show result
         run: |
-          echo "Skipping part04_map.zip."
-          echo "Skipping backups."
-          echo "Skipping Kim/filler patch."
-
-      - name: Show imported files
-        run: |
-          echo "Hero buildings:"
-          find assets/buildings/hero -type f | sort || true
-
-          echo "Filler buildings:"
-          find assets/buildings/fillers -type f | sort || true
-
-          echo "Overlays:"
-          find assets/buildings/overlays -type f | sort || true
-
-          echo "Config:"
+          find assets/buildings -type f | sort || true
           find config -type f | sort || true
-
-          echo "Src:"
           find src -type f | sort || true
+          find docs -type f | sort || true
 
       - name: Commit imported assets
         run: |
@@ -88,7 +55,6 @@ jobs:
           if git diff --cached --quiet; then
             echo "No asset changes to commit."
           else
-            git commit -m "Import Raven Hook building assets 1-4"
+            git commit -m "Import Raven Hook building assets"
             git push
           fi
-YAML
