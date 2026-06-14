@@ -1,0 +1,61 @@
+name: Import Chunk D Clean Water Block Split
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-chunk-d-clean:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find split ZIPs
+        run: |
+          ls -lah
+          PART1="$(ls -1 *chunk*d*clean*part01*.zip 2>/dev/null | head -n 1 || true)"
+          PART2="$(ls -1 *chunk*d*clean*part02*.zip 2>/dev/null | head -n 1 || true)"
+          if [ -z "$PART1" ]; then
+            echo "ERROR: Missing part 01 ZIP in repo root."
+            echo "Upload: the_report_chunk_d_clean_part01_index_config_chunk.zip"
+            exit 1
+          fi
+          if [ -z "$PART2" ]; then
+            echo "ERROR: Missing part 02 ZIP in repo root."
+            echo "Upload: the_report_chunk_d_clean_part02_world_base.zip"
+            exit 1
+          fi
+          echo "PART1=$PART1" >> "$GITHUB_ENV"
+          echo "PART2=$PART2" >> "$GITHUB_ENV"
+          echo "Using PART1: $PART1"
+          echo "Using PART2: $PART2"
+
+      - name: Unzip part 01
+        run: unzip -o "$PART1"
+
+      - name: Unzip part 02
+        run: unzip -o "$PART2"
+
+      - name: Verify files
+        run: |
+          test -f index.html
+          test -f assets/city/chunks/red_gull_strip/raven_hook_chunk_d_red_gull_strip_2048.png
+          test -f assets/city/pages/raven_hook_world_abcd_base_4096x4096.png
+          test -f assets/city/chunks/red_gull_strip/raven_hook_chunk_d_collision_white_open_2048.png
+          grep -q "CHUNK_D_CLEAN_WATER_BLOCK_GAME_READY_PATCH_017" index.html
+          grep -q "raven_hook_world_abcd_base_4096x4096" index.html
+
+      - name: Commit Chunk D clean patch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add index.html assets/city/chunks/red_gull_strip assets/city/pages config/map config/pathing docs/map/red_gull_strip README_CHUNK_D_CLEAN_WATER_BLOCK.md README_CHUNK_D_CLEAN_SPLIT_PART01.txt README_CHUNK_D_CLEAN_SPLIT_PART02.txt
+          if git diff --cached --quiet; then
+            echo "No Chunk D clean changes to commit."
+          else
+            git commit -m "Add clean Chunk D Red Gull Strip"
+            git push
+          fi
