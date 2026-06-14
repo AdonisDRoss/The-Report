@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Full Aligned Asset Update</title>
+  <title>The Report — Sprite Direction + Roads + Car Input Fix</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -68,7 +68,7 @@
   // SINGLE_WORLD_NO_OVERLAP_PATCH_018: single full-world ground, no overlapping chunk layers.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'aligned-assets-map-019';
+  const ASSET_REV = 'sprite-road-car-input-fix-020';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -11904,6 +11904,262 @@
       if (typeof oldUpdatePlayerSprite019==='function') GameScene.prototype.updatePlayerSprite=function(moving=false) { const result=oldUpdatePlayerSprite019.call(this,moving); if (this.playerSprite) { this.playerSprite.setOrigin?.(0.5,0.82); this.playerSprite.setScale?.(PLAYER_ASSET.scale||0.58); this.playerSprite.setFlipX?.(false); } return result; };
       const oldCreate019=GameScene.prototype.create;
       GameScene.prototype.create=function(...args) { setStrictAlignedCollision019(); const result=oldCreate019.apply(this,args); this.applyGroundMap?.(); this.createCollision?.(); if (this.player&&this.walls) this.physics.add.collider(this.player,this.walls); if (this.car&&this.walls) this.physics.add.collider(this.car,this.walls,()=>this.carHitWall?.()); this.time?.delayedCall?.(250,()=>{this.applyGroundMap?.();this.setupPlayerTopDownCarSprite?.();}); return result; };
+    }
+  })();
+
+
+
+  // SPRITE_ROAD_CAR_INPUT_FIX_020
+  // Fixes 4x8 walk-sheet slicing, Malcolm right walk, Ramos direction rows, open parking lots, and tap-latched gas.
+  (function installSpriteRoadCarInputFix020() {
+    const STRICT_BUILDING_WATER_RECTS_020 = [{"id":"fix020_a_police_hq_main","x":130,"y":145,"w":780,"h":560,"type":"building"},{"id":"fix020_a_station_front_steps_core","x":360,"y":690,"w":290,"h":95,"type":"building"},{"id":"fix020_a_top_parking_office","x":1120,"y":170,"w":520,"h":315,"type":"building"},{"id":"fix020_a_west_small_service","x":970,"y":1085,"w":260,"h":300,"type":"building"},{"id":"fix020_a_east_support_building","x":1305,"y":1040,"w":450,"h":470,"type":"building"},{"id":"fix020_a_south_low_building","x":150,"y":1585,"w":710,"h":260,"type":"building"},{"id":"fix020_b_kens_shop","x":2220,"y":125,"w":310,"h":270,"type":"building"},{"id":"fix020_b_chens_lucky_row","x":2585,"y":135,"w":410,"h":340,"type":"building"},{"id":"fix020_b_east_market_front","x":2210,"y":545,"w":650,"h":250,"type":"building"},{"id":"fix020_b_red_gull_diner","x":3225,"y":185,"w":575,"h":450,"type":"building"},{"id":"fix020_b_raven_pawn_row","x":2220,"y":1185,"w":710,"h":430,"type":"building"},{"id":"fix020_b_russo_auto","x":3185,"y":1165,"w":650,"h":505,"type":"building"},{"id":"fix020_c_records_annex","x":115,"y":2260,"w":470,"h":590,"type":"building"},{"id":"fix020_c_courthouse_main","x":690,"y":2195,"w":700,"h":600,"type":"building"},{"id":"fix020_c_courthouse_steps","x":820,"y":2790,"w":430,"h":145,"type":"building"},{"id":"fix020_c_city_hall","x":1560,"y":2240,"w":380,"h":610,"type":"building"},{"id":"fix020_c_civic_tow_building","x":120,"y":3260,"w":525,"h":365,"type":"building"},{"id":"fix020_c_bail_bonds","x":880,"y":3415,"w":300,"h":420,"type":"building"},{"id":"fix020_c_march_legal","x":1325,"y":3260,"w":330,"h":410,"type":"building"},{"id":"fix020_c_law_public_defender","x":1660,"y":3265,"w":295,"h":535,"type":"building"},{"id":"fix020_d_neon_nights","x":2210,"y":2205,"w":330,"h":345,"type":"building"},{"id":"fix020_d_blue_lantern","x":2630,"y":2205,"w":350,"h":345,"type":"building"},{"id":"fix020_d_bell_cartage","x":3095,"y":2185,"w":715,"h":380,"type":"building"},{"id":"fix020_d_rusty_nail","x":2145,"y":2675,"w":345,"h":435,"type":"building"},{"id":"fix020_d_cheap_rooms","x":2640,"y":2675,"w":385,"h":410,"type":"building"},{"id":"fix020_d_dock_warehouse","x":3100,"y":2670,"w":705,"h":410,"type":"building"},{"id":"fix020_d_pawn_shop","x":2130,"y":3175,"w":335,"h":380,"type":"building"},{"id":"fix020_d_dock_yard_small","x":2625,"y":3175,"w":360,"h":380,"type":"building"},{"id":"fix020_d_red_gull_liquors","x":2130,"y":3630,"w":365,"h":350,"type":"building"},{"id":"fix020_d_back_alley","x":2635,"y":3630,"w":360,"h":350,"type":"building"},{"id":"fix020_d_right_harbor_water","x":3965,"y":2070,"w":131,"h":1930,"type":"water"},{"id":"fix020_d_bottom_harbor_water","x":2055,"y":4005,"w":2041,"h":91,"type":"water"}];
+
+    function applyStrictCollision020() {
+      if (Array.isArray(COLLISION_RECTS)) {
+        COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...STRICT_BUILDING_WATER_RECTS_020);
+      }
+    }
+
+    function isDrivingOpenZone020(x, y) {
+      // All streets/parking lots/sidewalks are intended open. Only strict rects above block movement.
+      if (x < 0 || y < 0 || x > 4096 || y > 4096) return false;
+      // East/south harbor water should remain blocked.
+      if (x > 3960 && y > 2050) return false;
+      if (y > 4000 && x > 2050) return false;
+      return true;
+    }
+
+    function removeAnim020(scene, key) {
+      try { if (scene?.anims?.exists?.(key)) scene.anims.remove(key); } catch (e) {}
+    }
+
+    function makeWalkAnim020(scene, keyPrefix, assetKey, rowName, rowIndex, cols, frameRate) {
+      const animKey = `${keyPrefix}_${rowName}`;
+      removeAnim020(scene, animKey);
+      scene.anims.create({
+        key: animKey,
+        frames: scene.anims.generateFrameNumbers(assetKey, { start: rowIndex * cols, end: rowIndex * cols + cols - 1 }),
+        frameRate: frameRate || 8,
+        repeat: -1
+      });
+    }
+
+    const DIR_ROW_8DIR_020 = { S:0, SW:1, W:2, NW:3, N:4, NE:3, E:2, SE:1 };
+    const DIR_NAME_8DIR_020 = { S:'south', SW:'southwest', W:'west', NW:'northwest', N:'north', NE:'northwest', E:'west', SE:'southwest' };
+    const DIR_FLIP_RIGHT_020 = { NE:true, E:true, SE:true };
+
+    applyStrictCollision020();
+
+    if (typeof PLAYER_ASSET !== 'undefined') {
+      PLAYER_ASSET.cols = 4;
+      PLAYER_ASSET.frameWidth = 96;
+      PLAYER_ASSET.frameHeight = 96;
+      PLAYER_ASSET.originY = 0.86;
+      PLAYER_ASSET.scale = 0.54;
+    }
+    if (typeof RAMOS_WALK_ASSET !== 'undefined') {
+      RAMOS_WALK_ASSET.cols = 4;
+      RAMOS_WALK_ASSET.frameWidth = 96;
+      RAMOS_WALK_ASSET.frameHeight = 96;
+      RAMOS_WALK_ASSET.originY = 0.86;
+      RAMOS_WALK_ASSET.scale = (typeof RAMOS_TALK_ASSET !== 'undefined' ? RAMOS_TALK_ASSET.scale : 0.44);
+      RAMOS_WALK_ASSET.stationScale = (typeof RAMOS_TALK_ASSET !== 'undefined' ? (RAMOS_TALK_ASSET.stationScale || 0.80) : 0.80);
+    }
+
+    if (typeof PLAYER_CAR_HANDLING !== 'undefined') {
+      PLAYER_CAR_HANDLING.accel = Math.max(PLAYER_CAR_HANDLING.accel || 0, 760);
+      PLAYER_CAR_HANDLING.brake = Math.max(PLAYER_CAR_HANDLING.brake || 0, 820);
+      PLAYER_CAR_HANDLING.maxSpeed = Math.max(PLAYER_CAR_HANDLING.maxSpeed || 0, 335);
+      PLAYER_CAR_HANDLING.minTurnSpeed = 1.5;
+      PLAYER_CAR_HANDLING.turnRate = Math.max(PLAYER_CAR_HANDLING.turnRate || 0, 4.9);
+    }
+
+    if (typeof MOBILE_INPUT_STATE !== 'undefined') {
+      MOBILE_INPUT_STATE.driveGasLatchUntil = 0;
+    }
+
+    if (typeof GameScene !== 'undefined') {
+      GameScene.prototype.createCollision = function() {
+        applyStrictCollision020();
+        if (this.walls?.clear) this.walls.clear(true, true);
+        this.walls = this.physics.add.staticGroup();
+        for (const r of COLLISION_RECTS) {
+          const rect = this.add.rectangle(r.x + r.w/2, r.y + r.h/2, r.w, r.h, r.type === 'water' ? 0x003355 : 0xff0000, 0);
+          this.physics.add.existing(rect, true);
+          this.walls.add(rect);
+        }
+      };
+
+      GameScene.prototype.createPlayerAnims = function() {
+        if (!this.textures.exists(PLAYER_ASSET.key)) return;
+        const cols = 4;
+        const rows = [['south',0],['southwest',1],['west',2],['northwest',3],['north',4]];
+        for (const [name,row] of rows) makeWalkAnim020(this, 'detective_walk', PLAYER_ASSET.key, name, row, cols, 8);
+      };
+
+      GameScene.prototype.frameForFacing = function() {
+        const row = DIR_ROW_8DIR_020[this.playerFacing || 'S'] ?? 0;
+        return row * 4;
+      };
+
+      GameScene.prototype.animForFacing = function() {
+        const name = DIR_NAME_8DIR_020[this.playerFacing || 'S'] || 'south';
+        return `detective_walk_${name}`;
+      };
+
+      const oldEnsurePlayer020 = GameScene.prototype.ensurePlayerSprite;
+      GameScene.prototype.ensurePlayerSprite = function(...args) {
+        const result = oldEnsurePlayer020?.apply(this, args);
+        if (this.playerSprite) {
+          this.playerSprite.setOrigin?.(0.5, 0.86);
+          this.playerSprite.setScale?.(PLAYER_ASSET.scale || 0.54);
+          this.playerSprite.setFlipX?.(!!DIR_FLIP_RIGHT_020[this.playerFacing || 'S']);
+        }
+        return result;
+      };
+
+      const oldUpdatePlayer020 = GameScene.prototype.updatePlayerSprite;
+      GameScene.prototype.updatePlayerSprite = function(moving = false) {
+        if (!this.playerSprite || !this.player) return oldUpdatePlayer020?.call(this, moving);
+        const result = oldUpdatePlayer020?.call(this, moving);
+        this.playerSprite.setOrigin?.(0.5, 0.86);
+        this.playerSprite.setScale?.(PLAYER_ASSET.scale || 0.54);
+        this.playerSprite.setFlipX?.(!!DIR_FLIP_RIGHT_020[this.playerFacing || 'S']);
+        if (!moving && this.playerSprite.texture?.key === PLAYER_ASSET.key) this.playerSprite.setFrame(this.frameForFacing());
+        return result;
+      };
+
+      GameScene.prototype.ramosFrame = function(asset, facing) {
+        if (asset?.key === RAMOS_WALK_ASSET.key) {
+          const row = DIR_ROW_8DIR_020[facing || 'S'] ?? 0;
+          return row * 4;
+        }
+        const rows = { S:0, SW:2, W:2, NW:2, N:1, NE:3, E:3, SE:3 };
+        return (rows[facing || 'S'] ?? 0) * (asset.cols || 4);
+      };
+
+      GameScene.prototype.ramosAnimKey = function(mode, facing) {
+        if (mode === 'walk') {
+          const name = DIR_NAME_8DIR_020[facing || 'S'] || 'south';
+          return `ramos_walk_${name}`;
+        }
+        const name = ({ S:'south', SW:'west', W:'west', NW:'west', N:'north', NE:'east', E:'east', SE:'east' })[facing || 'S'] || 'south';
+        return `ramos_${mode}_${name}`;
+      };
+
+      GameScene.prototype.createRamosAnims = function() {
+        if (this.textures.exists(RAMOS_WALK_ASSET.key)) {
+          const cols = 4;
+          for (const [name,row] of [['south',0],['southwest',1],['west',2],['northwest',3],['north',4]]) {
+            makeWalkAnim020(this, 'ramos_walk', RAMOS_WALK_ASSET.key, name, row, cols, 9);
+          }
+        }
+        const make4 = (mode, asset, frameRate, repeat) => {
+          if (!asset || !this.textures.exists(asset.key)) return;
+          const rows = [['south',0], ['north',1], ['west',2], ['east',3]];
+          for (const [name,row] of rows) {
+            const key = `ramos_${mode}_${name}`;
+            removeAnim020(this, key);
+            this.anims.create({
+              key,
+              frames: this.anims.generateFrameNumbers(asset.key, { start: row * asset.cols, end: row * asset.cols + asset.cols - 1 }),
+              frameRate,
+              repeat
+            });
+          }
+        };
+        make4('talk', typeof RAMOS_TALK_ASSET !== 'undefined' ? RAMOS_TALK_ASSET : null, 7, 0);
+        make4('shoot', typeof RAMOS_SHOOT_ASSET !== 'undefined' ? RAMOS_SHOOT_ASSET : null, 10, 0);
+      };
+
+      const oldUpdateRamos020 = GameScene.prototype.updateRamosCompanion;
+      GameScene.prototype.updateRamosCompanion = function(time, delta) {
+        const result = oldUpdateRamos020?.call(this, time, delta);
+        if (this.ramosSprite && this.ramosSprite.texture?.key === RAMOS_WALK_ASSET.key) {
+          this.ramosSprite.setOrigin?.(0.5, RAMOS_WALK_ASSET.originY || 0.86);
+          this.ramosSprite.setScale?.(RAMOS_WALK_ASSET.scale || 0.44);
+          this.ramosSprite.setFlipX?.(!!DIR_FLIP_RIGHT_020[this.ramosFacing || 'S']);
+          if (!this.ramosSprite.anims?.isPlaying) this.ramosSprite.setFrame?.(this.ramosFrame(RAMOS_WALK_ASSET, this.ramosFacing || 'S'));
+        }
+        return result;
+      };
+
+      const oldEnsureRamos020 = GameScene.prototype.ensureRamosCompanion;
+      GameScene.prototype.ensureRamosCompanion = function(...args) {
+        const result = oldEnsureRamos020?.apply(this, args);
+        if (this.ramosSprite && this.ramosSprite.texture?.key === RAMOS_WALK_ASSET.key) {
+          this.ramosSprite.setOrigin?.(0.5, RAMOS_WALK_ASSET.originY || 0.86);
+          this.ramosSprite.setScale?.(RAMOS_WALK_ASSET.scale || 0.44);
+          this.ramosSprite.setFlipX?.(!!DIR_FLIP_RIGHT_020[this.ramosFacing || 'S']);
+        }
+        return result;
+      };
+
+      const oldReadInput020 = GameScene.prototype.readPlayerCarInput;
+      GameScene.prototype.readPlayerCarInput = function() {
+        const m = this.mobile || MOBILE_INPUT_STATE || {};
+        const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+        let input = oldReadInput020 ? oldReadInput020.call(this) : { throttle:0, steering:0, handbrake:false };
+
+        const latchedGas = Number(m.driveGasLatchUntil || 0) > now;
+        if (m.driveGas || latchedGas || this.keyHotfixGas?.isDown || this.keyHotfixUp?.isDown || this.keyHotfixW?.isDown) input.throttle = 1;
+        if (m.driveBrake || this.keyHotfixReverse?.isDown || this.keyHotfixDown?.isDown || this.keyHotfixS?.isDown) input.throttle = -1;
+
+        const steerX = Number.isFinite(m.driveSteerX) ? m.driveSteerX : (Number.isFinite(m.carSteerX) ? m.carSteerX : 0);
+        if (Math.abs(steerX) > 0.003) {
+          const raw = Phaser.Math.Clamp(steerX * 2.35, -1, 1);
+          input.steering = Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), 0.36), -1, 1);
+        }
+        return input;
+      };
+
+      const oldCarHitWall020 = GameScene.prototype.carHitWall;
+      GameScene.prototype.carHitWall = function() {
+        if (this.car && isDrivingOpenZone020(this.car.x, this.car.y)) {
+          // In open roads/lots, ignore stale collision rollback and keep velocity.
+          const vx = this.car.velocityX ?? this.car.vx ?? 0;
+          const vy = this.car.velocityY ?? this.car.vy ?? 0;
+          this.car.body?.setVelocity?.(vx, vy);
+          return;
+        }
+        return oldCarHitWall020?.apply(this, arguments);
+      };
+
+      const oldCreate020 = GameScene.prototype.create;
+      GameScene.prototype.create = function(...args) {
+        applyStrictCollision020();
+        const result = oldCreate020.apply(this, args);
+        this.createCollision?.();
+        if (this.player && this.walls) this.physics.add.collider(this.player, this.walls);
+        if (this.car && this.walls) this.physics.add.collider(this.car, this.walls, () => this.carHitWall?.());
+        this.time?.delayedCall?.(180, () => {
+          this.createCollision?.();
+          if (this.player && this.walls) this.physics.add.collider(this.player, this.walls);
+          if (this.car && this.walls) this.physics.add.collider(this.car, this.walls, () => this.carHitWall?.());
+        });
+        return result;
+      };
+    }
+
+    if (typeof MobileControlsScene !== 'undefined') {
+      const oldRelease020 = MobileControlsScene.prototype.releasePointer;
+      MobileControlsScene.prototype.releasePointer = function(pointer) {
+        const keys = this.activePointerControls?.get?.(pointer.id);
+        if (keys && keys.includes('driveGas') && typeof MOBILE_INPUT_STATE !== 'undefined') {
+          const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+          MOBILE_INPUT_STATE.driveGasLatchUntil = now + 900;
+        }
+        return oldRelease020?.call(this, pointer);
+      };
+
+      const oldSetControl020 = MobileControlsScene.prototype.setControl;
+      MobileControlsScene.prototype.setControl = function(key, value) {
+        if (key === 'driveGas' && value && typeof MOBILE_INPUT_STATE !== 'undefined') {
+          const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+          MOBILE_INPUT_STATE.driveGasLatchUntil = now + 900;
+        }
+        return oldSetControl020?.call(this, key, value);
+      };
     }
   })();
 
