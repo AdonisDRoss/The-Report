@@ -1,0 +1,48 @@
+name: Import Top Row AB Single Ground
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-top-row-ab:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find ZIP
+        run: |
+          ls -lah
+          ZIP_FILE="$(ls -1 *top*row*ab*single*ground*.zip 2>/dev/null | head -n 1 || true)"
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERROR: Upload the_report_top_row_ab_single_ground.zip to repo root."
+            exit 1
+          fi
+          echo "ZIP_FILE=$ZIP_FILE" >> "$GITHUB_ENV"
+          echo "Using ZIP: $ZIP_FILE"
+
+      - name: Unzip patch
+        run: unzip -o "$ZIP_FILE"
+
+      - name: Verify files
+        run: |
+          test -f index.html
+          test -f assets/city/chunks/top_row/raven_hook_top_row_ab_4096x2048.png
+          test -f assets/city/chunks/east_market/raven_hook_chunk_b_east_market_2048.png
+          grep -q "TOP_ROW_AB_SINGLE_GROUND_PATCH_012" index.html
+          grep -q "raven_hook_top_row_ab_4096x2048" index.html
+
+      - name: Commit top row ground
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add index.html assets/city/chunks/top_row assets/city/chunks/east_market config/map docs/map/top_row docs/map/east_market README_TOP_ROW_AB_SINGLE_GROUND.md
+          if git diff --cached --quiet; then
+            echo "No top row ground changes to commit."
+          else
+            git commit -m "Fix Chunk B loading with top row ground"
+            git push
+          fi
