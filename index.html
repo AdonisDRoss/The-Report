@@ -57,9 +57,10 @@
   // RAVEN_HOOK_FORCE_NEW_ASSETS_PATCH_002: functional force-new-assets patch + cache-busted local asset URLs.
   // RAVEN_HOOK_FORCE_NEW_ASSETS_SCALE_OVERLAY_PATCH_003: controls locked before zoom, camera zoomed out slightly, police/SWAT scaled to Malcolm height, old Chunk A overlays purged.
   // CAR_STICK_INVERT_SENSITIVITY_PATCH_006: driving touch-stick steering inverted and made more sensitive.
+  // RAMOS_MALCOLM_SPRITE_LOCK_PATCH_007: Ramos talk/shoot scale locked, left/right mirrored from right-facing frames, Malcolm right walk uses mirrored west row and slight station scale safety.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'steering-invert-sensitive-006';
+  const ASSET_REV = 'ramos-malcolm-sprite-fix-007';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -10638,73 +10639,136 @@
   window.addEventListener('load', installZoomInspectSlider);
 
 
-  // CAR_STICK_INVERT_SENSITIVITY_PATCH_006
-  // Final driving input override: mobile/touch steering is inverted and more sensitive. Keyboard left/right is not inverted.
-  (function installCarStickInvertSensitivityPatch006() {
-    const STEER_DEADZONE = 0.012;
-    const STEER_POWER = 0.38;
-    const STEER_GAIN = 2.65;
+  // RAMOS_MALCOLM_SPRITE_LOCK_PATCH_007
+  // Fixes Ramos growing while talking, locks Ramos left/right as mirrored right-facing frames, and avoids Malcolm right-walk head cutoff by using the safer mirrored station row.
+  (function installRamosMalcolmSpriteLockPatch007() {
+    const RAMOS_CITY_LOCK_SCALE = 0.44;
+    const RAMOS_STATION_LOCK_SCALE = 0.88;
+    const MALCOLM_STATION_SAFE_SCALE = 0.96;
 
-    function sensitiveSteer(raw) {
-      raw = Phaser.Math.Clamp(Number(raw) || 0, -1, 1);
-      if (Math.abs(raw) < STEER_DEADZONE) return 0;
-      return Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), STEER_POWER) * STEER_GAIN, -1, 1);
+    function isLeftFacing(facing) {
+      return facing === 'W' || facing === 'SW' || facing === 'NW';
     }
 
-    if (typeof GameScene !== 'undefined') {
-      GameScene.prototype.readPlayerCarInput = function() {
-        const m = this.mobile || MOBILE_INPUT_STATE || {};
+    function isRightFacing(facing) {
+      return facing === 'E' || facing === 'SE' || facing === 'NE' || isLeftFacing(facing);
+    }
 
-        let steering = 0;
-        const touchRaw =
-          Math.abs(m.carSteerX || 0) > STEER_DEADZONE ? m.carSteerX :
-          Math.abs(m.driveSteerX || 0) > STEER_DEADZONE ? m.driveSteerX :
-          Math.abs(m.analogX || 0) > STEER_DEADZONE ? m.analogX : 0;
+    function ramosLockedScale(scene) {
+      // PoliceStationScene is larger interior scale; city/game scene stays Malcolm city height.
+      return scene && scene.scene && scene.scene.key === 'PoliceStationScene'
+        ? RAMOS_STATION_LOCK_SCALE
+        : RAMOS_CITY_LOCK_SCALE;
+    }
 
-        if (touchRaw) {
-          // Invert touch stick only. This fixes the driving stick feeling backwards.
-          steering = sensitiveSteer(-touchRaw);
-        } else {
-          if (m.left || this.keyDriveLeft?.isDown || this.cursors?.left?.isDown) steering -= 1;
-          if (m.right || this.keyDriveRight?.isDown || this.cursors?.right?.isDown) steering += 1;
-        }
+    function forceRamosVisualLock(scene) {
+      if (!scene || !scene.ramosSprite) return;
+      const facing = scene.ramosFacing || scene.playerFacing || 'S';
+      if (scene.ramosSprite.setOrigin) scene.ramosSprite.setOrigin(0.5, RAMOS_WALK_ASSET.originY || 0.84);
+      if (scene.ramosSprite.setScale) scene.ramosSprite.setScale(ramosLockedScale(scene));
+      if (scene.ramosSprite.setFlipX) scene.ramosSprite.setFlipX(isLeftFacing(facing));
+    }
 
-        let throttle = 0;
-        if (m.carGas || m.driveGas || this.keyDriveGas?.isDown || this.keyDriveUp?.isDown || this.keyDriveW?.isDown) throttle = 1;
-        if (m.carBrake || m.driveBrake || this.keyDriveBrake?.isDown || this.keyDriveDown?.isDown || this.keyDriveS?.isDown) throttle = -1;
+    function patchRamosPrototype(proto) {
+      if (!proto || proto.__ramosMalcolmSpriteLockPatch007) return;
+      proto.__ramosMalcolmSpriteLockPatch007 = true;
 
-        const handbrake = !!(m.carHandbrake || m.driveHandbrake || this.keyDriveHandbrake?.isDown || this.keyDriveSpaceHandbrake?.isDown);
-        return { throttle, steering: Phaser.Math.Clamp(steering, -1, 1), handbrake };
+      // Use the right/east row for both left and right. Left is mirrored with flipX.
+      proto.ramosFrame = function(asset, facing) {
+        const rows = { S:0, SW:3, W:3, NW:3, N:1, NE:3, E:3, SE:3 };
+        return (rows[facing] ?? 0) * (asset.cols || 6);
       };
 
-      const previousCarUpdatePatch006 = GameScene.prototype.updateCar;
-      if (typeof previousCarUpdatePatch006 === 'function') {
-        GameScene.prototype.updateCar = function(dt) {
-          if (this.carHandling) {
-            this.carHandling.turnRate = Math.max(Number(this.carHandling.turnRate) || 0, 3.35);
-            this.carHandling.minTurnSpeed = Math.min(Number(this.carHandling.minTurnSpeed) || 999, 8);
-          }
-          return previousCarUpdatePatch006.call(this, dt);
+      proto.ramosAnimKey = function(mode, facing) {
+        const f = facing || 'S';
+        let name = 'south';
+        if (f === 'N') name = 'north';
+        else if (f === 'NE' || f === 'E' || f === 'SE' || f === 'NW' || f === 'W' || f === 'SW') name = 'east';
+        return `ramos_${mode}_${name}`;
+      };
+
+      const oldEnsure = proto.ensureRamosCompanion;
+      if (typeof oldEnsure === 'function') {
+        proto.ensureRamosCompanion = function(...args) {
+          const result = oldEnsure.apply(this, args);
+          forceRamosVisualLock(this);
+          return result;
+        };
+      }
+
+      const oldUpdate = proto.updateRamosCompanion;
+      if (typeof oldUpdate === 'function') {
+        proto.updateRamosCompanion = function(...args) {
+          const result = oldUpdate.apply(this, args);
+          forceRamosVisualLock(this);
+          return result;
+        };
+      }
+
+      const oldSpeak = proto.ramosSpeak;
+      if (typeof oldSpeak === 'function') {
+        proto.ramosSpeak = function(...args) {
+          const result = oldSpeak.apply(this, args);
+          forceRamosVisualLock(this);
+          return result;
+        };
+      }
+
+      const oldShoot = proto.ramosShoot;
+      if (typeof oldShoot === 'function') {
+        proto.ramosShoot = function(...args) {
+          const result = oldShoot.apply(this, args);
+          forceRamosVisualLock(this);
+          return result;
         };
       }
     }
 
-    if (typeof MobileControlsScene !== 'undefined') {
-      const prevMobileUpdate006 = MobileControlsScene.prototype.update;
-      MobileControlsScene.prototype.update = function(...args) {
-        const result = prevMobileUpdate006.apply(this, args);
+    if (typeof GameScene !== 'undefined') patchRamosPrototype(GameScene.prototype);
+    if (typeof PoliceStationScene !== 'undefined') patchRamosPrototype(PoliceStationScene.prototype);
 
-        // Boost existing touch-stick values. ReadPlayerCarInput handles inversion.
-        if (Math.abs(MOBILE_INPUT_STATE.carSteerX || 0) > 0.001) {
-          MOBILE_INPUT_STATE.carSteerX = Phaser.Math.Clamp(MOBILE_INPUT_STATE.carSteerX * 1.35, -1, 1);
-        }
-        if (Math.abs(MOBILE_INPUT_STATE.driveSteerX || 0) > 0.001) {
-          MOBILE_INPUT_STATE.driveSteerX = Phaser.Math.Clamp(MOBILE_INPUT_STATE.driveSteerX * 1.35, -1, 1);
-        }
+    function patchMalcolmStationPrototype(proto) {
+      if (!proto || proto.__malcolmRightCutFix007) return;
+      proto.__malcolmRightCutFix007 = true;
 
-        return result;
+      if (typeof MALCOLM_STATION_ASSET === 'object') {
+        MALCOLM_STATION_ASSET.scale = Math.min(Number(MALCOLM_STATION_ASSET.scale) || 1, MALCOLM_STATION_SAFE_SCALE);
+        MALCOLM_STATION_ASSET.originY = 0.88;
+      }
+
+      // For right/east movement, use the same safer side row as west, but do not flip it.
+      proto.frameForFacing = function() {
+        const cols = MALCOLM_STATION_ASSET.cols || 12;
+        const f = this.playerFacing || 'S';
+        let row = 0;
+        if (f === 'N' || f === 'NW' || f === 'NE') row = 1;
+        else if (f === 'W' || f === 'SW' || f === 'E' || f === 'SE') row = 2;
+        return row * cols;
       };
+
+      proto.animForFacing = function() {
+        const f = this.playerFacing || 'S';
+        if (f === 'N' || f === 'NW' || f === 'NE') return 'station_malcolm_walk_north';
+        if (f === 'W' || f === 'SW' || f === 'E' || f === 'SE') return 'station_malcolm_walk_west';
+        return 'station_malcolm_walk_south';
+      };
+
+      const oldUpdatePlayerVisual = proto.updatePlayerVisual;
+      if (typeof oldUpdatePlayerVisual === 'function') {
+        proto.updatePlayerVisual = function(...args) {
+          const result = oldUpdatePlayerVisual.apply(this, args);
+          if (this.playerSprite) {
+            this.playerSprite.setScale(MALCOLM_STATION_SAFE_SCALE);
+            this.playerSprite.setOrigin(0.5, 0.88);
+            const f = this.playerFacing || 'S';
+            if (this.playerSprite.setFlipX) this.playerSprite.setFlipX(isLeftFacing(f));
+          }
+          return result;
+        };
+      }
     }
+
+    if (typeof PoliceStationScene !== 'undefined') patchMalcolmStationPrototype(PoliceStationScene.prototype);
   })();
 
 
