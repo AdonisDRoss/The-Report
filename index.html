@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Chunk B Drive Open</title>
+  <title>The Report — Strict Buildings + Malcolm Left Fix</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -61,9 +61,10 @@
   // TWO_CHUNK_ONSCREEN_PATCH_008: adds East Market Chunk B beside Police HQ Chunk A and map-inspect zoom mode.
   // TOP_ROW_AB_SINGLE_GROUND_PATCH_012: one top-row ground image avoids Chunk B black loading area.
   // CHUNK_B_DRIVE_OPEN_COLLISION_PATCH_013: clears stale Chunk B collision and opens seam roads for driving.
+  // STRICT_BUILDINGS_MALCOLM_LEFT_FIX_014: Chunk B collision strictly buildings + Malcolm left uses mirrored right frames.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'chunk-b-drive-open-collision-013';
+  const ASSET_REV = 'strict-buildings-malcolm-left-014';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -11278,6 +11279,159 @@
           }
         }
         if (typeof oldCarHitWall013 === 'function') return oldCarHitWall013.apply(this, arguments);
+      };
+    }
+  })();
+
+
+
+  // STRICT_BUILDINGS_MALCOLM_LEFT_FIX_014
+  // Fixes Malcolm city left-walk crop by mirroring right-facing frames, and rebuilds Chunk B collision as buildings-only.
+  (function installStrictBuildingsMalcolmLeftFix014() {
+    const CHUNK_B_STRICT_BUILDINGS_014 = [{"id":"strict_b_kens_top_left","x":2143,"y":125,"w":275,"h":285,"type":"building"},{"id":"strict_b_kims_rear_apartment","x":2153,"y":435,"w":330,"h":210,"type":"building"},{"id":"strict_b_kims_front_market","x":2168,"y":650,"w":710,"h":205,"type":"building"},{"id":"strict_b_chens_lucky_east_market","x":2538,"y":185,"w":580,"h":280,"type":"building"},{"id":"strict_b_kims_mid_roof","x":2698,"y":500,"w":300,"h":180,"type":"building"},{"id":"strict_b_top_right_store","x":3698,"y":120,"w":285,"h":255,"type":"building"},{"id":"strict_b_red_gull_diner","x":3263,"y":555,"w":690,"h":240,"type":"building"},{"id":"strict_b_raven_pawn_row","x":2153,"y":1265,"w":780,"h":385,"type":"building"},{"id":"strict_b_russo_main_left","x":3238,"y":1285,"w":420,"h":410,"type":"building"},{"id":"strict_b_russo_rear_right","x":3658,"y":1225,"w":140,"h":360,"type":"building"},{"id":"strict_b_russo_service_shed","x":3823,"y":1195,"w":205,"h":165,"type":"building"}];
+
+    function isChunkBTopRowRect(r) {
+      if (!r) return false;
+      const x = Number(r.x) || 0;
+      const y = Number(r.y) || 0;
+      return x >= 2048 && y < 2048;
+    }
+
+    function isOldChunkBOrOldNamedBuilding(r) {
+      if (!r || r.type !== 'building') return false;
+      const id = String(r.id || '');
+      if (isChunkBTopRowRect(r)) return true;
+      return /bennys|red_gull|quick_wash|raven_pawn|kims|russo|auto_body|east_market|chunk_b|strict_b_/i.test(id);
+    }
+
+    function applyStrictChunkBCollisionArray() {
+      if (!Array.isArray(COLLISION_RECTS)) return;
+      const kept = COLLISION_RECTS.filter(r => r && !isOldChunkBOrOldNamedBuilding(r));
+      COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...kept, ...CHUNK_B_STRICT_BUILDINGS_014);
+    }
+
+    applyStrictChunkBCollisionArray();
+
+    if (typeof GameScene !== 'undefined') {
+      // Malcolm city left/right fix: use right-facing rows for both directions, flip left.
+      GameScene.prototype.frameForFacing = function() {
+        const f = this.playerFacing || 'S';
+        const rowByFacing = {
+          S: 0,
+          SW: 7, W: 6, NW: 5,
+          N: 4,
+          NE: 5, E: 6, SE: 7
+        };
+        return (rowByFacing[f] ?? 0) * 6;
+      };
+
+      GameScene.prototype.animForFacing = function() {
+        const f = this.playerFacing || 'S';
+        const nameByFacing = {
+          S:'south',
+          SW:'southeast', W:'east', NW:'northeast',
+          N:'north',
+          NE:'northeast', E:'east', SE:'southeast'
+        };
+        return `detective_walk_${nameByFacing[f] || 'south'}`;
+      };
+
+      function isLeftFacing(f) {
+        return f === 'W' || f === 'SW' || f === 'NW';
+      }
+
+      const oldUpdatePlayerSprite014 = GameScene.prototype.updatePlayerSprite;
+      if (typeof oldUpdatePlayerSprite014 === 'function') {
+        GameScene.prototype.updatePlayerSprite = function(moving = false) {
+          const result = oldUpdatePlayerSprite014.call(this, moving);
+          if (this.playerSprite) {
+            const f = this.playerFacing || 'S';
+            this.playerSprite.setFlipX?.(isLeftFacing(f));
+            this.playerSprite.setOrigin?.(0.5, 0.76);
+            this.playerSprite.setScale?.(PLAYER_ASSET.scale);
+          }
+          return result;
+        };
+      }
+
+      const oldEnsurePlayer014 = GameScene.prototype.ensurePlayerSprite;
+      if (typeof oldEnsurePlayer014 === 'function') {
+        GameScene.prototype.ensurePlayerSprite = function(...args) {
+          const result = oldEnsurePlayer014.apply(this, args);
+          if (this.playerSprite) {
+            const f = this.playerFacing || 'S';
+            this.playerSprite.setFlipX?.(isLeftFacing(f));
+            this.playerSprite.setOrigin?.(0.5, 0.76);
+          }
+          return result;
+        };
+      }
+
+      // Hard override the wall builder so Chunk B collision is strictly buildings, not old broad boxes.
+      GameScene.prototype.createWalls = function() {
+        applyStrictChunkBCollisionArray();
+
+        if (this.walls?.clear) this.walls.clear(true, true);
+        this.walls = this.physics.add.staticGroup();
+
+        for (const r of COLLISION_RECTS) {
+          if (!r) continue;
+          // Keep water and non-building blockers outside Chunk B.
+          if (isChunkBTopRowRect(r) && r.type === 'building' && !String(r.id || '').startsWith('strict_b_')) continue;
+
+          const rect = this.add.rectangle(
+            r.x + r.w / 2,
+            r.y + r.h / 2,
+            r.w,
+            r.h,
+            r.type === 'water' ? 0x003355 : 0xff0000,
+            0
+          );
+          this.physics.add.existing(rect, true);
+          this.walls.add(rect);
+        }
+      };
+
+      const oldCreate014 = GameScene.prototype.create;
+      GameScene.prototype.create = function(...args) {
+        applyStrictChunkBCollisionArray();
+        const result = oldCreate014.apply(this, args);
+
+        // Rebuild one more time after all older patches mutate collision.
+        this.time?.delayedCall?.(40, () => {
+          const px = this.player?.x, py = this.player?.y;
+          const cx = this.car?.x, cy = this.car?.y;
+          this.createWalls?.();
+          if (this.player && this.walls) this.physics.add.collider(this.player, this.walls);
+          if (this.car && this.walls) this.physics.add.collider(this.car, this.walls, () => this.carHitWall?.());
+          if (this.player && Number.isFinite(px) && Number.isFinite(py)) this.player.setPosition(px, py);
+          if (this.car && Number.isFinite(cx) && Number.isFinite(cy)) this.car.setPosition(cx, cy);
+        });
+
+        return result;
+      };
+
+      const oldCarHitWall014 = GameScene.prototype.carHitWall;
+      GameScene.prototype.carHitWall = function() {
+        if (this.car) {
+          const x = Number(this.car.x) || 0;
+          const y = Number(this.car.y) || 0;
+          // Roads in Chunk B are open; prevent invisible road/seam collision from stopping the car.
+          const inOpenRoad =
+            (x >= 1900 && x <= 2215 && y >= 0 && y <= 2048) ||
+            (x >= 2048 && x <= 4096 && y >= 900 && y <= 1220) ||
+            (x >= 2048 && x <= 4096 && y >= 1760 && y <= 2048) ||
+            (x >= 2048 && x <= 4096 && y >= 0 && y <= 255);
+
+          if (inOpenRoad) {
+            const vx = this.car.velocityX || this.car.vx || 0;
+            const vy = this.car.velocityY || this.car.vy || 0;
+            this.car.setPosition(x + Math.sign(vx || 1) * 22, y + Math.sign(vy || 0) * 6);
+            this.car.body?.setVelocity(vx, vy);
+            return;
+          }
+        }
+        if (typeof oldCarHitWall014 === 'function') return oldCarHitWall014.apply(this, arguments);
       };
     }
   })();
