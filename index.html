@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Clean ABCD World</title>
+  <title>The Report — Raven Hook — Single World No Overlap</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -65,9 +65,10 @@
   // CHUNK_C_CIVIC_CENTER_GAME_READY_PATCH_015: adds Chunk C, connects north to A, east reserved for D.
   // CHUNK_D_RED_GULL_STRIP_GAME_READY_PATCH_016: adds full ABCD world with Red Gull Strip/Old Harbor.
   // CHUNK_D_CLEAN_WATER_BLOCK_GAME_READY_PATCH_017: clean Chunk D, streets/sidewalks open, water blocked.
+  // SINGLE_WORLD_NO_OVERLAP_PATCH_018: single full-world ground, no overlapping chunk layers.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'chunk-d-clean-water-block-017';
+  const ASSET_REV = 'single-world-no-overlap-018';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -136,7 +137,7 @@
     row.style.cssText = 'display:flex;gap:6px;margin-top:6px;';
 
     const bothBtn = document.createElement('button');
-    bothBtn.textContent = 'BOTH CHUNKS';
+    bothBtn.textContent = 'WORLD MAP';
     bothBtn.style.cssText = 'font:11px Courier New,monospace;padding:4px 6px;';
 
     const followBtn = document.createElement('button');
@@ -144,7 +145,7 @@
     followBtn.style.cssText = 'font:11px Courier New,monospace;padding:4px 6px;';
 
     const hint = document.createElement('div');
-    hint.textContent = 'Both Chunks centers top row';
+    hint.textContent = 'Full ABCD world map';
     hint.style.opacity = '.75';
     hint.style.marginTop = '4px';
 
@@ -11801,6 +11802,71 @@
         addZone({ id:'chunk_d_dock_warehouse_door', x:2048+1320, y:2048+930, w:210, h:100, type:'door', label:'Dock Warehouse' });
         addZone({ id:'chunk_d_back_alley_door', x:2048+750, y:2048+1830, w:170, h:95, type:'door', label:'Back Alley Entrance' });
       }
+    }
+  })();
+
+
+
+  // SINGLE_WORLD_NO_OVERLAP_PATCH_018
+  // Draws exactly one ground image and destroys older chunk layers so maps cannot overlap at seams.
+  (function installSingleWorldNoOverlapPatch018() {
+    function destroyGroundLayers018(scene) {
+      if (!scene) return;
+      if (scene.groundChunkImages) {
+        for (const img of Object.values(scene.groundChunkImages)) img?.destroy?.();
+      }
+      scene.groundChunkImages = {};
+      if (scene.realGround?.destroy) scene.realGround.destroy();
+      scene.realGround = null;
+      if (Array.isArray(scene._groundLayerCleanup018)) {
+        for (const img of scene._groundLayerCleanup018) img?.destroy?.();
+      }
+      scene._groundLayerCleanup018 = [];
+    }
+
+    function drawSingleWorld018(scene) {
+      if (!scene || !scene.textures?.exists?.(GROUND_ASSET.key)) return;
+      destroyGroundLayers018(scene);
+      const img = scene.add.image(0, 0, GROUND_ASSET.key)
+        .setOrigin(0, 0)
+        .setDisplaySize(4096, 4096)
+        .setDepth(-1000);
+      scene.realGround = img;
+      scene.groundChunkImages = { worldABCDSingle018: img };
+      scene._groundLayerCleanup018 = [img];
+      if (scene.groundGraphics?.setVisible) scene.groundGraphics.setVisible(false);
+    }
+
+    if (typeof GameScene !== 'undefined') {
+      GameScene.prototype.applyGroundMap = function() {
+        drawSingleWorld018(this);
+      };
+
+      const oldCreate018 = GameScene.prototype.create;
+      GameScene.prototype.create = function(...args) {
+        const result = oldCreate018.apply(this, args);
+
+        const loadAndDraw = () => {
+          if (this.textures.exists(GROUND_ASSET.key)) {
+            drawSingleWorld018(this);
+          } else if (!this._singleWorldLoadQueued018) {
+            this._singleWorldLoadQueued018 = true;
+            this.load.image(GROUND_ASSET.key, A(GROUND_ASSET.path));
+            this.load.once(`filecomplete-image-${GROUND_ASSET.key}`, () => {
+              this._singleWorldLoadQueued018 = false;
+              drawSingleWorld018(this);
+            });
+            if (!this.load.isLoading()) this.load.start();
+          }
+        };
+
+        loadAndDraw();
+        this.time?.delayedCall?.(150, loadAndDraw);
+        this.time?.delayedCall?.(650, loadAndDraw);
+        this.time?.delayedCall?.(1300, loadAndDraw);
+
+        return result;
+      };
     }
   })();
 
