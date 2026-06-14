@@ -1,0 +1,18 @@
+{
+  "patch": "TOP_ROW_AB_SINGLE_GROUND_PATCH_012",
+  "purpose": "Fix Chunk B black area by loading one 4096x2048 combined top-row image.",
+  "ground_asset": "assets/city/chunks/top_row/raven_hook_top_row_ab_4096x2048.png",
+  "backup_chunk_b_asset": "assets/city/chunks/east_market/raven_hook_chunk_b_east_market_2048.png",
+  "chunk_a": {
+    "x": 0,
+    "y": 0,
+    "w": 2048,
+    "h": 2048
+  },
+  "chunk_b": {
+    "x": 2048,
+    "y": 0,
+    "w": 2048,
+    "h": 2048
+  }
+}

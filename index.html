@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — AB Nodes Merged</title>
+  <title>The Report — Raven Hook Central — Top Row AB Single Ground</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -59,9 +59,10 @@
   // CAR_STICK_INVERT_SENSITIVITY_PATCH_006: driving touch-stick steering inverted and made more sensitive.
   // RAMOS_MALCOLM_SPRITE_LOCK_PATCH_007: Ramos talk/shoot scale locked, left/right mirrored from right-facing frames, Malcolm right walk uses mirrored west row and slight station scale safety.
   // TWO_CHUNK_ONSCREEN_PATCH_008: adds East Market Chunk B beside Police HQ Chunk A and map-inspect zoom mode.
+  // TOP_ROW_AB_SINGLE_GROUND_PATCH_012: one top-row ground image avoids Chunk B black loading area.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'chunk-ab-merged-nodes-011';
+  const ASSET_REV = 'top-row-ab-single-ground-012';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -752,9 +753,9 @@
 
 
   const GROUND_ASSET = {
-    key: 'police_hq_chunk_a_base_only',
-    path: 'assets/city/chunks/police_hq/police_hq_chunk_a_2048.png',
-    width: 2048,
+    key: 'raven_hook_top_row_ab_4096x2048',
+    path: 'assets/city/chunks/top_row/raven_hook_top_row_ab_4096x2048.png',
+    width: 4096,
     height: 2048
   };
 
@@ -11135,6 +11136,58 @@
             facing:'S'
           });
         }
+      };
+    }
+  })();
+
+
+
+  // TOP_ROW_AB_SINGLE_GROUND_PATCH_012
+  // Fixes Chunk B black screen by using one 4096x2048 top-row ground image for Chunk A + Chunk B.
+  (function installTopRowABSingleGroundPatch012() {
+    if (typeof CityScene !== 'undefined') {
+      CityScene.prototype.applyGroundMap = function() {
+        if (this.groundChunkImages) {
+          for (const img of Object.values(this.groundChunkImages)) {
+            if (img && img.destroy) img.destroy();
+          }
+        }
+        this.groundChunkImages = {};
+
+        if (this.realGround && this.realGround.destroy) {
+          this.realGround.destroy();
+          this.realGround = null;
+        }
+
+        if (this.textures.exists(GROUND_ASSET.key)) {
+          this.realGround = this.add.image(0, 0, GROUND_ASSET.key)
+            .setOrigin(0, 0)
+            .setDisplaySize(GROUND_ASSET.width || 4096, GROUND_ASSET.height || 2048)
+            .setDepth(0);
+          this.groundChunkImages.topRowAB = this.realGround;
+        }
+
+        if (this.groundGraphics) this.groundGraphics.setVisible(false);
+      };
+
+      const oldCreateTopRow012 = CityScene.prototype.create;
+      CityScene.prototype.create = function(...args) {
+        const result = oldCreateTopRow012.apply(this, args);
+
+        // Runtime fallback: if GitHub Pages had not preloaded it yet, load it now and draw after filecomplete.
+        if (!this.textures.exists(GROUND_ASSET.key) && !this._topRowABLoadQueued012) {
+          this._topRowABLoadQueued012 = true;
+          this.load.image(GROUND_ASSET.key, A(GROUND_ASSET.path));
+          this.load.once(`filecomplete-image-${GROUND_ASSET.key}`, () => {
+            this._topRowABLoadQueued012 = false;
+            this.applyGroundMap?.();
+          });
+          if (!this.load.isLoading()) this.load.start();
+        } else {
+          this.applyGroundMap?.();
+        }
+
+        return result;
       };
     }
   })();
