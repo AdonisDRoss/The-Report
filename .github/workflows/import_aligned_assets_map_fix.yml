@@ -1,0 +1,31 @@
+name: Import Aligned Assets Map Fix
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  import-aligned-assets-map-fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Find ZIP
+        run: |
+          ZIP_FILE="$(ls -1 *aligned*assets*map*fix*.zip 2>/dev/null | head -n 1 || true)"
+          if [ -z "$ZIP_FILE" ]; then echo "ERROR: Upload the_report_aligned_assets_map_fix.zip to repo root."; exit 1; fi
+          echo "ZIP_FILE=$ZIP_FILE" >> "$GITHUB_ENV"
+      - name: Unzip patch
+        run: unzip -o "$ZIP_FILE"
+      - name: Verify
+        run: |
+          test -f index.html
+          test -f assets/city/pages/raven_hook_world_abcd_single_aligned_4096x4096.jpg
+          test -f assets/characters/main_detective/main_detective_movement_8dir_96x96_transparent.png
+          test -f assets/characters/npcs/partners/ramos/ramos_movement_8dir_96x96.png
+          test -f assets/vehicles_single/malcolm_monte_carlo_detective_top.png
+          grep -q "ALIGNED_ASSETS_MAP_FIX_019" index.html
+      - name: Commit
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add index.html assets config docs README_ALIGNED_ASSETS_MAP_FIX.md
+          if git diff --cached --quiet; then echo "No changes to commit."; else git commit -m "Fix aligned map and import updated sprites"; git push; fi
