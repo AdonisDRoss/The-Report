@@ -1,0 +1,657 @@
+{
+  "patch": "CHUNK_D_CLEAN_WATER_BLOCK_GAME_READY_PATCH_017",
+  "road_rule": "US/right-side driving. Streets open for cars; sidewalk graph open for civilians; water is blocked.",
+  "d_road_nodes_world": [
+    {
+      "id": "d_rd_north_eb_w",
+      "x": 2118,
+      "y": 2183,
+      "lane": "eastbound",
+      "links": [
+        "d_rd_north_eb_c"
+      ],
+      "road": "north"
+    },
+    {
+      "id": "d_rd_north_eb_c",
+      "x": 2973,
+      "y": 2183,
+      "lane": "eastbound",
+      "stop": true,
+      "links": [
+        "d_rd_north_eb_e",
+        "d_rd_center_sb_n"
+      ],
+      "road": "north"
+    },
+    {
+      "id": "d_rd_north_eb_e",
+      "x": 3758,
+      "y": 2183,
+      "lane": "eastbound",
+      "links": [
+        "d_rd_dock_sb_n"
+      ],
+      "road": "north"
+    },
+    {
+      "id": "d_rd_north_wb_e",
+      "x": 3758,
+      "y": 2123,
+      "lane": "westbound",
+      "links": [
+        "d_rd_north_wb_c"
+      ],
+      "road": "north"
+    },
+    {
+      "id": "d_rd_north_wb_c",
+      "x": 3078,
+      "y": 2123,
+      "lane": "westbound",
+      "stop": true,
+      "links": [
+        "d_rd_north_wb_w",
+        "d_rd_center_nb_n"
+      ],
+      "road": "north"
+    },
+    {
+      "id": "d_rd_north_wb_w",
+      "x": 2118,
+      "y": 2123,
+      "lane": "westbound",
+      "links": [
+        "d_rd_north_eb_w"
+      ],
+      "road": "north"
+    },
+    {
+      "id": "d_rd_west_sb_n",
+      "x": 2143,
+      "y": 2118,
+      "lane": "southbound",
+      "links": [
+        "d_rd_west_sb_mid"
+      ],
+      "road": "west"
+    },
+    {
+      "id": "d_rd_west_sb_mid",
+      "x": 2143,
+      "y": 3028,
+      "lane": "southbound",
+      "stop": true,
+      "links": [
+        "d_rd_west_sb_s",
+        "d_rd_mid_eb_w"
+      ],
+      "road": "west"
+    },
+    {
+      "id": "d_rd_west_sb_s",
+      "x": 2143,
+      "y": 3888,
+      "lane": "southbound",
+      "links": [
+        "d_rd_south_eb_w"
+      ],
+      "road": "west"
+    },
+    {
+      "id": "d_rd_west_nb_s",
+      "x": 2213,
+      "y": 3888,
+      "lane": "northbound",
+      "links": [
+        "d_rd_west_nb_mid"
+      ],
+      "road": "west"
+    },
+    {
+      "id": "d_rd_west_nb_mid",
+      "x": 2213,
+      "y": 3088,
+      "lane": "northbound",
+      "stop": true,
+      "links": [
+        "d_rd_west_nb_n",
+        "d_rd_mid_wb_w"
+      ],
+      "road": "west"
+    },
+    {
+      "id": "d_rd_west_nb_n",
+      "x": 2213,
+      "y": 2118,
+      "lane": "northbound",
+      "links": [
+        "d_rd_north_wb_w"
+      ],
+      "road": "west"
+    },
+    {
+      "id": "d_rd_center_sb_n",
+      "x": 3008,
+      "y": 2178,
+      "lane": "southbound",
+      "links": [
+        "d_rd_center_sb_mid"
+      ],
+      "road": "center"
+    },
+    {
+      "id": "d_rd_center_sb_mid",
+      "x": 3008,
+      "y": 3028,
+      "lane": "southbound",
+      "stop": true,
+      "links": [
+        "d_rd_center_sb_s",
+        "d_rd_mid_eb_c"
+      ],
+      "road": "center"
+    },
+    {
+      "id": "d_rd_center_sb_s",
+      "x": 3008,
+      "y": 3888,
+      "lane": "southbound",
+      "links": [
+        "d_rd_south_eb_c"
+      ],
+      "road": "center"
+    },
+    {
+      "id": "d_rd_center_nb_s",
+      "x": 3083,
+      "y": 3888,
+      "lane": "northbound",
+      "links": [
+        "d_rd_center_nb_mid"
+      ],
+      "road": "center"
+    },
+    {
+      "id": "d_rd_center_nb_mid",
+      "x": 3083,
+      "y": 3088,
+      "lane": "northbound",
+      "stop": true,
+      "links": [
+        "d_rd_center_nb_n",
+        "d_rd_mid_wb_c"
+      ],
+      "road": "center"
+    },
+    {
+      "id": "d_rd_center_nb_n",
+      "x": 3083,
+      "y": 2178,
+      "lane": "northbound",
+      "links": [
+        "d_rd_north_wb_c"
+      ],
+      "road": "center"
+    },
+    {
+      "id": "d_rd_mid_eb_w",
+      "x": 2118,
+      "y": 3053,
+      "lane": "eastbound",
+      "links": [
+        "d_rd_mid_eb_c"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "d_rd_mid_eb_c",
+      "x": 2978,
+      "y": 3053,
+      "lane": "eastbound",
+      "stop": true,
+      "links": [
+        "d_rd_mid_eb_e",
+        "d_rd_center_sb_s"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "d_rd_mid_eb_e",
+      "x": 3758,
+      "y": 3053,
+      "lane": "eastbound",
+      "links": [
+        "d_rd_dock_sb_mid"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "d_rd_mid_wb_e",
+      "x": 3758,
+      "y": 2988,
+      "lane": "westbound",
+      "links": [
+        "d_rd_mid_wb_c"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "d_rd_mid_wb_c",
+      "x": 3088,
+      "y": 2988,
+      "lane": "westbound",
+      "stop": true,
+      "links": [
+        "d_rd_mid_wb_w",
+        "d_rd_center_nb_n"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "d_rd_mid_wb_w",
+      "x": 2118,
+      "y": 2988,
+      "lane": "westbound",
+      "links": [
+        "d_rd_west_nb_mid"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "d_rd_dock_sb_n",
+      "x": 3788,
+      "y": 2128,
+      "lane": "southbound",
+      "links": [
+        "d_rd_dock_sb_mid"
+      ],
+      "road": "dock"
+    },
+    {
+      "id": "d_rd_dock_sb_mid",
+      "x": 3788,
+      "y": 3068,
+      "lane": "southbound",
+      "links": [
+        "d_rd_dock_sb_s"
+      ],
+      "road": "dock"
+    },
+    {
+      "id": "d_rd_dock_sb_s",
+      "x": 3788,
+      "y": 3888,
+      "lane": "southbound",
+      "links": [
+        "d_rd_south_wb_e"
+      ],
+      "road": "dock"
+    },
+    {
+      "id": "d_rd_dock_nb_s",
+      "x": 3848,
+      "y": 3888,
+      "lane": "northbound",
+      "links": [
+        "d_rd_dock_nb_mid"
+      ],
+      "road": "dock"
+    },
+    {
+      "id": "d_rd_dock_nb_mid",
+      "x": 3848,
+      "y": 2988,
+      "lane": "northbound",
+      "links": [
+        "d_rd_dock_nb_n"
+      ],
+      "road": "dock"
+    },
+    {
+      "id": "d_rd_dock_nb_n",
+      "x": 3848,
+      "y": 2128,
+      "lane": "northbound",
+      "links": [
+        "d_rd_north_wb_e"
+      ],
+      "road": "dock"
+    },
+    {
+      "id": "d_rd_south_eb_w",
+      "x": 2118,
+      "y": 3893,
+      "lane": "eastbound",
+      "links": [
+        "d_rd_south_eb_c"
+      ],
+      "road": "south"
+    },
+    {
+      "id": "d_rd_south_eb_c",
+      "x": 2978,
+      "y": 3893,
+      "lane": "eastbound",
+      "stop": true,
+      "links": [
+        "d_rd_south_eb_e"
+      ],
+      "road": "south"
+    },
+    {
+      "id": "d_rd_south_eb_e",
+      "x": 3758,
+      "y": 3893,
+      "lane": "eastbound",
+      "links": [
+        "d_rd_dock_nb_s"
+      ],
+      "road": "south"
+    },
+    {
+      "id": "d_rd_south_wb_e",
+      "x": 3758,
+      "y": 3828,
+      "lane": "westbound",
+      "links": [
+        "d_rd_south_wb_c"
+      ],
+      "road": "south"
+    },
+    {
+      "id": "d_rd_south_wb_c",
+      "x": 3078,
+      "y": 3828,
+      "lane": "westbound",
+      "stop": true,
+      "links": [
+        "d_rd_south_wb_w",
+        "d_rd_center_nb_s"
+      ],
+      "road": "south"
+    },
+    {
+      "id": "d_rd_south_wb_w",
+      "x": 2118,
+      "y": 3828,
+      "lane": "westbound",
+      "links": [
+        "d_rd_west_nb_s"
+      ],
+      "road": "south"
+    }
+  ],
+  "d_sidewalk_nodes_world": [
+    {
+      "id": "d_sw_neon_front",
+      "x": 2328,
+      "y": 2518,
+      "links": [
+        "d_sw_blue_front",
+        "d_sw_rusty_front",
+        "d_cross_north_w"
+      ]
+    },
+    {
+      "id": "d_sw_blue_front",
+      "x": 2768,
+      "y": 2518,
+      "links": [
+        "d_sw_neon_front",
+        "d_sw_bell_front",
+        "d_cross_north_c"
+      ]
+    },
+    {
+      "id": "d_sw_bell_front",
+      "x": 3308,
+      "y": 2548,
+      "links": [
+        "d_sw_blue_front",
+        "d_sw_dock_n",
+        "d_cross_north_e"
+      ]
+    },
+    {
+      "id": "d_sw_dock_n",
+      "x": 3768,
+      "y": 2518,
+      "links": [
+        "d_sw_bell_front",
+        "d_sw_dock_mid"
+      ]
+    },
+    {
+      "id": "d_sw_rusty_front",
+      "x": 2278,
+      "y": 3018,
+      "links": [
+        "d_sw_neon_front",
+        "d_sw_pawn_front",
+        "d_cross_mid_w"
+      ]
+    },
+    {
+      "id": "d_sw_cheap_front",
+      "x": 2778,
+      "y": 2973,
+      "links": [
+        "d_sw_rusty_front",
+        "d_sw_warehouse_front",
+        "d_cross_mid_c"
+      ]
+    },
+    {
+      "id": "d_sw_warehouse_front",
+      "x": 3368,
+      "y": 2978,
+      "links": [
+        "d_sw_cheap_front",
+        "d_sw_dock_mid",
+        "d_cross_mid_e"
+      ]
+    },
+    {
+      "id": "d_sw_dock_mid",
+      "x": 3758,
+      "y": 3018,
+      "links": [
+        "d_sw_dock_n",
+        "d_sw_warehouse_front",
+        "d_sw_dock_s"
+      ]
+    },
+    {
+      "id": "d_sw_pawn_front",
+      "x": 2308,
+      "y": 3423,
+      "links": [
+        "d_sw_rusty_front",
+        "d_sw_dockyard_front",
+        "d_cross_south_w"
+      ]
+    },
+    {
+      "id": "d_sw_dockyard_front",
+      "x": 2798,
+      "y": 3423,
+      "links": [
+        "d_sw_pawn_front",
+        "d_sw_redgull_front",
+        "d_cross_south_c"
+      ]
+    },
+    {
+      "id": "d_sw_dockyard_large",
+      "x": 3393,
+      "y": 3423,
+      "links": [
+        "d_sw_dockyard_front",
+        "d_sw_dock_s",
+        "d_cross_south_e"
+      ]
+    },
+    {
+      "id": "d_sw_dock_s",
+      "x": 3758,
+      "y": 3488,
+      "links": [
+        "d_sw_dock_mid",
+        "d_sw_dockyard_large"
+      ]
+    },
+    {
+      "id": "d_sw_redgull_front",
+      "x": 2318,
+      "y": 3878,
+      "links": [
+        "d_sw_dockyard_front",
+        "d_sw_backalley_front",
+        "d_cross_bottom_w"
+      ]
+    },
+    {
+      "id": "d_sw_backalley_front",
+      "x": 2798,
+      "y": 3878,
+      "links": [
+        "d_sw_redgull_front",
+        "d_cross_bottom_c"
+      ]
+    },
+    {
+      "id": "d_sw_quay_south",
+      "x": 3448,
+      "y": 3878,
+      "links": [
+        "d_sw_backalley_front",
+        "d_cross_bottom_e"
+      ]
+    },
+    {
+      "id": "d_cross_north_w",
+      "x": 2958,
+      "y": 2183,
+      "crosswalk": true,
+      "links": [
+        "d_sw_neon_front",
+        "d_cross_north_c"
+      ]
+    },
+    {
+      "id": "d_cross_north_c",
+      "x": 3063,
+      "y": 2183,
+      "crosswalk": true,
+      "links": [
+        "d_cross_north_w",
+        "d_cross_north_e",
+        "d_sw_blue_front"
+      ]
+    },
+    {
+      "id": "d_cross_north_e",
+      "x": 3168,
+      "y": 2183,
+      "crosswalk": true,
+      "links": [
+        "d_cross_north_c",
+        "d_sw_bell_front"
+      ]
+    },
+    {
+      "id": "d_cross_mid_w",
+      "x": 2958,
+      "y": 3028,
+      "crosswalk": true,
+      "links": [
+        "d_sw_rusty_front",
+        "d_cross_mid_c"
+      ]
+    },
+    {
+      "id": "d_cross_mid_c",
+      "x": 3063,
+      "y": 3028,
+      "crosswalk": true,
+      "links": [
+        "d_cross_mid_w",
+        "d_cross_mid_e",
+        "d_sw_cheap_front"
+      ]
+    },
+    {
+      "id": "d_cross_mid_e",
+      "x": 3168,
+      "y": 3028,
+      "crosswalk": true,
+      "links": [
+        "d_cross_mid_c",
+        "d_sw_warehouse_front"
+      ]
+    },
+    {
+      "id": "d_cross_south_w",
+      "x": 2958,
+      "y": 3408,
+      "crosswalk": true,
+      "links": [
+        "d_sw_pawn_front",
+        "d_cross_south_c"
+      ]
+    },
+    {
+      "id": "d_cross_south_c",
+      "x": 3063,
+      "y": 3408,
+      "crosswalk": true,
+      "links": [
+        "d_cross_south_w",
+        "d_cross_south_e",
+        "d_sw_dockyard_front"
+      ]
+    },
+    {
+      "id": "d_cross_south_e",
+      "x": 3168,
+      "y": 3408,
+      "crosswalk": true,
+      "links": [
+        "d_cross_south_c",
+        "d_sw_dockyard_large"
+      ]
+    },
+    {
+      "id": "d_cross_bottom_w",
+      "x": 2958,
+      "y": 3878,
+      "crosswalk": true,
+      "links": [
+        "d_sw_redgull_front",
+        "d_cross_bottom_c"
+      ]
+    },
+    {
+      "id": "d_cross_bottom_c",
+      "x": 3063,
+      "y": 3878,
+      "crosswalk": true,
+      "links": [
+        "d_cross_bottom_w",
+        "d_cross_bottom_e",
+        "d_sw_backalley_front"
+      ]
+    },
+    {
+      "id": "d_cross_bottom_e",
+      "x": 3168,
+      "y": 3878,
+      "crosswalk": true,
+      "links": [
+        "d_cross_bottom_c",
+        "d_sw_quay_south"
+      ]
+    }
+  ]
+}
