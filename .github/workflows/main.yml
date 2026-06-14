@@ -1,4 +1,4 @@
-name: Import Raven Hook Police Sprites V2 Safe
+name: Import Police HQ Building Overlays
 
 on:
   workflow_dispatch:
@@ -7,36 +7,47 @@ permissions:
   contents: write
 
 jobs:
-  import-police-sprites:
+  import-police-hq-building-overlays:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check police sprite zip
+      - name: Check overlay ZIP
         run: |
           ls -lah
-          test -f the_report_police_sprites_V2_SAFE_WORKFLOW_PACK.zip
+          test -f police_hq_building_overlays_PHASER_READY.zip
 
-      - name: Unzip police sprite set
+      - name: Unzip overlay pack
         run: |
-          unzip -o the_report_police_sprites_V2_SAFE_WORKFLOW_PACK.zip
+          rm -rf /tmp/police_hq_building_overlays
+          mkdir -p /tmp/police_hq_building_overlays
+          unzip -o police_hq_building_overlays_PHASER_READY.zip -d /tmp/police_hq_building_overlays
 
-      - name: Show imported police files
+      - name: Copy overlays to game assets
         run: |
-          find assets/characters/police -type f | sort || true
-          find config/characters -type f | sort || true
-          find docs/characters/police -type f | sort || true
-          find docs/previews/police -type f | sort || true
+          mkdir -p assets/maps/raven_hook/chunk_a_police_hq/buildings
+          cp /tmp/police_hq_building_overlays/*.png assets/maps/raven_hook/chunk_a_police_hq/buildings/
 
-      - name: Commit imported police sprites
+      - name: Copy overlay docs
+        run: |
+          mkdir -p docs/map/police_hq/building_overlays
+          cp /tmp/police_hq_building_overlays/README_UPLOAD_PATHS.txt docs/map/police_hq/building_overlays/README_UPLOAD_PATHS.txt || true
+          cp /tmp/police_hq_building_overlays/import_police_hq_building_overlays.yml docs/map/police_hq/building_overlays/import_police_hq_building_overlays.yml || true
+
+      - name: Show imported files
+        run: |
+          find assets/maps/raven_hook/chunk_a_police_hq/buildings -type f | sort
+          find docs/map/police_hq/building_overlays -type f | sort || true
+
+      - name: Commit imported overlays
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add assets/characters/police config/characters docs/characters/police docs/previews/police README_POLICE_SPRITES_V2_SAFE.txt
+          git add assets/maps/raven_hook/chunk_a_police_hq/buildings docs/map/police_hq/building_overlays
           if git diff --cached --quiet; then
-            echo "No police sprite changes to commit."
+            echo "No overlay changes to commit."
           else
-            git commit -m "Import Raven Hook police sprites V2 safe"
+            git commit -m "Import Police HQ building overlays"
             git push
           fi
