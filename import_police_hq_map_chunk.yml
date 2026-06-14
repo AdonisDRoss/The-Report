@@ -1,0 +1,41 @@
+name: Import Police HQ Map Chunk
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-police-hq-map:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check map pack zip
+        run: |
+          ls -lah
+          test -f the_report_police_hq_map_pack.zip
+
+      - name: Unzip Police HQ map pack
+        run: |
+          unzip -o the_report_police_hq_map_pack.zip
+
+      - name: Show imported files
+        run: |
+          find assets/city/chunks/police_hq -type f | sort || true
+          find config/map -type f | sort || true
+          find docs/map/police_hq -type f | sort || true
+
+      - name: Commit imported Police HQ map chunk
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add assets/city/chunks/police_hq config/map docs/map/police_hq README_POLICE_HQ_MAP_CHUNK.md
+          if git diff --cached --quiet; then
+            echo "No map chunk changes to commit."
+          else
+            git commit -m "Import Police HQ map chunk"
+            git push
+          fi
