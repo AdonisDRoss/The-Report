@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Police HQ Map + Vehicle Update</title>
+  <title>The Report — Raven Hook Central — Base Layer Zoom Inspect</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -58,7 +58,7 @@
   // RAVEN_HOOK_FORCE_NEW_ASSETS_SCALE_OVERLAY_PATCH_003: controls locked before zoom, camera zoomed out slightly, police/SWAT scaled to Malcolm height, old Chunk A overlays purged.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'police-map-vehicles-004-scale-overlay-zoom';
+  const ASSET_REV = 'base-layer-no-overlays-zoom-005';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -80,6 +80,70 @@
 
   // Roof/building art sits above player/car so the player cannot visually walk over roofs.
   const ROOF_DEPTH = 44;
+
+
+  // BASE_LAYER_ZOOM_SLIDER_PATCH_005: no building overlays, inspect-only zoom slider.
+  window.RH_MANUAL_ZOOM = null;
+  function getManualCameraZoom(baseZoom) {
+    const z = Number(window.RH_MANUAL_ZOOM);
+    return Number.isFinite(z) && z > 0 ? z : baseZoom;
+  }
+  function installZoomInspectSlider() {
+    if (document.getElementById('rhZoomInspectPanel')) return;
+
+    const panel = document.createElement('div');
+    panel.id = 'rhZoomInspectPanel';
+    panel.style.cssText = [
+      'position:fixed',
+      'left:12px',
+      'top:12px',
+      'z-index:99999',
+      'background:rgba(3,8,14,.78)',
+      'border:1px solid rgba(134,231,255,.55)',
+      'color:#d8f6ff',
+      'font:12px Courier New,monospace',
+      'padding:8px 10px',
+      'border-radius:8px',
+      'touch-action:auto',
+      'user-select:none',
+      '-webkit-user-select:none'
+    ].join(';');
+
+    const label = document.createElement('div');
+    label.textContent = 'ZOOM 2.02';
+    label.style.marginBottom = '4px';
+
+    const slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '0.70';
+    slider.max = '2.30';
+    slider.step = '0.02';
+    slider.value = '2.02';
+    slider.style.width = '190px';
+    slider.style.touchAction = 'auto';
+
+    const hint = document.createElement('div');
+    hint.textContent = 'left = zoom out';
+    hint.style.opacity = '.75';
+    hint.style.marginTop = '3px';
+
+    function applyZoomValue() {
+      window.RH_MANUAL_ZOOM = Number(slider.value);
+      label.textContent = 'ZOOM ' + Number(slider.value).toFixed(2);
+    }
+
+    slider.addEventListener('input', applyZoomValue);
+    slider.addEventListener('touchstart', (e) => e.stopPropagation(), { passive:true });
+    slider.addEventListener('touchmove', (e) => e.stopPropagation(), { passive:true });
+    slider.addEventListener('pointerdown', (e) => e.stopPropagation());
+    slider.addEventListener('pointermove', (e) => e.stopPropagation());
+    applyZoomValue();
+
+    panel.appendChild(label);
+    panel.appendChild(slider);
+    panel.appendChild(hint);
+    document.body.appendChild(panel);
+  }
 
   const COLORS = {
     blue: 0x3d7dff, cyan: 0x45e6ff, red: 0xff3f45, green: 0x55ff7a,
@@ -654,8 +718,10 @@
 
 
   const GROUND_ASSET = {
-    key: 'rh_world_base_page_01',
-    path: 'assets/city/pages/raven_hook_world_base_page_01_clean_4096x4096.png'
+    key: 'police_hq_chunk_a_base_only',
+    path: 'assets/city/chunks/police_hq/police_hq_chunk_a_2048.png',
+    width: 2048,
+    height: 2048
   };
 
 
@@ -1359,7 +1425,7 @@
       this.cameras.main.roundPixels = true;
       this.cameras.main.startFollow(this.player, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(CAMERA.playerZoom);
+      this.cameras.main.setZoom(getManualCameraZoom(CAMERA.playerZoom));
       this.lazyLoadGameAssets();
       installPauseMenu(this);
     }
@@ -1596,7 +1662,9 @@
 
     applyGroundMap() {
       if (this.realGround || !this.textures.exists(GROUND_ASSET.key)) return;
-      this.realGround = this.add.image(0, 0, GROUND_ASSET.key).setOrigin(0, 0).setDisplaySize(WORLD_W, WORLD_H).setDepth(0);
+      const groundW = GROUND_ASSET.width || WORLD_W;
+      const groundH = GROUND_ASSET.height || WORLD_H;
+      this.realGround = this.add.image(0, 0, GROUND_ASSET.key).setOrigin(0, 0).setDisplaySize(groundW, groundH).setDepth(0);
       if (this.groundGraphics) this.groundGraphics.setVisible(false);
       this.message = 'Raven Hook ground map loaded.';
       this.messageTimer = 1800;
@@ -1835,9 +1903,9 @@
       if(moving){ const angle=Phaser.Math.RadToDeg(Math.atan2(vy,vx)); this.playerFacing=['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8]; }
       this.ensurePlayerSprite();
       this.updatePlayerSprite(moving);
-      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, CAMERA.playerZoom, 0.08));
+      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, getManualCameraZoom(CAMERA.playerZoom), 0.08));
     }
-    updateCar(dt) { const d=this.inputDir(); this.car.isBraking=d.down; const speed=Math.hypot(this.car.vx,this.car.vy); const speedRatio=clamp(speed/VEHICLE.topSpeed,0.15,1); if(d.left) this.car.heading-=VEHICLE.steeringRate*dt*speedRatio; if(d.right) this.car.heading+=VEHICLE.steeringRate*dt*speedRatio; const fx=Math.cos(this.car.heading), fy=Math.sin(this.car.heading); if((d.up || d.ay < -0.25) && GAME.car.fuel>0){ this.car.vx+=fx*VEHICLE.acceleration*dt; this.car.vy+=fy*VEHICLE.acceleration*dt; GAME.car.fuel=Math.max(0,GAME.car.fuel-dt*(0.85+speed/360)); } if(d.down || d.ay > 0.25){ this.car.vx-=fx*VEHICLE.brakeForce*dt; this.car.vy-=fy*VEHICLE.brakeForce*dt; } const fmag=this.car.vx*fx+this.car.vy*fy; this.car.vx += (fx*fmag-this.car.vx)*VEHICLE.traction; this.car.vy += (fy*fmag-this.car.vy)*VEHICLE.traction; this.car.vx*=VEHICLE.friction; this.car.vy*=VEHICLE.friction; const sp=Math.hypot(this.car.vx,this.car.vy); if(sp>VEHICLE.topSpeed){ this.car.vx=(this.car.vx/sp)*VEHICLE.topSpeed; this.car.vy=(this.car.vy/sp)*VEHICLE.topSpeed; } this.car.body.setVelocity(this.car.vx,this.car.vy); this.car.rotationFrame=this.getVehicleFrame(this.car.heading); this.carFallback && this.car.setRotation(this.car.heading+Math.PI/2); this.syncVehicleSprites(); this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, sp>300?CAMERA.carFastZoom:sp>160?CAMERA.carMidZoom:CAMERA.carSlowZoom,0.04)); }
+    updateCar(dt) { const d=this.inputDir(); this.car.isBraking=d.down; const speed=Math.hypot(this.car.vx,this.car.vy); const speedRatio=clamp(speed/VEHICLE.topSpeed,0.15,1); if(d.left) this.car.heading-=VEHICLE.steeringRate*dt*speedRatio; if(d.right) this.car.heading+=VEHICLE.steeringRate*dt*speedRatio; const fx=Math.cos(this.car.heading), fy=Math.sin(this.car.heading); if((d.up || d.ay < -0.25) && GAME.car.fuel>0){ this.car.vx+=fx*VEHICLE.acceleration*dt; this.car.vy+=fy*VEHICLE.acceleration*dt; GAME.car.fuel=Math.max(0,GAME.car.fuel-dt*(0.85+speed/360)); } if(d.down || d.ay > 0.25){ this.car.vx-=fx*VEHICLE.brakeForce*dt; this.car.vy-=fy*VEHICLE.brakeForce*dt; } const fmag=this.car.vx*fx+this.car.vy*fy; this.car.vx += (fx*fmag-this.car.vx)*VEHICLE.traction; this.car.vy += (fy*fmag-this.car.vy)*VEHICLE.traction; this.car.vx*=VEHICLE.friction; this.car.vy*=VEHICLE.friction; const sp=Math.hypot(this.car.vx,this.car.vy); if(sp>VEHICLE.topSpeed){ this.car.vx=(this.car.vx/sp)*VEHICLE.topSpeed; this.car.vy=(this.car.vy/sp)*VEHICLE.topSpeed; } this.car.body.setVelocity(this.car.vx,this.car.vy); this.car.rotationFrame=this.getVehicleFrame(this.car.heading); this.carFallback && this.car.setRotation(this.car.heading+Math.PI/2); this.syncVehicleSprites(); this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, getManualCameraZoom(sp>300?CAMERA.carFastZoom:sp>160?CAMERA.carMidZoom:CAMERA.carSlowZoom),0.04)); }
     getVehicleFrame(a) { const deg=Phaser.Math.RadToDeg(a); const norm=Phaser.Math.Wrap(deg+90,0,360); return Math.round(norm/VEHICLE.frame.degreesPerFrame)%VEHICLE.frame.count; }
     syncVehicleSprites() {
       this.ensureSpriteLayers();
@@ -2471,7 +2539,7 @@
         this.car.body.setVelocity(0,0); this.car.vx=this.car.vy=0;
         this.cameras.main.startFollow(this.player,true,CAMERA.followLerp,CAMERA.followLerp);
         this.cameras.main.setDeadzone(42, 32);
-        this.cameras.main.setZoom(CAMERA.playerZoom);
+        this.cameras.main.setZoom(getManualCameraZoom(CAMERA.playerZoom));
         GAME.car.visualState.driverDoorOpen=true; this.syncVehicleSprites();
         this.time.delayedCall(900,()=>{GAME.car.visualState.driverDoorOpen=false;this.syncVehicleSprites();});
         this.message=GAME.ramos.onDuty && !GAME.ramos.dismissed ? 'Exited vehicle. Ramos steps out passenger side.' : 'Exited vehicle.';
@@ -2665,7 +2733,7 @@
 
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(0.68);
+      this.cameras.main.setZoom(getManualCameraZoom(0.68));
 
       this.promptBg = this.add.rectangle(VIEW_W / 2, VIEW_H - 38, 760, 42, 0x02060a, 0.72)
         .setScrollFactor(0)
@@ -3754,7 +3822,7 @@
       this.cameras.main.roundPixels = true;
       this.cameras.main.startFollow(this.playerBody, true, CAMERA.followLerp, CAMERA.followLerp);
       this.cameras.main.setDeadzone(42, 32);
-      this.cameras.main.setZoom(0.78);
+      this.cameras.main.setZoom(getManualCameraZoom(0.78));
       this.cameras.main.fadeIn(180, 0, 0, 0);
     }
 
@@ -5162,7 +5230,7 @@
       // Player car light engine uses car.heading directly.
       const movingSpeed = Math.hypot(vx, vy);
       const targetZoom = movingSpeed > 220 ? 1.65 : (movingSpeed > 120 ? 1.78 : 1.9);
-      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.045));
+      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, getManualCameraZoom(targetZoom), 0.045));
 
       this.lastCarPhysicsDebug = {
         speed: Math.round(movingSpeed),
@@ -5823,7 +5891,7 @@
 
       const movingSpeed = Math.hypot(vx, vy);
       const targetZoom = movingSpeed > 240 ? 1.60 : (movingSpeed > 135 ? 1.76 : 1.90);
-      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, targetZoom, 0.045));
+      this.cameras.main.setZoom(Phaser.Math.Linear(this.cameras.main.zoom, getManualCameraZoom(targetZoom), 0.045));
 
       this.lastCarPhysicsDebug = {
         speed: Math.round(movingSpeed),
@@ -10496,6 +10564,77 @@
     }
   })();
 
+
+
+  // DISABLE_ALL_OVERLAYS_BASE_LAYER_ONLY_PATCH_005
+  // Removes all building overlays and only displays the base Police HQ chunk layer.
+  (function installDisableAllOverlaysBaseLayerOnlyPatch005() {
+    if (Array.isArray(BUILDING_IMAGE_ASSETS)) {
+      BUILDING_IMAGE_ASSETS.splice(0, BUILDING_IMAGE_ASSETS.length);
+    }
+
+    if (Array.isArray(COLLISION_RECTS)) {
+      const kept = COLLISION_RECTS.filter(r => {
+        if (!r) return false;
+        if (r.type !== 'building') return true;
+        const rx = Number(r.x) || 0;
+        const ry = Number(r.y) || 0;
+        return !(rx < 2048 && ry < 2048);
+      });
+
+      const baseChunkCollision = [
+        { id:'col_chunk_a_police_hq_main', x:145, y:160, w:700, h:600, type:'building' },
+        { id:'col_chunk_a_police_hq_roof_core', x:350, y:210, w:270, h:120, type:'building' },
+        { id:'col_chunk_a_motor_pool_garage', x:1260, y:135, w:550, h:215, type:'building' },
+        { id:'col_chunk_a_motor_pool_support', x:1580, y:585, w:105, h:105, type:'building' },
+        { id:'col_chunk_a_parking_annex_main', x:220, y:1690, w:620, h:195, type:'building' },
+        { id:'col_chunk_a_parking_annex_left', x:145, y:1745, w:85, h:140, type:'building' },
+        { id:'col_chunk_a_parking_annex_right', x:840, y:1740, w:90, h:145, type:'building' },
+        { id:'col_chunk_a_civic_nw', x:1160, y:1170, w:260, h:370, type:'building' },
+        { id:'col_chunk_a_civic_sw', x:1180, y:1645, w:270, h:265, type:'building' },
+        { id:'col_chunk_a_civic_ne', x:1585, y:1165, w:320, h:345, type:'building' },
+        { id:'col_chunk_a_civic_se', x:1595, y:1580, w:340, h:325, type:'building' }
+      ];
+
+      COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...baseChunkCollision, ...kept);
+    }
+
+    if (Array.isArray(SPAWN_POINTS)) {
+      const playerStart = SPAWN_POINTS.find(s => s.id === 'player_start');
+      if (playerStart) { playerStart.x = 520; playerStart.y = 735; }
+      const sedanSpawn = SPAWN_POINTS.find(s => s.id === 'detective_sedan');
+      if (sedanSpawn) { sedanSpawn.x = 1570; sedanSpawn.y = 560; }
+    }
+
+    // Hard-disable all building image drawing, including old overlays that were already in the array.
+    if (typeof CityScene !== 'undefined') {
+      CityScene.prototype.applyBuildingImages = function() {
+        if (this.realBuildingImages) {
+          for (const img of this.realBuildingImages) {
+            if (img && img.destroy) img.destroy();
+          }
+        }
+        this.realBuildingImages = [];
+        return;
+      };
+
+      const oldCreate = CityScene.prototype.create;
+      CityScene.prototype.create = function(...args) {
+        const result = oldCreate.apply(this, args);
+        installZoomInspectSlider();
+        if (Array.isArray(this.realBuildingImages)) {
+          for (const img of this.realBuildingImages) {
+            if (img && img.destroy) img.destroy();
+          }
+          this.realBuildingImages = [];
+        }
+        return result;
+      };
+    }
+  })();
+
+
+  window.addEventListener('load', installZoomInspectSlider);
 
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
