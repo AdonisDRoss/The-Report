@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Top Row AB Single Ground</title>
+  <title>The Report — Raven Hook Central — Chunk B Drive Open</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -60,9 +60,10 @@
   // RAMOS_MALCOLM_SPRITE_LOCK_PATCH_007: Ramos talk/shoot scale locked, left/right mirrored from right-facing frames, Malcolm right walk uses mirrored west row and slight station scale safety.
   // TWO_CHUNK_ONSCREEN_PATCH_008: adds East Market Chunk B beside Police HQ Chunk A and map-inspect zoom mode.
   // TOP_ROW_AB_SINGLE_GROUND_PATCH_012: one top-row ground image avoids Chunk B black loading area.
+  // CHUNK_B_DRIVE_OPEN_COLLISION_PATCH_013: clears stale Chunk B collision and opens seam roads for driving.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'top-row-ab-single-ground-012';
+  const ASSET_REV = 'chunk-b-drive-open-collision-013';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -11188,6 +11189,95 @@
         }
 
         return result;
+      };
+    }
+  })();
+
+
+
+  // CHUNK_B_DRIVE_OPEN_COLLISION_PATCH_013
+  // Clears stale/broad Chunk B collision and keeps the seam roads open so the player car can drive into Chunk B.
+  (function installChunkBDriveOpenCollisionPatch013() {
+    const CHUNK_B_TIGHT_BUILDINGS_013 = [{"id":"col_chunk_b_kens_building","x":2143,"y":120,"w":300,"h":350,"type":"building"},{"id":"col_chunk_b_kims_apartment_roof","x":2153,"y":445,"w":350,"h":245,"type":"building"},{"id":"col_chunk_b_kims_corner_market_front","x":2168,"y":650,"w":720,"h":220,"type":"building"},{"id":"col_chunk_b_chens_lucky_eastmarket","x":2528,"y":180,"w":650,"h":315,"type":"building"},{"id":"col_chunk_b_rear_shop_block","x":2708,"y":495,"w":300,"h":210,"type":"building"},{"id":"col_chunk_b_top_right_small_store","x":3698,"y":115,"w":310,"h":285,"type":"building"},{"id":"col_chunk_b_red_gull_diner","x":3268,"y":535,"w":700,"h":285,"type":"building"},{"id":"col_chunk_b_raven_pawn_row","x":2148,"y":1240,"w":780,"h":430,"type":"building"},{"id":"col_chunk_b_russo_auto_body","x":3233,"y":1270,"w":560,"h":455,"type":"building"},{"id":"col_chunk_b_russo_service_shed","x":3793,"y":1185,"w":250,"h":205,"type":"building"}];
+
+    function rectsOverlap(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    // Open corridors must never contain building collision. These are the roads/crossings into and through Chunk B.
+    const OPEN_ROAD_CORRIDORS_013 = [
+      // seam/main north-south street where Chunk A meets Chunk B
+      { id:'open_seam_main_road', x:1900, y:0, w:310, h:2048 },
+      // top street
+      { id:'open_top_street', x:0, y:35, w:4096, h:205 },
+      // middle street between upper/lower blocks
+      { id:'open_middle_street', x:0, y:950, w:4096, h:245 },
+      // bottom/Russo frontage street
+      { id:'open_bottom_street', x:0, y:1780, w:4096, h:260 },
+      // Russo driveway/frontage lane
+      { id:'open_russo_driveway', x:3380, y:1350, w:330, h:698 }
+    ];
+
+    function isOldChunkBBuilding(r) {
+      if (!r || r.type !== 'building') return false;
+      const id = String(r.id || '');
+      const rx = Number(r.x) || 0;
+      const ry = Number(r.y) || 0;
+
+      // Remove all old/broad Chunk B building collisions in the top row.
+      if (rx >= 2048 && ry < 2048) return true;
+
+      // Remove older named collisions that were based on the old overlay map.
+      if (/bennys|red_gull|quick_wash|raven_pawn|kims|russo|auto_body|east_market|chunk_b/i.test(id)) return true;
+
+      return false;
+    }
+
+    function overlapsOpenRoad(r) {
+      if (!r || r.type !== 'building') return false;
+      const rr = {
+        x:Number(r.x)||0,
+        y:Number(r.y)||0,
+        w:Number(r.w)||0,
+        h:Number(r.h)||0
+      };
+      return OPEN_ROAD_CORRIDORS_013.some(c => rectsOverlap(rr, c));
+    }
+
+    if (Array.isArray(COLLISION_RECTS)) {
+      const kept = COLLISION_RECTS.filter(r => {
+        if (!r) return false;
+        if (isOldChunkBBuilding(r)) return false;
+        if (overlapsOpenRoad(r) && Number(r.x) >= 1800 && Number(r.y) < 2048) return false;
+        return true;
+      });
+
+      const seen = new Set(kept.map(r => r.id));
+      for (const r of CHUNK_B_TIGHT_BUILDINGS_013) {
+        if (!seen.has(r.id)) kept.push(r);
+      }
+
+      COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...kept);
+    }
+
+    // If the car still gets stuck exactly at the seam, nudge it through instead of treating it as a hard wall.
+    if (typeof GameScene !== 'undefined') {
+      const oldCarHitWall013 = GameScene.prototype.carHitWall;
+      GameScene.prototype.carHitWall = function() {
+        if (this.car) {
+          const x = Number(this.car.x) || 0;
+          const y = Number(this.car.y) || 0;
+          const inOpenSeam = x > 1900 && x < 2210 && y > 0 && y < 2048;
+          if (inOpenSeam) {
+            // Keep momentum but push out of the seam collision sliver.
+            const dir = Math.cos(this.car.heading || 0);
+            const push = dir >= 0 ? 18 : -18;
+            this.car.setPosition(x + push, y);
+            this.car.body?.setVelocity(this.car.velocityX || this.car.vx || 0, this.car.velocityY || this.car.vy || 0);
+            return;
+          }
+        }
+        if (typeof oldCarHitWall013 === 'function') return oldCarHitWall013.apply(this, arguments);
       };
     }
   })();
