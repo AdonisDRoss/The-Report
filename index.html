@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Chunk B Nodes Fixed</title>
+  <title>The Report — Raven Hook Central — Chunk C Civic Center</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -59,9 +59,13 @@
   // CAR_STICK_INVERT_SENSITIVITY_PATCH_006: driving touch-stick steering inverted and made more sensitive.
   // RAMOS_MALCOLM_SPRITE_LOCK_PATCH_007: Ramos talk/shoot scale locked, left/right mirrored from right-facing frames, Malcolm right walk uses mirrored west row and slight station scale safety.
   // TWO_CHUNK_ONSCREEN_PATCH_008: adds East Market Chunk B beside Police HQ Chunk A and map-inspect zoom mode.
+  // TOP_ROW_AB_SINGLE_GROUND_PATCH_012: one top-row ground image avoids Chunk B black loading area.
+  // CHUNK_B_DRIVE_OPEN_COLLISION_PATCH_013: clears stale Chunk B collision and opens seam roads for driving.
+  // STRICT_BUILDINGS_MALCOLM_LEFT_FIX_014: Chunk B collision strictly buildings + Malcolm left uses mirrored right frames.
+  // CHUNK_C_CIVIC_CENTER_GAME_READY_PATCH_015: adds Chunk C, connects north to A, east reserved for D.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'chunk-b-nodes-correct-side-010';
+  const ASSET_REV = 'chunk-c-civic-center-015';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -752,10 +756,10 @@
 
 
   const GROUND_ASSET = {
-    key: 'police_hq_chunk_a_base_only',
-    path: 'assets/city/chunks/police_hq/police_hq_chunk_a_2048.png',
-    width: 2048,
-    height: 2048
+    key: 'raven_hook_world_abc_base_4096x4096',
+    path: 'assets/city/pages/raven_hook_world_abc_base_4096x4096.png',
+    width: 4096,
+    height: 4096
   };
 
 
@@ -11014,6 +11018,586 @@
         this.message = 'Route debug on. Cars: yellow/orange road lanes. Civilians: blue sidewalks, green crosswalks.';
         this.messageTimer = 3200;
       };
+    }
+  })();
+
+
+
+  // CHUNK_AB_MERGED_NODES_PATCH_011
+  // Merges Chunk A + Chunk B traffic/pedestrian nodes. Cars stay on road lanes; civilians stay on sidewalks except crosswalk nodes.
+  (function installChunkABMergedNodesPatch011() {
+    const CHUNK_B_ROAD_NODES_011 = [{"id":"b_rd_top_eb_w","x":2118,"y":150,"lane":"eastbound","links":["b_rd_top_eb_mid"],"road":"top"},{"id":"b_rd_top_eb_mid","x":2978,"y":150,"lane":"eastbound","stop":true,"intersection":"b_int_top_main","links":["b_rd_top_eb_e","b_rd_main_sb_top"],"road":"top"},{"id":"b_rd_top_eb_e","x":4038,"y":150,"lane":"eastbound","links":["b_rd_top_wb_e"],"road":"top"},{"id":"b_rd_top_wb_e","x":4038,"y":80,"lane":"westbound","links":["b_rd_top_wb_mid"],"road":"top"},{"id":"b_rd_top_wb_mid","x":3158,"y":80,"lane":"westbound","stop":true,"intersection":"b_int_top_main","links":["b_rd_top_wb_w","b_rd_main_nb_top"],"road":"top"},{"id":"b_rd_top_wb_w","x":2118,"y":80,"lane":"westbound","links":["b_rd_top_eb_w"],"road":"top"},{"id":"b_rd_main_sb_top","x":3018,"y":70,"lane":"southbound","links":["b_rd_main_sb_center"],"road":"main"},{"id":"b_rd_main_sb_center","x":3018,"y":990,"lane":"southbound","stop":true,"intersection":"b_int_center","links":["b_rd_main_sb_bottom","b_rd_mid_eb_w"],"road":"main"},{"id":"b_rd_main_sb_bottom","x":3018,"y":1985,"lane":"southbound","links":["b_rd_bottom_eb_mid"],"road":"main"},{"id":"b_rd_main_nb_bottom","x":3128,"y":1985,"lane":"northbound","links":["b_rd_main_nb_center"],"road":"main"},{"id":"b_rd_main_nb_center","x":3128,"y":1085,"lane":"northbound","stop":true,"intersection":"b_int_center","links":["b_rd_main_nb_top","b_rd_mid_wb_e"],"road":"main"},{"id":"b_rd_main_nb_top","x":3128,"y":70,"lane":"northbound","links":["b_rd_top_wb_mid"],"road":"main"},{"id":"b_rd_mid_eb_w","x":2118,"y":1128,"lane":"eastbound","links":["b_rd_mid_eb_center"],"road":"middle"},{"id":"b_rd_mid_eb_center","x":2988,"y":1128,"lane":"eastbound","stop":true,"intersection":"b_int_center","links":["b_rd_mid_eb_e","b_rd_main_sb_bottom"],"road":"middle"},{"id":"b_rd_mid_eb_e","x":4038,"y":1128,"lane":"eastbound","links":["b_rd_mid_wb_e"],"road":"middle"},{"id":"b_rd_mid_wb_e","x":4038,"y":1048,"lane":"westbound","links":["b_rd_mid_wb_center"],"road":"middle"},{"id":"b_rd_mid_wb_center","x":3168,"y":1048,"lane":"westbound","stop":true,"intersection":"b_int_center","links":["b_rd_mid_wb_w","b_rd_main_nb_top"],"road":"middle"},{"id":"b_rd_mid_wb_w","x":2118,"y":1048,"lane":"westbound","links":["b_rd_mid_eb_w"],"road":"middle"},{"id":"b_rd_bottom_eb_w","x":2118,"y":1920,"lane":"eastbound","links":["b_rd_bottom_eb_mid"],"road":"bottom"},{"id":"b_rd_bottom_eb_mid","x":2988,"y":1920,"lane":"eastbound","stop":true,"intersection":"b_int_bottom_main","links":["b_rd_bottom_eb_e","b_rd_main_sb_bottom"],"road":"bottom"},{"id":"b_rd_bottom_eb_e","x":4038,"y":1920,"lane":"eastbound","links":["b_rd_bottom_wb_e"],"road":"bottom"},{"id":"b_rd_bottom_wb_e","x":4038,"y":1845,"lane":"westbound","links":["b_rd_bottom_wb_mid"],"road":"bottom"},{"id":"b_rd_bottom_wb_mid","x":3158,"y":1845,"lane":"westbound","stop":true,"intersection":"b_int_bottom_main","links":["b_rd_bottom_wb_w","b_rd_main_nb_bottom"],"road":"bottom"},{"id":"b_rd_bottom_wb_w","x":2118,"y":1845,"lane":"westbound","links":["b_rd_bottom_eb_w"],"road":"bottom"},{"id":"b_rd_russo_front_nb_s","x":3533,"y":1985,"lane":"northbound","links":["b_rd_russo_front_nb_n"],"road":"russo_front"},{"id":"b_rd_russo_front_nb_n","x":3533,"y":1445,"lane":"northbound","links":["b_rd_mid_wb_e"],"road":"russo_front"},{"id":"b_rd_russo_front_sb_n","x":3443,"y":1445,"lane":"southbound","links":["b_rd_russo_front_sb_s"],"road":"russo_front"},{"id":"b_rd_russo_front_sb_s","x":3443,"y":1985,"lane":"southbound","links":["b_rd_bottom_eb_mid"],"road":"russo_front"}];
+    const CHUNK_B_SIDEWALK_NODES_011 = [{"id":"b_sw_ul_nw","x":2163,"y":160,"links":["b_sw_ul_top","b_sw_ul_left"]},{"id":"b_sw_ul_top","x":2608,"y":160,"links":["b_sw_ul_nw","b_sw_chens_front","b_sw_ul_ne"]},{"id":"b_sw_ul_ne","x":2898,"y":160,"links":["b_sw_ul_top","b_sw_ul_right"]},{"id":"b_sw_ul_left","x":2158,"y":620,"links":["b_sw_ul_nw","b_sw_kims_front_w"]},{"id":"b_sw_ul_right","x":2918,"y":655,"links":["b_sw_ul_ne","b_sw_kims_front_e","b_cross_mid_w"]},{"id":"b_sw_chens_front","x":2568,"y":440,"links":["b_sw_ul_top","b_sw_lucky_front"]},{"id":"b_sw_lucky_front","x":2698,"y":440,"links":["b_sw_chens_front","b_sw_eastmarket_front"]},{"id":"b_sw_eastmarket_front","x":2828,"y":440,"links":["b_sw_lucky_front","b_sw_ul_right"]},{"id":"b_sw_kims_front_w","x":2233,"y":850,"links":["b_sw_ul_left","b_sw_kims_front_c"]},{"id":"b_sw_kims_front_c","x":2488,"y":850,"links":["b_sw_kims_front_w","b_sw_kims_front_e"]},{"id":"b_sw_kims_front_e","x":2808,"y":850,"links":["b_sw_kims_front_c","b_sw_ul_right"]},{"id":"b_sw_ur_nw","x":3278,"y":175,"links":["b_sw_ur_top","b_sw_diner_back"]},{"id":"b_sw_ur_top","x":3728,"y":175,"links":["b_sw_ur_nw","b_sw_ur_ne","b_sw_top_store_front"]},{"id":"b_sw_ur_ne","x":3993,"y":175,"links":["b_sw_ur_top","b_sw_ur_right"]},{"id":"b_sw_ur_right","x":3993,"y":650,"links":["b_sw_ur_ne","b_sw_ur_se"]},{"id":"b_sw_ur_se","x":3908,"y":865,"links":["b_sw_ur_right","b_sw_diner_front_e"]},{"id":"b_sw_diner_front_e","x":3733,"y":865,"links":["b_sw_ur_se","b_sw_diner_front_c"]},{"id":"b_sw_diner_front_c","x":3563,"y":865,"links":["b_sw_diner_front_e","b_sw_diner_front_w"]},{"id":"b_sw_diner_front_w","x":3358,"y":865,"links":["b_sw_diner_front_c","b_sw_diner_back","b_cross_mid_e"]},{"id":"b_sw_diner_back","x":3333,"y":530,"links":["b_sw_ur_nw","b_sw_diner_front_w"]},{"id":"b_sw_top_store_front","x":3793,"y":365,"links":["b_sw_ur_top","b_sw_ur_right"]},{"id":"b_sw_ll_nw","x":2163,"y":1240,"links":["b_sw_ll_top","b_sw_ll_left"]},{"id":"b_sw_ll_top","x":2623,"y":1240,"links":["b_sw_ll_nw","b_sw_ll_ne"]},{"id":"b_sw_ll_ne","x":2918,"y":1240,"links":["b_sw_ll_top","b_sw_ll_right","b_cross_mid_w"]},{"id":"b_sw_ll_left","x":2158,"y":1590,"links":["b_sw_ll_nw","b_sw_pawn_front_w"]},{"id":"b_sw_ll_right","x":2918,"y":1660,"links":["b_sw_ll_ne","b_sw_ll_se"]},{"id":"b_sw_ll_se","x":2843,"y":1810,"links":["b_sw_ll_right","b_sw_pawn_front_e"]},{"id":"b_sw_pawn_front_w","x":2233,"y":1780,"links":["b_sw_ll_left","b_sw_pawn_front_c"]},{"id":"b_sw_pawn_front_c","x":2478,"y":1780,"links":["b_sw_pawn_front_w","b_sw_pawn_front_e"]},{"id":"b_sw_pawn_front_e","x":2808,"y":1780,"links":["b_sw_pawn_front_c","b_sw_ll_se"]},{"id":"b_sw_lr_nw","x":3268,"y":1240,"links":["b_sw_lr_top","b_sw_lr_left","b_cross_mid_e"]},{"id":"b_sw_lr_top","x":3648,"y":1240,"links":["b_sw_lr_nw","b_sw_lr_ne","b_sw_service_shed"]},{"id":"b_sw_lr_ne","x":3993,"y":1240,"links":["b_sw_lr_top","b_sw_lr_right"]},{"id":"b_sw_lr_left","x":3268,"y":1590,"links":["b_sw_lr_nw","b_sw_russo_front_w"]},{"id":"b_sw_lr_right","x":3993,"y":1665,"links":["b_sw_lr_ne","b_sw_lr_se"]},{"id":"b_sw_lr_se","x":3893,"y":1860,"links":["b_sw_lr_right","b_sw_russo_front_e"]},{"id":"b_sw_russo_front_w","x":3308,"y":1785,"links":["b_sw_lr_left","b_sw_russo_front_c"]},{"id":"b_sw_russo_front_c","x":3498,"y":1785,"links":["b_sw_russo_front_w","b_sw_russo_front_e"]},{"id":"b_sw_russo_front_e","x":3728,"y":1785,"links":["b_sw_russo_front_c","b_sw_lr_se"]},{"id":"b_sw_service_shed","x":3858,"y":1190,"links":["b_sw_lr_top","b_sw_lr_right"]},{"id":"b_cross_top_w","x":2993,"y":160,"crosswalk":true,"links":["b_sw_ul_ne","b_cross_top_e"]},{"id":"b_cross_top_e","x":3183,"y":160,"crosswalk":true,"links":["b_cross_top_w","b_sw_ur_nw"]},{"id":"b_cross_mid_w","x":2993,"y":1048,"crosswalk":true,"links":["b_sw_ul_right","b_sw_ll_ne","b_cross_mid_c"]},{"id":"b_cross_mid_c","x":3088,"y":1048,"crosswalk":true,"links":["b_cross_mid_w","b_cross_mid_e"]},{"id":"b_cross_mid_e","x":3183,"y":1048,"crosswalk":true,"links":["b_cross_mid_c","b_sw_diner_front_w","b_sw_lr_nw"]},{"id":"b_cross_bottom_w","x":2993,"y":1840,"crosswalk":true,"links":["b_sw_ll_se","b_cross_bottom_e"]},{"id":"b_cross_bottom_e","x":3183,"y":1840,"crosswalk":true,"links":["b_cross_bottom_w","b_sw_lr_left"]}];
+    const CHUNK_AB_TRAFFIC_SPAWNS_011 = [{"key":"generic_civilian_sedan","start":"rd_station_w","police":false,"maxSpeed":70},{"key":"raven_hook_taxi_cab","start":"rd_market_w","police":false,"maxSpeed":68},{"key":"unmarked_detective_sedan","start":"rd_civic_n","police":true,"maxSpeed":72},{"key":"beat_up_pickup_truck","start":"rd_station_mid","police":false,"maxSpeed":58},{"key":"generic_civilian_sedan","start":"b_rd_mid_eb_w","police":false,"maxSpeed":66},{"key":"raven_hook_taxi_cab","start":"b_rd_top_wb_e","police":false,"maxSpeed":64},{"key":"beat_up_pickup_truck","start":"b_rd_bottom_eb_w","police":false,"maxSpeed":58},{"key":"los_reyes_lowrider","start":"b_rd_russo_front_nb_s","police":false,"maxSpeed":62},{"key":"raven_hook_utility_service_truck","start":"b_rd_mid_wb_e","police":false,"maxSpeed":54}];
+
+    function addItemsToMap(mapObj, items) {
+      if (!mapObj) return;
+      for (const item of items) mapObj[item.id] = item;
+    }
+
+    // Restore/preserve Chunk A nodes from the original arrays, then add Chunk B nodes.
+    if (typeof RH_RD_PATCH_MAP !== 'undefined') {
+      if (Array.isArray(RH_ROAD_PATCH_NODES)) {
+        for (const n of RH_ROAD_PATCH_NODES) {
+          if (Number(n.x) < 2048 && Number(n.y) < 2048) RH_RD_PATCH_MAP[n.id] = n;
+        }
+      }
+      addItemsToMap(RH_RD_PATCH_MAP, CHUNK_B_ROAD_NODES_011);
+    }
+
+    if (typeof RH_SW_PATCH_MAP !== 'undefined') {
+      if (Array.isArray(RH_SIDEWALK_PATCH_NODES)) {
+        for (const n of RH_SIDEWALK_PATCH_NODES) {
+          if (Number(n.x) < 2048 && Number(n.y) < 2048) RH_SW_PATCH_MAP[n.id] = n;
+        }
+      }
+      addItemsToMap(RH_SW_PATCH_MAP, CHUNK_B_SIDEWALK_NODES_011);
+    }
+
+    if (Array.isArray(RH_TRAFFIC_SPAWNS)) {
+      RH_TRAFFIC_SPAWNS.splice(0, RH_TRAFFIC_SPAWNS.length, ...CHUNK_AB_TRAFFIC_SPAWNS_011);
+    }
+
+    if (typeof CityScene !== 'undefined') {
+      const oldApplyGroundMap011 = CityScene.prototype.applyGroundMap;
+      CityScene.prototype.applyGroundMap = function(...args) {
+        if (typeof oldApplyGroundMap011 === 'function') oldApplyGroundMap011.apply(this, args);
+
+        if (!this.groundChunkImages) this.groundChunkImages = {};
+        if (!this.groundChunkImages.chunkA && this.textures.exists(GROUND_ASSET.key)) {
+          this.groundChunkImages.chunkA = this.add.image(0, 0, GROUND_ASSET.key)
+            .setOrigin(0, 0)
+            .setDisplaySize(GROUND_ASSET.width || 2048, GROUND_ASSET.height || 2048)
+            .setDepth(0);
+        }
+        if (!this.groundChunkImages.chunkB && this.textures.exists(EAST_MARKET_CHUNK_B_ASSET.key)) {
+          this.groundChunkImages.chunkB = this.add.image(EAST_MARKET_CHUNK_B_ASSET.x, EAST_MARKET_CHUNK_B_ASSET.y, EAST_MARKET_CHUNK_B_ASSET.key)
+            .setOrigin(0, 0)
+            .setDisplaySize(EAST_MARKET_CHUNK_B_ASSET.width, EAST_MARKET_CHUNK_B_ASSET.height)
+            .setDepth(0);
+        }
+      };
+
+      const oldCreate011 = CityScene.prototype.create;
+      CityScene.prototype.create = function(...args) {
+        const result = oldCreate011.apply(this, args);
+
+        // Robust fallback: if Chunk B was not in preload, queue it now and redraw when ready.
+        if (!this.textures.exists(EAST_MARKET_CHUNK_B_ASSET.key) && !this._chunkBLoadQueued011) {
+          this._chunkBLoadQueued011 = true;
+          this.load.image(EAST_MARKET_CHUNK_B_ASSET.key, A(EAST_MARKET_CHUNK_B_ASSET.path));
+          this.load.once(`filecomplete-image-${EAST_MARKET_CHUNK_B_ASSET.key}`, () => {
+            this._chunkBLoadQueued011 = false;
+            this.applyGroundMap?.();
+          });
+          if (!this.load.isLoading()) this.load.start();
+        } else {
+          this.applyGroundMap?.();
+        }
+
+        return result;
+      };
+
+      GameScene.prototype.createCivilians = function() {
+        this.civilians = [];
+        const starts = [
+          // Chunk A
+          'sw_station_01','sw_station_02','sw_station_03','sw_civic_01','sw_civic_02','sw_station_cross',
+          // Chunk B
+          'b_sw_kims_front_c','b_sw_chens_front','b_sw_diner_front_c','b_sw_pawn_front_c','b_sw_russo_front_c','b_sw_top_store_front',
+          'b_sw_ll_top','b_sw_lr_top','b_sw_ul_left','b_sw_ur_right'
+        ];
+
+        for (let i = 0; i < Math.min(starts.length, MAX_CITY_CIVILIANS); i++) {
+          const node = RH_SW_PATCH_MAP[starts[i]];
+          if (!node) continue;
+          const assetDef = CIVILIAN_ASSETS[i % CIVILIAN_ASSETS.length];
+          const body = this.add.rectangle(node.x, node.y, 20, 28, 0x00ff00, 0).setDepth(29);
+          this.physics.add.existing(body);
+          if (body.body) {
+            body.body.setCollideWorldBounds(true);
+            body.body.setSize(18, 22);
+          }
+          if (this.walls) this.physics.add.collider(body, this.walls);
+
+          let sprite;
+          if (this.textures.exists(assetDef.key)) {
+            sprite = this.add.sprite(node.x, node.y, assetDef.key, 0)
+              .setOrigin(0.5, 0.88)
+              .setScale(CIV_CITY_SCALE)
+              .setDepth(30);
+          } else {
+            sprite = this.add.rectangle(node.x, node.y, 18, 28, 0xbfc7d1, 0.85).setDepth(30);
+            sprite._isFallback = true;
+          }
+
+          this.civilians.push({
+            body, sprite, assetKey:assetDef.key,
+            nodeId:starts[i], targetNodeId:null, prevNodeId:null,
+            speed:Phaser.Math.Between(42,62),
+            pauseTimer:Phaser.Math.Between(250,1400),
+            facing:'S'
+          });
+        }
+      };
+    }
+  })();
+
+
+
+  // TOP_ROW_AB_SINGLE_GROUND_PATCH_012
+  // Fixes Chunk B black screen by using one 4096x2048 top-row ground image for Chunk A + Chunk B.
+  (function installTopRowABSingleGroundPatch012() {
+    if (typeof CityScene !== 'undefined') {
+      CityScene.prototype.applyGroundMap = function() {
+        if (this.groundChunkImages) {
+          for (const img of Object.values(this.groundChunkImages)) {
+            if (img && img.destroy) img.destroy();
+          }
+        }
+        this.groundChunkImages = {};
+
+        if (this.realGround && this.realGround.destroy) {
+          this.realGround.destroy();
+          this.realGround = null;
+        }
+
+        if (this.textures.exists(GROUND_ASSET.key)) {
+          this.realGround = this.add.image(0, 0, GROUND_ASSET.key)
+            .setOrigin(0, 0)
+            .setDisplaySize(GROUND_ASSET.width || 4096, GROUND_ASSET.height || 2048)
+            .setDepth(0);
+          this.groundChunkImages.topRowAB = this.realGround;
+        }
+
+        if (this.groundGraphics) this.groundGraphics.setVisible(false);
+      };
+
+      const oldCreateTopRow012 = CityScene.prototype.create;
+      CityScene.prototype.create = function(...args) {
+        const result = oldCreateTopRow012.apply(this, args);
+
+        // Runtime fallback: if GitHub Pages had not preloaded it yet, load it now and draw after filecomplete.
+        if (!this.textures.exists(GROUND_ASSET.key) && !this._topRowABLoadQueued012) {
+          this._topRowABLoadQueued012 = true;
+          this.load.image(GROUND_ASSET.key, A(GROUND_ASSET.path));
+          this.load.once(`filecomplete-image-${GROUND_ASSET.key}`, () => {
+            this._topRowABLoadQueued012 = false;
+            this.applyGroundMap?.();
+          });
+          if (!this.load.isLoading()) this.load.start();
+        } else {
+          this.applyGroundMap?.();
+        }
+
+        return result;
+      };
+    }
+  })();
+
+
+
+  // CHUNK_B_DRIVE_OPEN_COLLISION_PATCH_013
+  // Clears stale/broad Chunk B collision and keeps the seam roads open so the player car can drive into Chunk B.
+  (function installChunkBDriveOpenCollisionPatch013() {
+    const CHUNK_B_TIGHT_BUILDINGS_013 = [{"id":"col_chunk_b_kens_building","x":2143,"y":120,"w":300,"h":350,"type":"building"},{"id":"col_chunk_b_kims_apartment_roof","x":2153,"y":445,"w":350,"h":245,"type":"building"},{"id":"col_chunk_b_kims_corner_market_front","x":2168,"y":650,"w":720,"h":220,"type":"building"},{"id":"col_chunk_b_chens_lucky_eastmarket","x":2528,"y":180,"w":650,"h":315,"type":"building"},{"id":"col_chunk_b_rear_shop_block","x":2708,"y":495,"w":300,"h":210,"type":"building"},{"id":"col_chunk_b_top_right_small_store","x":3698,"y":115,"w":310,"h":285,"type":"building"},{"id":"col_chunk_b_red_gull_diner","x":3268,"y":535,"w":700,"h":285,"type":"building"},{"id":"col_chunk_b_raven_pawn_row","x":2148,"y":1240,"w":780,"h":430,"type":"building"},{"id":"col_chunk_b_russo_auto_body","x":3233,"y":1270,"w":560,"h":455,"type":"building"},{"id":"col_chunk_b_russo_service_shed","x":3793,"y":1185,"w":250,"h":205,"type":"building"}];
+
+    function rectsOverlap(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    // Open corridors must never contain building collision. These are the roads/crossings into and through Chunk B.
+    const OPEN_ROAD_CORRIDORS_013 = [
+      // seam/main north-south street where Chunk A meets Chunk B
+      { id:'open_seam_main_road', x:1900, y:0, w:310, h:2048 },
+      // top street
+      { id:'open_top_street', x:0, y:35, w:4096, h:205 },
+      // middle street between upper/lower blocks
+      { id:'open_middle_street', x:0, y:950, w:4096, h:245 },
+      // bottom/Russo frontage street
+      { id:'open_bottom_street', x:0, y:1780, w:4096, h:260 },
+      // Russo driveway/frontage lane
+      { id:'open_russo_driveway', x:3380, y:1350, w:330, h:698 }
+    ];
+
+    function isOldChunkBBuilding(r) {
+      if (!r || r.type !== 'building') return false;
+      const id = String(r.id || '');
+      const rx = Number(r.x) || 0;
+      const ry = Number(r.y) || 0;
+
+      // Remove all old/broad Chunk B building collisions in the top row.
+      if (rx >= 2048 && ry < 2048) return true;
+
+      // Remove older named collisions that were based on the old overlay map.
+      if (/bennys|red_gull|quick_wash|raven_pawn|kims|russo|auto_body|east_market|chunk_b/i.test(id)) return true;
+
+      return false;
+    }
+
+    function overlapsOpenRoad(r) {
+      if (!r || r.type !== 'building') return false;
+      const rr = {
+        x:Number(r.x)||0,
+        y:Number(r.y)||0,
+        w:Number(r.w)||0,
+        h:Number(r.h)||0
+      };
+      return OPEN_ROAD_CORRIDORS_013.some(c => rectsOverlap(rr, c));
+    }
+
+    if (Array.isArray(COLLISION_RECTS)) {
+      const kept = COLLISION_RECTS.filter(r => {
+        if (!r) return false;
+        if (isOldChunkBBuilding(r)) return false;
+        if (overlapsOpenRoad(r) && Number(r.x) >= 1800 && Number(r.y) < 2048) return false;
+        return true;
+      });
+
+      const seen = new Set(kept.map(r => r.id));
+      for (const r of CHUNK_B_TIGHT_BUILDINGS_013) {
+        if (!seen.has(r.id)) kept.push(r);
+      }
+
+      COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...kept);
+    }
+
+    // If the car still gets stuck exactly at the seam, nudge it through instead of treating it as a hard wall.
+    if (typeof GameScene !== 'undefined') {
+      const oldCarHitWall013 = GameScene.prototype.carHitWall;
+      GameScene.prototype.carHitWall = function() {
+        if (this.car) {
+          const x = Number(this.car.x) || 0;
+          const y = Number(this.car.y) || 0;
+          const inOpenSeam = x > 1900 && x < 2210 && y > 0 && y < 2048;
+          if (inOpenSeam) {
+            // Keep momentum but push out of the seam collision sliver.
+            const dir = Math.cos(this.car.heading || 0);
+            const push = dir >= 0 ? 18 : -18;
+            this.car.setPosition(x + push, y);
+            this.car.body?.setVelocity(this.car.velocityX || this.car.vx || 0, this.car.velocityY || this.car.vy || 0);
+            return;
+          }
+        }
+        if (typeof oldCarHitWall013 === 'function') return oldCarHitWall013.apply(this, arguments);
+      };
+    }
+  })();
+
+
+
+  // STRICT_BUILDINGS_MALCOLM_LEFT_FIX_014
+  // Fixes Malcolm city left-walk crop by mirroring right-facing frames, and rebuilds Chunk B collision as buildings-only.
+  (function installStrictBuildingsMalcolmLeftFix014() {
+    const CHUNK_B_STRICT_BUILDINGS_014 = [{"id":"strict_b_kens_top_left","x":2143,"y":125,"w":275,"h":285,"type":"building"},{"id":"strict_b_kims_rear_apartment","x":2153,"y":435,"w":330,"h":210,"type":"building"},{"id":"strict_b_kims_front_market","x":2168,"y":650,"w":710,"h":205,"type":"building"},{"id":"strict_b_chens_lucky_east_market","x":2538,"y":185,"w":580,"h":280,"type":"building"},{"id":"strict_b_kims_mid_roof","x":2698,"y":500,"w":300,"h":180,"type":"building"},{"id":"strict_b_top_right_store","x":3698,"y":120,"w":285,"h":255,"type":"building"},{"id":"strict_b_red_gull_diner","x":3263,"y":555,"w":690,"h":240,"type":"building"},{"id":"strict_b_raven_pawn_row","x":2153,"y":1265,"w":780,"h":385,"type":"building"},{"id":"strict_b_russo_main_left","x":3238,"y":1285,"w":420,"h":410,"type":"building"},{"id":"strict_b_russo_rear_right","x":3658,"y":1225,"w":140,"h":360,"type":"building"},{"id":"strict_b_russo_service_shed","x":3823,"y":1195,"w":205,"h":165,"type":"building"}];
+
+    function isChunkBTopRowRect(r) {
+      if (!r) return false;
+      const x = Number(r.x) || 0;
+      const y = Number(r.y) || 0;
+      return x >= 2048 && y < 2048;
+    }
+
+    function isOldChunkBOrOldNamedBuilding(r) {
+      if (!r || r.type !== 'building') return false;
+      const id = String(r.id || '');
+      if (isChunkBTopRowRect(r)) return true;
+      return /bennys|red_gull|quick_wash|raven_pawn|kims|russo|auto_body|east_market|chunk_b|strict_b_/i.test(id);
+    }
+
+    function applyStrictChunkBCollisionArray() {
+      if (!Array.isArray(COLLISION_RECTS)) return;
+      const kept = COLLISION_RECTS.filter(r => r && !isOldChunkBOrOldNamedBuilding(r));
+      COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...kept, ...CHUNK_B_STRICT_BUILDINGS_014);
+    }
+
+    applyStrictChunkBCollisionArray();
+
+    if (typeof GameScene !== 'undefined') {
+      // Malcolm city left/right fix: use right-facing rows for both directions, flip left.
+      GameScene.prototype.frameForFacing = function() {
+        const f = this.playerFacing || 'S';
+        const rowByFacing = {
+          S: 0,
+          SW: 7, W: 6, NW: 5,
+          N: 4,
+          NE: 5, E: 6, SE: 7
+        };
+        return (rowByFacing[f] ?? 0) * 6;
+      };
+
+      GameScene.prototype.animForFacing = function() {
+        const f = this.playerFacing || 'S';
+        const nameByFacing = {
+          S:'south',
+          SW:'southeast', W:'east', NW:'northeast',
+          N:'north',
+          NE:'northeast', E:'east', SE:'southeast'
+        };
+        return `detective_walk_${nameByFacing[f] || 'south'}`;
+      };
+
+      function isLeftFacing(f) {
+        return f === 'W' || f === 'SW' || f === 'NW';
+      }
+
+      const oldUpdatePlayerSprite014 = GameScene.prototype.updatePlayerSprite;
+      if (typeof oldUpdatePlayerSprite014 === 'function') {
+        GameScene.prototype.updatePlayerSprite = function(moving = false) {
+          const result = oldUpdatePlayerSprite014.call(this, moving);
+          if (this.playerSprite) {
+            const f = this.playerFacing || 'S';
+            this.playerSprite.setFlipX?.(isLeftFacing(f));
+            this.playerSprite.setOrigin?.(0.5, 0.76);
+            this.playerSprite.setScale?.(PLAYER_ASSET.scale);
+          }
+          return result;
+        };
+      }
+
+      const oldEnsurePlayer014 = GameScene.prototype.ensurePlayerSprite;
+      if (typeof oldEnsurePlayer014 === 'function') {
+        GameScene.prototype.ensurePlayerSprite = function(...args) {
+          const result = oldEnsurePlayer014.apply(this, args);
+          if (this.playerSprite) {
+            const f = this.playerFacing || 'S';
+            this.playerSprite.setFlipX?.(isLeftFacing(f));
+            this.playerSprite.setOrigin?.(0.5, 0.76);
+          }
+          return result;
+        };
+      }
+
+      // Hard override the wall builder so Chunk B collision is strictly buildings, not old broad boxes.
+      GameScene.prototype.createWalls = function() {
+        applyStrictChunkBCollisionArray();
+
+        if (this.walls?.clear) this.walls.clear(true, true);
+        this.walls = this.physics.add.staticGroup();
+
+        for (const r of COLLISION_RECTS) {
+          if (!r) continue;
+          // Keep water and non-building blockers outside Chunk B.
+          if (isChunkBTopRowRect(r) && r.type === 'building' && !String(r.id || '').startsWith('strict_b_')) continue;
+
+          const rect = this.add.rectangle(
+            r.x + r.w / 2,
+            r.y + r.h / 2,
+            r.w,
+            r.h,
+            r.type === 'water' ? 0x003355 : 0xff0000,
+            0
+          );
+          this.physics.add.existing(rect, true);
+          this.walls.add(rect);
+        }
+      };
+
+      const oldCreate014 = GameScene.prototype.create;
+      GameScene.prototype.create = function(...args) {
+        applyStrictChunkBCollisionArray();
+        const result = oldCreate014.apply(this, args);
+
+        // Rebuild one more time after all older patches mutate collision.
+        this.time?.delayedCall?.(40, () => {
+          const px = this.player?.x, py = this.player?.y;
+          const cx = this.car?.x, cy = this.car?.y;
+          this.createWalls?.();
+          if (this.player && this.walls) this.physics.add.collider(this.player, this.walls);
+          if (this.car && this.walls) this.physics.add.collider(this.car, this.walls, () => this.carHitWall?.());
+          if (this.player && Number.isFinite(px) && Number.isFinite(py)) this.player.setPosition(px, py);
+          if (this.car && Number.isFinite(cx) && Number.isFinite(cy)) this.car.setPosition(cx, cy);
+        });
+
+        return result;
+      };
+
+      const oldCarHitWall014 = GameScene.prototype.carHitWall;
+      GameScene.prototype.carHitWall = function() {
+        if (this.car) {
+          const x = Number(this.car.x) || 0;
+          const y = Number(this.car.y) || 0;
+          // Roads in Chunk B are open; prevent invisible road/seam collision from stopping the car.
+          const inOpenRoad =
+            (x >= 1900 && x <= 2215 && y >= 0 && y <= 2048) ||
+            (x >= 2048 && x <= 4096 && y >= 900 && y <= 1220) ||
+            (x >= 2048 && x <= 4096 && y >= 1760 && y <= 2048) ||
+            (x >= 2048 && x <= 4096 && y >= 0 && y <= 255);
+
+          if (inOpenRoad) {
+            const vx = this.car.velocityX || this.car.vx || 0;
+            const vy = this.car.velocityY || this.car.vy || 0;
+            this.car.setPosition(x + Math.sign(vx || 1) * 22, y + Math.sign(vy || 0) * 6);
+            this.car.body?.setVelocity(vx, vy);
+            return;
+          }
+        }
+        if (typeof oldCarHitWall014 === 'function') return oldCarHitWall014.apply(this, arguments);
+      };
+    }
+  })();
+
+
+
+  // CHUNK_C_CIVIC_CENTER_GAME_READY_PATCH_015
+  // Adds Chunk C at x=0,y=2048. North connects to Chunk A; east edge is reserved for future Chunk D.
+  (function installChunkCCivicCenterGameReadyPatch015() {
+    const CHUNK_C_COLLISION_RECTS_015 = [{"id":"col_chunk_c_courthouse_main","x":655,"y":2308,"w":600,"h":510,"type":"building"},{"id":"col_chunk_c_courthouse_steps_core","x":755,"y":2748,"w":400,"h":150,"type":"building"},{"id":"col_chunk_c_city_hall","x":1405,"y":2333,"w":470,"h":510,"type":"building"},{"id":"col_chunk_c_civic_records_annex","x":130,"y":2478,"w":350,"h":470,"type":"building"},{"id":"col_chunk_c_civic_service_tow_building","x":80,"y":3183,"w":440,"h":270,"type":"building"},{"id":"col_chunk_c_bail_bonds","x":930,"y":3508,"w":280,"h":390,"type":"building"},{"id":"col_chunk_c_march_legal","x":1270,"y":3173,"w":430,"h":440,"type":"building"},{"id":"col_chunk_c_law_offices","x":1640,"y":3148,"w":305,"h":390,"type":"building"},{"id":"col_chunk_c_public_defender","x":1560,"y":3588,"w":470,"h":330,"type":"building"}];
+    const CHUNK_C_ROAD_NODES_015 = [{"id":"c_rd_north_eb_w","x":80,"y":2208,"lane":"eastbound","links":["c_rd_north_eb_mid"],"road":"north"},{"id":"c_rd_north_eb_mid","x":930,"y":2208,"lane":"eastbound","stop":true,"intersection":"c_int_north_main","links":["c_rd_north_eb_e","c_rd_main_sb_n"],"road":"north"},{"id":"c_rd_north_eb_e","x":2000,"y":2208,"lane":"eastbound","links":["c_rd_north_wb_e"],"road":"north"},{"id":"c_rd_north_wb_e","x":2000,"y":2133,"lane":"westbound","links":["c_rd_north_wb_mid"],"road":"north"},{"id":"c_rd_north_wb_mid","x":1085,"y":2133,"lane":"westbound","stop":true,"intersection":"c_int_north_main","links":["c_rd_north_wb_w","c_rd_main_nb_n"],"road":"north"},{"id":"c_rd_north_wb_w","x":80,"y":2133,"lane":"westbound","links":["c_rd_north_eb_w"],"road":"north"},{"id":"c_rd_main_sb_n","x":975,"y":2128,"lane":"southbound","links":["c_rd_main_sb_mid"],"road":"main"},{"id":"c_rd_main_sb_mid","x":975,"y":3028,"lane":"southbound","stop":true,"intersection":"c_int_center","links":["c_rd_main_sb_s","c_rd_mid_eb_w"],"road":"main"},{"id":"c_rd_main_sb_s","x":975,"y":4028,"lane":"southbound","links":["c_rd_south_eb_mid"],"road":"main"},{"id":"c_rd_main_nb_s","x":1080,"y":4028,"lane":"northbound","links":["c_rd_main_nb_mid"],"road":"main"},{"id":"c_rd_main_nb_mid","x":1080,"y":3148,"lane":"northbound","stop":true,"intersection":"c_int_center","links":["c_rd_main_nb_n","c_rd_mid_wb_e"],"road":"main"},{"id":"c_rd_main_nb_n","x":1080,"y":2128,"lane":"northbound","links":["c_rd_north_wb_mid"],"road":"main"},{"id":"c_rd_mid_eb_w","x":80,"y":3093,"lane":"eastbound","links":["c_rd_mid_eb_mid"],"road":"middle"},{"id":"c_rd_mid_eb_mid","x":930,"y":3093,"lane":"eastbound","stop":true,"intersection":"c_int_center","links":["c_rd_mid_eb_e","c_rd_main_sb_s"],"road":"middle"},{"id":"c_rd_mid_eb_e","x":2000,"y":3093,"lane":"eastbound","links":["c_rd_mid_wb_e"],"road":"middle"},{"id":"c_rd_mid_wb_e","x":2000,"y":3013,"lane":"westbound","links":["c_rd_mid_wb_mid"],"road":"middle"},{"id":"c_rd_mid_wb_mid","x":1105,"y":3013,"lane":"westbound","stop":true,"intersection":"c_int_center","links":["c_rd_mid_wb_w","c_rd_main_nb_n"],"road":"middle"},{"id":"c_rd_mid_wb_w","x":80,"y":3013,"lane":"westbound","links":["c_rd_mid_eb_w"],"road":"middle"},{"id":"c_rd_south_eb_w","x":80,"y":3948,"lane":"eastbound","links":["c_rd_south_eb_mid"],"road":"south"},{"id":"c_rd_south_eb_mid","x":930,"y":3948,"lane":"eastbound","stop":true,"intersection":"c_int_south_main","links":["c_rd_south_eb_e","c_rd_main_sb_s"],"road":"south"},{"id":"c_rd_south_eb_e","x":2000,"y":3948,"lane":"eastbound","links":["c_rd_south_wb_e"],"road":"south"},{"id":"c_rd_south_wb_e","x":2000,"y":3868,"lane":"westbound","links":["c_rd_south_wb_mid"],"road":"south"},{"id":"c_rd_south_wb_mid","x":1085,"y":3868,"lane":"westbound","stop":true,"intersection":"c_int_south_main","links":["c_rd_south_wb_w","c_rd_main_nb_s"],"road":"south"},{"id":"c_rd_south_wb_w","x":80,"y":3868,"lane":"westbound","links":["c_rd_south_eb_w"],"road":"south"}];
+    const CHUNK_C_SIDEWALK_NODES_015 = [{"id":"c_sw_courthouse_front","x":1000,"y":2868,"links":["c_sw_courthouse_w","c_sw_courthouse_e","c_cross_mid_c"]},{"id":"c_sw_courthouse_w","x":650,"y":2828,"links":["c_sw_courthouse_front","c_sw_records_e"]},{"id":"c_sw_courthouse_e","x":1320,"y":2828,"links":["c_sw_courthouse_front","c_sw_cityhall_w"]},{"id":"c_sw_courthouse_n","x":1000,"y":2308,"links":["c_sw_courthouse_w","c_sw_courthouse_e","c_cross_north_c"]},{"id":"c_sw_records_front","x":280,"y":2928,"links":["c_sw_records_e","c_sw_records_w"]},{"id":"c_sw_records_w","x":105,"y":2728,"links":["c_sw_records_front","c_sw_nw_corner"]},{"id":"c_sw_records_e","x":505,"y":2738,"links":["c_sw_records_front","c_sw_courthouse_w"]},{"id":"c_sw_cityhall_front","x":1620,"y":2868,"links":["c_sw_cityhall_w","c_sw_cityhall_e"]},{"id":"c_sw_cityhall_w","x":1380,"y":2728,"links":["c_sw_cityhall_front","c_sw_courthouse_e"]},{"id":"c_sw_cityhall_e","x":1935,"y":2738,"links":["c_sw_cityhall_front","c_sw_ne_corner"]},{"id":"c_sw_tow_front","x":270,"y":3473,"links":["c_sw_tow_e","c_sw_tow_w"]},{"id":"c_sw_tow_w","x":100,"y":3428,"links":["c_sw_tow_front","c_sw_sw_corner"]},{"id":"c_sw_tow_e","x":555,"y":3418,"links":["c_sw_tow_front","c_sw_impound"]},{"id":"c_sw_impound","x":720,"y":3548,"links":["c_sw_tow_e","c_sw_bail_front"]},{"id":"c_sw_bail_front","x":1050,"y":3898,"links":["c_sw_impound","c_sw_march_front","c_cross_south_c"]},{"id":"c_sw_march_front","x":1485,"y":3613,"links":["c_sw_bail_front","c_sw_law_front","c_sw_march_n"]},{"id":"c_sw_march_n","x":1485,"y":3168,"links":["c_sw_march_front","c_cross_mid_e"]},{"id":"c_sw_law_front","x":1785,"y":3538,"links":["c_sw_march_front","c_sw_public_front"]},{"id":"c_sw_public_front","x":1785,"y":3928,"links":["c_sw_law_front","c_sw_se_corner"]},{"id":"c_sw_nw_corner","x":80,"y":2218,"links":["c_sw_records_w","c_cross_north_w"]},{"id":"c_sw_ne_corner","x":1960,"y":2218,"links":["c_sw_cityhall_e","c_cross_north_e"]},{"id":"c_sw_sw_corner","x":90,"y":3928,"links":["c_sw_tow_w","c_cross_south_w"]},{"id":"c_sw_se_corner","x":1960,"y":3928,"links":["c_sw_public_front","c_cross_south_e"]},{"id":"c_cross_north_w","x":945,"y":2208,"crosswalk":true,"links":["c_sw_nw_corner","c_cross_north_c"]},{"id":"c_cross_north_c","x":1040,"y":2208,"crosswalk":true,"links":["c_cross_north_w","c_cross_north_e","c_sw_courthouse_n"]},{"id":"c_cross_north_e","x":1135,"y":2208,"crosswalk":true,"links":["c_cross_north_c","c_sw_ne_corner"]},{"id":"c_cross_mid_w","x":945,"y":3063,"crosswalk":true,"links":["c_sw_courthouse_front","c_cross_mid_c"]},{"id":"c_cross_mid_c","x":1040,"y":3063,"crosswalk":true,"links":["c_cross_mid_w","c_cross_mid_e","c_sw_courthouse_front"]},{"id":"c_cross_mid_e","x":1135,"y":3063,"crosswalk":true,"links":["c_cross_mid_c","c_sw_march_n"]},{"id":"c_cross_south_w","x":945,"y":3888,"crosswalk":true,"links":["c_sw_sw_corner","c_cross_south_c"]},{"id":"c_cross_south_c","x":1040,"y":3888,"crosswalk":true,"links":["c_cross_south_w","c_cross_south_e","c_sw_bail_front"]},{"id":"c_cross_south_e","x":1135,"y":3888,"crosswalk":true,"links":["c_cross_south_c","c_sw_se_corner"]}];
+
+    function isOldChunkCBuilding(r) {
+      if (!r || r.type !== 'building') return false;
+      const x = Number(r.x) || 0;
+      const y = Number(r.y) || 0;
+      const id = String(r.id || '');
+      if (x < 2048 && y >= 2048) return true;
+      return /courthouse|city_hall|march_legal|civic_service|tow|bail|public_defender|law_offices|chunk_c/i.test(id);
+    }
+
+    function applyChunkCCollision015() {
+      if (!Array.isArray(COLLISION_RECTS)) return;
+      const kept = COLLISION_RECTS.filter(r => r && !isOldChunkCBuilding(r));
+      const seen = new Set(kept.map(r => r.id));
+      for (const r of CHUNK_C_COLLISION_RECTS_015) {
+        if (!seen.has(r.id)) kept.push(r);
+      }
+      COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...kept);
+    }
+
+    function addItemsToMap(mapObj, items) {
+      if (!mapObj) return;
+      for (const item of items) mapObj[item.id] = item;
+    }
+
+    applyChunkCCollision015();
+
+    if (typeof RH_RD_PATCH_MAP !== 'undefined') addItemsToMap(RH_RD_PATCH_MAP, CHUNK_C_ROAD_NODES_015);
+    if (typeof RH_SW_PATCH_MAP !== 'undefined') addItemsToMap(RH_SW_PATCH_MAP, CHUNK_C_SIDEWALK_NODES_015);
+
+    if (Array.isArray(RH_TRAFFIC_SPAWNS)) {
+      const keep = RH_TRAFFIC_SPAWNS.filter(s => s && !String(s.start || '').startsWith('c_'));
+      RH_TRAFFIC_SPAWNS.splice(0, RH_TRAFFIC_SPAWNS.length,
+        ...keep,
+        { key:'generic_civilian_sedan', start:'c_rd_north_eb_w', police:false, maxSpeed:66 },
+        { key:'raven_hook_taxi_cab', start:'c_rd_mid_wb_e', police:false, maxSpeed:62 },
+        { key:'raven_hook_utility_service_truck', start:'c_rd_south_eb_w', police:false, maxSpeed:54 },
+        { key:'unmarked_detective_sedan', start:'c_rd_main_sb_n', police:true, maxSpeed:70 }
+      );
+    }
+
+    if (typeof GameScene !== 'undefined') {
+      // Full 4096x4096 ABC ground map.
+      GameScene.prototype.applyGroundMap = function() {
+        if (this.groundChunkImages) {
+          for (const img of Object.values(this.groundChunkImages)) img?.destroy?.();
+        }
+        this.groundChunkImages = {};
+        if (this.realGround?.destroy) this.realGround.destroy();
+
+        if (this.textures.exists(GROUND_ASSET.key)) {
+          this.realGround = this.add.image(0, 0, GROUND_ASSET.key)
+            .setOrigin(0, 0)
+            .setDisplaySize(GROUND_ASSET.width || 4096, GROUND_ASSET.height || 4096)
+            .setDepth(0);
+          this.groundChunkImages.worldABC = this.realGround;
+        }
+
+        if (this.groundGraphics) this.groundGraphics.setVisible(false);
+      };
+
+      const oldCreate015 = GameScene.prototype.create;
+      GameScene.prototype.create = function(...args) {
+        applyChunkCCollision015();
+        const result = oldCreate015.apply(this, args);
+
+        if (!this.textures.exists(GROUND_ASSET.key) && !this._worldABCLoadQueued015) {
+          this._worldABCLoadQueued015 = true;
+          this.load.image(GROUND_ASSET.key, A(GROUND_ASSET.path));
+          this.load.once(`filecomplete-image-${GROUND_ASSET.key}`, () => {
+            this._worldABCLoadQueued015 = false;
+            this.applyGroundMap?.();
+          });
+          if (!this.load.isLoading()) this.load.start();
+        } else {
+          this.applyGroundMap?.();
+        }
+
+        return result;
+      };
+
+      // Rebuild walls after older patches mutate collision.
+      const oldCreateWalls015 = GameScene.prototype.createWalls;
+      GameScene.prototype.createWalls = function() {
+        applyChunkCCollision015();
+
+        if (typeof oldCreateWalls015 === 'function') {
+          return oldCreateWalls015.call(this);
+        }
+
+        this.walls = this.physics.add.staticGroup();
+        for (const r of COLLISION_RECTS) {
+          const rect = this.add.rectangle(r.x + r.w/2, r.y + r.h/2, r.w, r.h, 0xff0000, 0);
+          this.physics.add.existing(rect, true);
+          this.walls.add(rect);
+        }
+      };
+
+      const oldCreateCivilians015 = GameScene.prototype.createCivilians;
+      GameScene.prototype.createCivilians = function() {
+        this.civilians = [];
+        const starts = [
+          // Chunk A
+          'sw_station_01','sw_station_02','sw_station_cross','sw_civic_01',
+          // Chunk B
+          'b_sw_kims_front_c','b_sw_diner_front_c','b_sw_pawn_front_c','b_sw_russo_front_c',
+          // Chunk C
+          'c_sw_courthouse_front','c_sw_records_front','c_sw_cityhall_front','c_sw_tow_front',
+          'c_sw_bail_front','c_sw_march_front','c_sw_public_front'
+        ];
+
+        for (let i = 0; i < Math.min(starts.length, MAX_CITY_CIVILIANS); i++) {
+          const node = RH_SW_PATCH_MAP[starts[i]];
+          if (!node) continue;
+          const assetDef = CIVILIAN_ASSETS[i % CIVILIAN_ASSETS.length];
+          const body = this.add.rectangle(node.x, node.y, 20, 28, 0x00ff00, 0).setDepth(29);
+          this.physics.add.existing(body);
+          if (body.body) {
+            body.body.setCollideWorldBounds(true);
+            body.body.setSize(18, 22);
+          }
+          if (this.walls) this.physics.add.collider(body, this.walls);
+
+          let sprite;
+          if (this.textures.exists(assetDef.key)) {
+            sprite = this.add.sprite(node.x, node.y, assetDef.key, 0)
+              .setOrigin(0.5, 0.88)
+              .setScale(CIV_CITY_SCALE)
+              .setDepth(30);
+          } else {
+            sprite = this.add.rectangle(node.x, node.y, 18, 28, 0xbfc7d1, 0.85).setDepth(30);
+            sprite._isFallback = true;
+          }
+
+          this.civilians.push({
+            body, sprite, assetKey:assetDef.key,
+            nodeId:starts[i], targetNodeId:null, prevNodeId:null,
+            speed:Phaser.Math.Between(42,62),
+            pauseTimer:Phaser.Math.Between(250,1400),
+            facing:'S'
+          });
+        }
+      };
+
+      // Add civic doors/hotspots as placeholders.
+      if (Array.isArray(INTERACTION_ZONES)) {
+        const addZone = (z) => { if (!INTERACTION_ZONES.some(e => e.id === z.id)) INTERACTION_ZONES.push(z); };
+        addZone({ id:'chunk_c_courthouse_door', x:905, y:2048+820, w:210, h:120, type:'door', label:'Raven Hook Courthouse' });
+        addZone({ id:'chunk_c_city_hall_door', x:1580, y:2048+805, w:160, h:100, type:'door', label:'City Hall' });
+        addZone({ id:'chunk_c_records_annex_door', x:255, y:2048+900, w:130, h:90, type:'door', label:'Civic Records Annex' });
+        addZone({ id:'chunk_c_march_legal_door', x:1430, y:2048+1565, w:130, h:90, type:'door', label:'March Legal Services' });
+        addZone({ id:'chunk_c_tow_door', x:245, y:2048+1410, w:160, h:100, type:'door', label:'Civic Service & Tow' });
+      }
     }
   })();
 

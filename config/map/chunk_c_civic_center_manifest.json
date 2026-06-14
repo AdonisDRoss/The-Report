@@ -1,0 +1,91 @@
+{
+  "chunk": "C / Civic Center",
+  "world_position": {
+    "x": 0,
+    "y": 2048,
+    "w": 2048,
+    "h": 2048
+  },
+  "connects_north_to": "Chunk A / Police HQ",
+  "connects_east_to": "Chunk D / Red Gull Strip / docks later",
+  "does_not_directly_connect_to": "Chunk B except through world roads via A/D",
+  "assets": {
+    "chunk_c": "assets/city/chunks/civic_center/raven_hook_chunk_c_civic_center_2048.png",
+    "world_abc": "assets/city/pages/raven_hook_world_abc_base_4096x4096.png",
+    "collision": "assets/city/chunks/civic_center/raven_hook_chunk_c_collision_white_open_2048.png"
+  },
+  "collision_world_rects": [
+    {
+      "id": "col_chunk_c_courthouse_main",
+      "x": 655,
+      "y": 2308,
+      "w": 600,
+      "h": 510,
+      "type": "building"
+    },
+    {
+      "id": "col_chunk_c_courthouse_steps_core",
+      "x": 755,
+      "y": 2748,
+      "w": 400,
+      "h": 150,
+      "type": "building"
+    },
+    {
+      "id": "col_chunk_c_city_hall",
+      "x": 1405,
+      "y": 2333,
+      "w": 470,
+      "h": 510,
+      "type": "building"
+    },
+    {
+      "id": "col_chunk_c_civic_records_annex",
+      "x": 130,
+      "y": 2478,
+      "w": 350,
+      "h": 470,
+      "type": "building"
+    },
+    {
+      "id": "col_chunk_c_civic_service_tow_building",
+      "x": 80,
+      "y": 3183,
+      "w": 440,
+      "h": 270,
+      "type": "building"
+    },
+    {
+      "id": "col_chunk_c_bail_bonds",
+      "x": 930,
+      "y": 3508,
+      "w": 280,
+      "h": 390,
+      "type": "building"
+    },
+    {
+      "id": "col_chunk_c_march_legal",
+      "x": 1270,
+      "y": 3173,
+      "w": 430,
+      "h": 440,
+      "type": "building"
+    },
+    {
+      "id": "col_chunk_c_law_offices",
+      "x": 1640,
+      "y": 3148,
+      "w": 305,
+      "h": 390,
+      "type": "building"
+    },
+    {
+      "id": "col_chunk_c_public_defender",
+      "x": 1560,
+      "y": 3588,
+      "w": 470,
+      "h": 330,
+      "type": "building"
+    }
+  ]
+}
