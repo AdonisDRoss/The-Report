@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Zoom Out + Locked Controls</title>
+  <title>The Report — Raven Hook Central — Police HQ Map + Vehicle Update</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -53,6 +53,7 @@
   // HEAVY_VEHICLE_MOMENTUM_PATCH_001: mass, angular inertia, drift, body roll, skids, impact shake.
   // CAR_CONTROL_HEADLIGHT_SPRITE_GUARD_PATCH_001: fixes disappearing car sprites; X accelerate, A brake, Y headlights, Z handbrake.
   // ASSET_SCALE_LOCK_PATCH_001: all human and vehicle assets use locked display scale. GTA_STYLE_PLAYER_CAR_HANDLING_PATCH_001: player car drift physics and top-down detective sedan. RUNTIME_VEHICLE_LIGHTS_PATCH_001: adds runtime headlights and police strobes. SINGLE_TOPDOWN_TRAFFIC_PATCH_001: NPC cars use single top-down sprites and code rotation. WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001: adds map overlay and replaces fallback boxes after lazy loading. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
+  // RAVEN_HOOK_POLICE_MAP_VEHICLE_SPRITE_UPDATE_001: uses new Police HQ chunk A map, new police/SWAT sprite sheets, new vehicle set, and new building overlays.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
   const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
