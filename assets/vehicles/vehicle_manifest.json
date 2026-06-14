@@ -1,0 +1,202 @@
+{
+  "pack": "the_report_vehicle_set_workflow_pack",
+  "vehicleSystem": "single north-facing sprite per vehicle; rotate in Phaser",
+  "spriteCanvas": {
+    "w": 512,
+    "h": 1024
+  },
+  "rule": "All master sprites face north/up. Phaser rotates them at runtime.",
+  "vehicles": [
+    {
+      "id": "los_reyes_lowrider",
+      "name": "Los Reyes Lowrider",
+      "faction": "Los Reyes",
+      "category": "gang",
+      "key": "veh_los_reyes_lowrider",
+      "path": "assets/vehicles/gangs/los_reyes/los_reyes_lowrider_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "los_reyes_garage_van",
+      "name": "Los Reyes Garage Van",
+      "faction": "Los Reyes",
+      "category": "gang",
+      "key": "veh_los_reyes_garage_van",
+      "path": "assets/vehicles/gangs/los_reyes/los_reyes_garage_van_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "iron_dogs_muscle_car",
+      "name": "Iron Dogs Muscle Car",
+      "faction": "Iron Dogs",
+      "category": "gang",
+      "key": "veh_iron_dogs_muscle",
+      "path": "assets/vehicles/gangs/iron_dogs/iron_dogs_muscle_car_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "iron_dogs_tow_truck",
+      "name": "Iron Dogs Tow Truck",
+      "faction": "Iron Dogs",
+      "category": "gang",
+      "key": "veh_iron_dogs_tow",
+      "path": "assets/vehicles/gangs/iron_dogs/iron_dogs_tow_truck_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "holloway_kings_sedan",
+      "name": "Holloway Kings Luxury Sedan",
+      "faction": "Holloway Kings",
+      "category": "gang",
+      "key": "veh_holloway_luxury_sedan",
+      "path": "assets/vehicles/gangs/holloway_kings/holloway_kings_luxury_sedan_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "maze_royale_coupe",
+      "name": "Maze Royale Luxury Coupe",
+      "faction": "Holloway Kings",
+      "category": "gang",
+      "key": "veh_maze_royale_coupe",
+      "path": "assets/vehicles/gangs/holloway_kings/maze_royale_luxury_coupe_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "neon_knives_coupe",
+      "name": "Neon Knives Coupe",
+      "faction": "Neon Knives",
+      "category": "gang",
+      "key": "veh_neon_knives_coupe",
+      "path": "assets/vehicles/gangs/neon_knives/neon_knives_coupe_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "receipt_crew_sedan",
+      "name": "Receipt Crew Sedan",
+      "faction": "Receipt Crew",
+      "category": "gang",
+      "key": "veh_receipt_crew_sedan",
+      "path": "assets/vehicles/gangs/receipt_crew/receipt_crew_sedan_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "moretti_crew_car",
+      "name": "Moretti Crew Car",
+      "faction": "Moretti Crew",
+      "category": "gang",
+      "key": "veh_moretti_car",
+      "path": "assets/vehicles/gangs/moretti_crew/moretti_crew_car_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "moretti_crew_strip_van",
+      "name": "Moretti Crew Strip Van",
+      "faction": "Moretti Crew",
+      "category": "gang",
+      "key": "veh_moretti_strip_van",
+      "path": "assets/vehicles/gangs/moretti_crew/moretti_crew_strip_van_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "vescari_sedan",
+      "name": "Vescari Family Sedan",
+      "faction": "Vescari Family",
+      "category": "front",
+      "key": "veh_vescari_sedan",
+      "path": "assets/vehicles/fronts/vescari_family/vescari_family_sedan_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "vescari_funeral_hearse",
+      "name": "Vescari Funeral Hearse",
+      "faction": "Vescari Family",
+      "category": "front",
+      "key": "veh_vescari_hearse",
+      "path": "assets/vehicles/fronts/vescari_family/vescari_funeral_hearse_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "bell_cartage_truck",
+      "name": "Bell Cartage Cold Storage Truck",
+      "faction": "Bell Cartage",
+      "category": "front",
+      "key": "veh_bell_cartage_truck",
+      "path": "assets/vehicles/fronts/bell_cartage/bell_cartage_cold_storage_truck_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "generic_civilian_sedan",
+      "name": "Generic Civilian Sedan",
+      "faction": "Civilian",
+      "category": "civilian",
+      "key": "veh_civilian_sedan",
+      "path": "assets/vehicles/civilian/generic_civilian_sedan_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "raven_hook_taxi",
+      "name": "Raven Hook Taxi Cab",
+      "faction": "Civilian",
+      "category": "civilian",
+      "key": "veh_taxi_cab",
+      "path": "assets/vehicles/civilian/raven_hook_taxi_cab_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "beat_up_pickup",
+      "name": "Beat-up Pickup Truck",
+      "faction": "Civilian",
+      "category": "civilian",
+      "key": "veh_pickup_truck",
+      "path": "assets/vehicles/civilian/beat_up_pickup_truck_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "raven_hook_ambulance",
+      "name": "Raven Hook Ambulance",
+      "faction": "Civilian",
+      "category": "civilian",
+      "key": "veh_ambulance",
+      "path": "assets/vehicles/civilian/raven_hook_ambulance_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "raven_hook_utility_truck",
+      "name": "Raven Hook Utility Service Truck",
+      "faction": "Civilian",
+      "category": "civilian",
+      "key": "veh_utility_truck",
+      "path": "assets/vehicles/civilian/raven_hook_utility_service_truck_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    },
+    {
+      "id": "unmarked_detective_sedan",
+      "name": "Unmarked Detective Sedan",
+      "faction": "Police",
+      "category": "police",
+      "key": "veh_unmarked_detective",
+      "path": "assets/vehicles/police/unmarked_detective_sedan_north.png",
+      "orientation": "north",
+      "system": "single sprite, rotate in Phaser"
+    }
+  ],
+  "count": 19
+}
