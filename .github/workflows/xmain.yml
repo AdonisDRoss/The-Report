@@ -1,13 +1,42 @@
-# Copy/paste upload target suggestion
-upload_target:
-  repo_path: assets/maps/raven_hook/chunk_a_police_hq/buildings/
-  files:
-    - 01_police_hq_main.png
-    - 02_motor_pool_garage.png
-    - 03_utility_shed_small.png
-    - 04_civic_support_north_tall.png
-    - 05_civic_support_north_square.png
-    - 06_parking_annex_wide.png
-    - 07_civic_support_south_square.png
-    - 08_civic_support_south_tall.png
-    - police_hq_building_overlays_sheet_transparent.png
+name: Import Raven Hook Police Sprites V2 Safe
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-police-sprites:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check police sprite zip
+        run: |
+          ls -lah
+          test -f the_report_police_sprites_V2_SAFE_WORKFLOW_PACK.zip
+
+      - name: Unzip police sprite set
+        run: |
+          unzip -o the_report_police_sprites_V2_SAFE_WORKFLOW_PACK.zip
+
+      - name: Show imported police files
+        run: |
+          find assets/characters/police -type f | sort || true
+          find config/characters -type f | sort || true
+          find docs/characters/police -type f | sort || true
+          find docs/previews/police -type f | sort || true
+
+      - name: Commit imported police sprites
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add assets/characters/police config/characters docs/characters/police docs/previews/police README_POLICE_SPRITES_V2_SAFE.txt
+          if git diff --cached --quiet; then
+            echo "No police sprite changes to commit."
+          else
+            git commit -m "Import Raven Hook police sprites V2 safe"
+            git push
+          fi
