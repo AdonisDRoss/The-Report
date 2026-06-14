@@ -1,4 +1,4 @@
-name: Import Raven Hook Assets
+name: Import Raven Hook Police Sprites V2 Safe
 
 on:
   workflow_dispatch:
@@ -7,54 +7,36 @@ permissions:
   contents: write
 
 jobs:
-  import-assets:
+  import-police-sprites:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check zip files
+      - name: Check police sprite zip
         run: |
           ls -lah
-          test -f the_report_raven_hook_FINAL_KIMS_FIXED_part01a_hero_processed.zip
-          test -f the_report_raven_hook_FINAL_KIMS_FIXED_part01b_hero_processed.zip
-          test -f the_report_raven_hook_FINAL_KIMS_FIXED_part02_fillers_processed.zip
-          test -f the_report_raven_hook_FINAL_KIMS_FIXED_part03_overlays_config_docs.zip
+          test -f the_report_police_sprites_V2_SAFE_WORKFLOW_PACK.zip
 
-      - name: Create folders
+      - name: Unzip police sprite set
         run: |
-          mkdir -p assets/buildings/hero
-          mkdir -p assets/buildings/fillers
-          mkdir -p assets/buildings/overlays
-          mkdir -p assets/buildings/references
-          mkdir -p config
-          mkdir -p src
-          mkdir -p docs
+          unzip -o the_report_police_sprites_V2_SAFE_WORKFLOW_PACK.zip
 
-      - name: Unzip Raven Hook assets
+      - name: Show imported police files
         run: |
-          unzip -o the_report_raven_hook_FINAL_KIMS_FIXED_part01a_hero_processed.zip
-          unzip -o the_report_raven_hook_FINAL_KIMS_FIXED_part01b_hero_processed.zip
-          unzip -o the_report_raven_hook_FINAL_KIMS_FIXED_part02_fillers_processed.zip
-          unzip -o the_report_raven_hook_FINAL_KIMS_FIXED_part03_overlays_config_docs.zip
+          find assets/characters/police -type f | sort || true
+          find config/characters -type f | sort || true
+          find docs/characters/police -type f | sort || true
+          find docs/previews/police -type f | sort || true
 
-      - name: Show result
-        run: |
-          find assets/buildings -type f | sort || true
-          find config -type f | sort || true
-          find src -type f | sort || true
-          find docs -type f | sort || true
-
-      - name: Commit imported assets
+      - name: Commit imported police sprites
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-
-          git add assets/buildings config src docs
-
+          git add assets/characters/police config/characters docs/characters/police docs/previews/police README_POLICE_SPRITES_V2_SAFE.txt
           if git diff --cached --quiet; then
-            echo "No asset changes to commit."
+            echo "No police sprite changes to commit."
           else
-            git commit -m "Import Raven Hook building assets"
+            git commit -m "Import Raven Hook police sprites V2 safe"
             git push
           fi
