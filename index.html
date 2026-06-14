@@ -55,9 +55,10 @@
   // ASSET_SCALE_LOCK_PATCH_001: all human and vehicle assets use locked display scale. GTA_STYLE_PLAYER_CAR_HANDLING_PATCH_001: player car drift physics and top-down detective sedan. RUNTIME_VEHICLE_LIGHTS_PATCH_001: adds runtime headlights and police strobes. SINGLE_TOPDOWN_TRAFFIC_PATCH_001: NPC cars use single top-down sprites and code rotation. WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001: adds map overlay and replaces fallback boxes after lazy loading. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
   // RAVEN_HOOK_POLICE_MAP_VEHICLE_SPRITE_UPDATE_001: uses new Police HQ chunk A map, new police/SWAT sprite sheets, new vehicle set, and new building overlays.
   // RAVEN_HOOK_FORCE_NEW_ASSETS_PATCH_002: functional force-new-assets patch + cache-busted local asset URLs.
+  // RAVEN_HOOK_FORCE_NEW_ASSETS_SCALE_OVERLAY_PATCH_003: controls locked before zoom, camera zoomed out slightly, police/SWAT scaled to Malcolm height, old Chunk A overlays purged.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'police-map-vehicles-003-hard';
+  const ASSET_REV = 'police-map-vehicles-004-scale-overlay-zoom';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -65,12 +66,15 @@
     return ASSET_BASE + clean + sep + 'v=' + ASSET_REV;
   };
 
+  // CONTROL_LOCK_BEFORE_ZOOM_PATCH_003: lock mobile UI/canvas touch behavior before any camera zoom changes.
+  const CONTROL_LOCK_BEFORE_ZOOM = true;
+
   const CAMERA = {
     // CAMERA_ZOOM_OUT_LOCKED_CONTROLS_001: slight zoom-out; mobile controls stay fixed screen-space.
-    playerZoom: 2.20,
-    carSlowZoom: 1.72,
-    carMidZoom: 1.36,
-    carFastZoom: 1.12,
+    playerZoom: 2.02,
+    carSlowZoom: 1.58,
+    carMidZoom: 1.26,
+    carFastZoom: 1.06,
     followLerp: 0.14
   };
 
@@ -10350,6 +10354,144 @@
             label:cfg.label
           });
         }
+      };
+    }
+  })();
+
+
+
+  // RAVEN_HOOK_FORCE_NEW_ASSETS_SCALE_OVERLAY_PATCH_003
+  // Runs after the V2 force-new-assets patch. It locks controls before zoom, scales police/SWAT to Malcolm height, and removes all old Chunk A overlays.
+  (function installRavenHookForceNewAssetsScaleOverlayPatch003() {
+    // Slight zoom-out. Controls are screen-space locked by MobileControlsScene; do not move controls based on camera zoom.
+    if (typeof CAMERA === 'object') {
+      CAMERA.playerZoom = 2.02;
+      CAMERA.carSlowZoom = 1.58;
+      CAMERA.carMidZoom = 1.26;
+      CAMERA.carFastZoom = 1.06;
+    }
+
+    // Police/SWAT should read at Malcolm's visual height, not tiny 96px default scale.
+    const POLICE_MATCH_MALCOLM_SCALE = 1.18;
+    const SWAT_MATCH_MALCOLM_SCALE = 1.18;
+
+    if (Array.isArray(POLICE_NPC_ASSETS)) {
+      for (const a of POLICE_NPC_ASSETS) {
+        if (!a) continue;
+        a.fw = 96;
+        a.fh = 96;
+        a.frameWidth = 96;
+        a.frameHeight = 96;
+        a.scale = a.key && a.key.includes('swat') ? SWAT_MATCH_MALCOLM_SCALE : POLICE_MATCH_MALCOLM_SCALE;
+        a.originY = 0.88;
+      }
+    }
+
+    // Remove every old building image/overlay in Chunk A, then add only the new Police HQ chunk + new overlay set.
+    const NEW_CHUNK_A_KEYS = new Set([
+      'police_hq_chunk_a_2048',
+      'chunk_a_police_hq_main_overlay',
+      'chunk_a_motor_pool_garage_overlay',
+      'chunk_a_utility_shed_overlay',
+      'chunk_a_civic_support_north_tall_overlay',
+      'chunk_a_civic_support_north_square_overlay',
+      'chunk_a_parking_annex_overlay',
+      'chunk_a_civic_support_south_square_overlay',
+      'chunk_a_civic_support_south_tall_overlay'
+    ]);
+
+    const CHUNK_A_IMAGES_PATCH003 = [
+      { key:'police_hq_chunk_a_2048', name:'Chunk A Police HQ Base', path:'assets/city/chunks/police_hq/police_hq_chunk_a_2048.png', place:[0,0,2048,2048], depth:2 },
+      { key:'chunk_a_police_hq_main_overlay', name:'Police HQ Main Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/01_police_hq_main.png', place:[108,95,934,866], depth:ROOF_DEPTH + 24 },
+      { key:'chunk_a_motor_pool_garage_overlay', name:'Motor Pool Garage Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/02_motor_pool_garage.png', place:[1209,101,670,338], depth:ROOF_DEPTH + 24 },
+      { key:'chunk_a_utility_shed_overlay', name:'Utility Shed Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/03_utility_shed_small.png', place:[1647,621,157,170], depth:ROOF_DEPTH + 24 },
+      { key:'chunk_a_civic_support_north_tall_overlay', name:'Civic Support North Tall Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/04_civic_support_north_tall.png', place:[1094,978,356,510], depth:ROOF_DEPTH + 24 },
+      { key:'chunk_a_civic_support_north_square_overlay', name:'Civic Support North Square Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/05_civic_support_north_square.png', place:[1528,1011,397,374], depth:ROOF_DEPTH + 24 },
+      { key:'chunk_a_parking_annex_overlay', name:'Parking Annex Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/06_parking_annex_wide.png', place:[116,1382,844,319], depth:ROOF_DEPTH + 24 },
+      { key:'chunk_a_civic_support_south_square_overlay', name:'Civic Support South Square Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/07_civic_support_south_square.png', place:[1574,1384,299,537], depth:ROOF_DEPTH + 24 },
+      { key:'chunk_a_civic_support_south_tall_overlay', name:'Civic Support South Tall Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/08_civic_support_south_tall.png', place:[1122,1501,312,392], depth:ROOF_DEPTH + 24 }
+    ];
+
+    if (Array.isArray(BUILDING_IMAGE_ASSETS)) {
+      for (let i = BUILDING_IMAGE_ASSETS.length - 1; i >= 0; i--) {
+        const b = BUILDING_IMAGE_ASSETS[i];
+        if (!b) continue;
+        const p = Array.isArray(b.place) ? b.place : [];
+        const bx = Number(p[0]) || 0;
+        const by = Number(p[1]) || 0;
+        const isChunkA = bx < 2048 && by < 2048;
+        const isOldPolice = /police|station|motor_pool|precinct/i.test(String(b.key || '') + ' ' + String(b.name || '') + ' ' + String(b.path || ''));
+        const isNewChunkA = NEW_CHUNK_A_KEYS.has(b.key);
+        if ((isChunkA || isOldPolice) && !isNewChunkA) BUILDING_IMAGE_ASSETS.splice(i, 1);
+      }
+
+      const existing = new Set(BUILDING_IMAGE_ASSETS.map(b => b.key));
+      for (let i = CHUNK_A_IMAGES_PATCH003.length - 1; i >= 0; i--) {
+        const img = CHUNK_A_IMAGES_PATCH003[i];
+        if (!existing.has(img.key)) {
+          BUILDING_IMAGE_ASSETS.unshift(img);
+        } else {
+          const current = BUILDING_IMAGE_ASSETS.find(b => b.key === img.key);
+          if (current) Object.assign(current, img);
+        }
+      }
+    }
+
+    // Remove old collision in Chunk A and lock new tight collision boxes.
+    const CHUNK_A_COLLISION_PATCH003 = [
+      { id:'col_chunk_a_police_hq_main', x:145, y:160, w:700, h:600, type:'building' },
+      { id:'col_chunk_a_police_hq_roof_core', x:350, y:210, w:270, h:120, type:'building' },
+      { id:'col_chunk_a_motor_pool_garage', x:1260, y:135, w:550, h:215, type:'building' },
+      { id:'col_chunk_a_motor_pool_support', x:1580, y:585, w:105, h:105, type:'building' },
+      { id:'col_chunk_a_parking_annex_main', x:220, y:1690, w:620, h:195, type:'building' },
+      { id:'col_chunk_a_parking_annex_left', x:145, y:1745, w:85, h:140, type:'building' },
+      { id:'col_chunk_a_parking_annex_right', x:840, y:1740, w:90, h:145, type:'building' },
+      { id:'col_chunk_a_civic_nw', x:1160, y:1170, w:260, h:370, type:'building' },
+      { id:'col_chunk_a_civic_sw', x:1180, y:1645, w:270, h:265, type:'building' },
+      { id:'col_chunk_a_civic_ne', x:1585, y:1165, w:320, h:345, type:'building' },
+      { id:'col_chunk_a_civic_se', x:1595, y:1580, w:340, h:325, type:'building' }
+    ];
+
+    if (Array.isArray(COLLISION_RECTS)) {
+      const kept = COLLISION_RECTS.filter(r => {
+        if (!r) return false;
+        if (String(r.id || '').startsWith('col_chunk_a_')) return false;
+        if (r.type !== 'building') return true;
+        const rx = Number(r.x) || 0;
+        const ry = Number(r.y) || 0;
+        return !(rx < 2048 && ry < 2048);
+      });
+      COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...CHUNK_A_COLLISION_PATCH003, ...kept);
+    }
+
+    // Patch station NPC creation to draw bigger, Malcolm-height police sprites.
+    if (typeof PoliceStationScene !== 'undefined') {
+      const oldCreateStationPoliceNPCs = PoliceStationScene.prototype.createStationPoliceNPCs;
+      PoliceStationScene.prototype.createStationPoliceNPCs = function() {
+        if (typeof oldCreateStationPoliceNPCs === 'function') oldCreateStationPoliceNPCs.call(this);
+        if (Array.isArray(this.stationNpcs)) {
+          for (const npc of this.stationNpcs) {
+            if (npc?.sprite?.setScale && npc.assetKey && /patrol_|swat_/.test(npc.assetKey)) {
+              npc.sprite.setScale(npc.assetKey.includes('swat') ? SWAT_MATCH_MALCOLM_SCALE : POLICE_MATCH_MALCOLM_SCALE);
+              if (npc.sprite.setOrigin) npc.sprite.setOrigin(0.5, 0.88);
+            }
+          }
+        }
+      };
+    }
+
+    // Keep mobile controls locked to screen after camera zoom changes.
+    if (typeof MobileControlsScene !== 'undefined') {
+      const oldMobileCreate = MobileControlsScene.prototype.create;
+      MobileControlsScene.prototype.create = function(...args) {
+        const result = oldMobileCreate.apply(this, args);
+        this.cameras.main.setScroll(0, 0);
+        this.cameras.main.setZoom(1);
+        this.children.each((child) => {
+          if (child && child.setScrollFactor) child.setScrollFactor(0);
+          if (child && child.setDepth) child.setDepth(2000);
+        });
+        return result;
       };
     }
   })();
