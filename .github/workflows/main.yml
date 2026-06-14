@@ -1,4 +1,4 @@
-name: Import Raven Hook Vehicle Set
+name: Import Raven Hook Vehicle Set Fixed
 
 on:
   workflow_dispatch:
@@ -13,27 +13,44 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check vehicle ZIP
+      - name: Check vehicle ZIP exists
         run: |
           ls -lah
-          test -f the_report_vehicle_set_WORKFLOW_PACK.zip
+          if [ ! -f the_report_vehicle_set_WORKFLOW_PACK.zip ]; then
+            echo "ERROR: Missing the_report_vehicle_set_WORKFLOW_PACK.zip in repo root."
+            exit 1
+          fi
 
       - name: Unzip vehicle set
         run: |
           unzip -o the_report_vehicle_set_WORKFLOW_PACK.zip
 
+      - name: Verify required vehicle files
+        run: |
+          test -f assets/vehicles/civilian/generic_civilian_sedan_north.png
+          test -f assets/vehicles/civilian/raven_hook_taxi_cab_north.png
+          test -f assets/vehicles/civilian/beat_up_pickup_truck_north.png
+          test -f assets/vehicles/police/unmarked_detective_sedan_north.png
+          test -f assets/vehicles/gangs/los_reyes/los_reyes_lowrider_north.png
+
       - name: Show imported vehicle files
         run: |
           find assets/vehicles -type f | sort || true
-          find config/vehicles -type f | sort || true
           find docs/vehicles -type f | sort || true
           find docs/previews/vehicles -type f | sort || true
+          find docs/vehicle_refs -type f | sort || true
 
       - name: Commit imported vehicle set
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add assets/vehicles config/vehicles docs/vehicles docs/previews/vehicles README_VEHICLE_SET.md
+
+          git add -A assets/vehicles
+          [ -d docs/vehicles ] && git add -A docs/vehicles || true
+          [ -d docs/previews/vehicles ] && git add -A docs/previews/vehicles || true
+          [ -d docs/vehicle_refs ] && git add -A docs/vehicle_refs || true
+          [ -f README_VEHICLE_SET.md ] && git add README_VEHICLE_SET.md || true
+
           if git diff --cached --quiet; then
             echo "No vehicle changes to commit."
           else
