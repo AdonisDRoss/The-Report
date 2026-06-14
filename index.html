@@ -56,9 +56,10 @@
   // RAVEN_HOOK_POLICE_MAP_VEHICLE_SPRITE_UPDATE_001: uses new Police HQ chunk A map, new police/SWAT sprite sheets, new vehicle set, and new building overlays.
   // RAVEN_HOOK_FORCE_NEW_ASSETS_PATCH_002: functional force-new-assets patch + cache-busted local asset URLs.
   // RAVEN_HOOK_FORCE_NEW_ASSETS_SCALE_OVERLAY_PATCH_003: controls locked before zoom, camera zoomed out slightly, police/SWAT scaled to Malcolm height, old Chunk A overlays purged.
+  // CAR_STICK_INVERT_SENSITIVITY_PATCH_006: driving touch-stick steering inverted and made more sensitive.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'base-layer-no-overlays-zoom-005';
+  const ASSET_REV = 'steering-invert-sensitive-006';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -10635,6 +10636,77 @@
 
 
   window.addEventListener('load', installZoomInspectSlider);
+
+
+  // CAR_STICK_INVERT_SENSITIVITY_PATCH_006
+  // Final driving input override: mobile/touch steering is inverted and more sensitive. Keyboard left/right is not inverted.
+  (function installCarStickInvertSensitivityPatch006() {
+    const STEER_DEADZONE = 0.012;
+    const STEER_POWER = 0.38;
+    const STEER_GAIN = 2.65;
+
+    function sensitiveSteer(raw) {
+      raw = Phaser.Math.Clamp(Number(raw) || 0, -1, 1);
+      if (Math.abs(raw) < STEER_DEADZONE) return 0;
+      return Phaser.Math.Clamp(Math.sign(raw) * Math.pow(Math.abs(raw), STEER_POWER) * STEER_GAIN, -1, 1);
+    }
+
+    if (typeof GameScene !== 'undefined') {
+      GameScene.prototype.readPlayerCarInput = function() {
+        const m = this.mobile || MOBILE_INPUT_STATE || {};
+
+        let steering = 0;
+        const touchRaw =
+          Math.abs(m.carSteerX || 0) > STEER_DEADZONE ? m.carSteerX :
+          Math.abs(m.driveSteerX || 0) > STEER_DEADZONE ? m.driveSteerX :
+          Math.abs(m.analogX || 0) > STEER_DEADZONE ? m.analogX : 0;
+
+        if (touchRaw) {
+          // Invert touch stick only. This fixes the driving stick feeling backwards.
+          steering = sensitiveSteer(-touchRaw);
+        } else {
+          if (m.left || this.keyDriveLeft?.isDown || this.cursors?.left?.isDown) steering -= 1;
+          if (m.right || this.keyDriveRight?.isDown || this.cursors?.right?.isDown) steering += 1;
+        }
+
+        let throttle = 0;
+        if (m.carGas || m.driveGas || this.keyDriveGas?.isDown || this.keyDriveUp?.isDown || this.keyDriveW?.isDown) throttle = 1;
+        if (m.carBrake || m.driveBrake || this.keyDriveBrake?.isDown || this.keyDriveDown?.isDown || this.keyDriveS?.isDown) throttle = -1;
+
+        const handbrake = !!(m.carHandbrake || m.driveHandbrake || this.keyDriveHandbrake?.isDown || this.keyDriveSpaceHandbrake?.isDown);
+        return { throttle, steering: Phaser.Math.Clamp(steering, -1, 1), handbrake };
+      };
+
+      const previousCarUpdatePatch006 = GameScene.prototype.updateCar;
+      if (typeof previousCarUpdatePatch006 === 'function') {
+        GameScene.prototype.updateCar = function(dt) {
+          if (this.carHandling) {
+            this.carHandling.turnRate = Math.max(Number(this.carHandling.turnRate) || 0, 3.35);
+            this.carHandling.minTurnSpeed = Math.min(Number(this.carHandling.minTurnSpeed) || 999, 8);
+          }
+          return previousCarUpdatePatch006.call(this, dt);
+        };
+      }
+    }
+
+    if (typeof MobileControlsScene !== 'undefined') {
+      const prevMobileUpdate006 = MobileControlsScene.prototype.update;
+      MobileControlsScene.prototype.update = function(...args) {
+        const result = prevMobileUpdate006.apply(this, args);
+
+        // Boost existing touch-stick values. ReadPlayerCarInput handles inversion.
+        if (Math.abs(MOBILE_INPUT_STATE.carSteerX || 0) > 0.001) {
+          MOBILE_INPUT_STATE.carSteerX = Phaser.Math.Clamp(MOBILE_INPUT_STATE.carSteerX * 1.35, -1, 1);
+        }
+        if (Math.abs(MOBILE_INPUT_STATE.driveSteerX || 0) > 0.001) {
+          MOBILE_INPUT_STATE.driveSteerX = Phaser.Math.Clamp(MOBILE_INPUT_STATE.driveSteerX * 1.35, -1, 1);
+        }
+
+        return result;
+      };
+    }
+  })();
+
 
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
