@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook — Single World No Overlap</title>
+  <title>The Report — Raven Hook Full Aligned Asset Update</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -68,7 +68,7 @@
   // SINGLE_WORLD_NO_OVERLAP_PATCH_018: single full-world ground, no overlapping chunk layers.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'single-world-no-overlap-018';
+  const ASSET_REV = 'aligned-assets-map-019';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -654,11 +654,12 @@
   const PLAYER_ASSET = {
     key: 'main_detective',
     path: 'assets/characters/main_detective/main_detective_movement_8dir_96x96_transparent.png',
-    fallbackPath: 'assets/characters/main_detective/main_detective_movement_8dir_96x96.png',
+    fallbackPath: 'assets/characters/main_detective/main_detective_movement_8dir_96x96_transparent.png',
     frameWidth: 96,
     frameHeight: 96,
     scale: SCALE_LOCK.cityHumanScale96,
-    originY: 0.72
+    originY: 0.82,
+    cols: 4
   };
 
   const MALCOLM_STATION_ASSET = {
@@ -674,26 +675,26 @@
 
   const MALCOLM_SHOOT_ASSET = {
     key: 'malcolm_shoot_sheet',
-    path: 'assets/characters/main_detective/malcolm_shoot_6x4_128.png',
+    path: 'assets/characters/main_detective/malcolm_aim_emptyhands_4dir_4x4_128.png',
     frameWidth: 128,
     frameHeight: 128,
     scale: SCALE_LOCK.malcolmShootCityScale,
     stationScale: SCALE_LOCK.stationHumanScale128,
-    originY: 0.84,
-    cols: 6
+    originY: 0.86,
+    cols: 4
   };
 
 
 
   const RAMOS_WALK_ASSET = {
     key: 'ramos_walk_sheet',
-    path: 'assets/characters/npcs/partners/ramos/ramos_movement_8dir_96x96.png', // Git file name; sheet is 1024x512 with 128x128 frames.
-    frameWidth: 128,
-    frameHeight: 128,
-    scale: SCALE_LOCK.ramosCityScale,        // city scale: matches Malcolm city movement height
-    stationScale: SCALE_LOCK.stationHumanScale128, // station scale: bigger inside interiors
-    originY: 0.84,
-    cols: 8
+    path: 'assets/characters/npcs/partners/ramos/ramos_movement_8dir_96x96.png',
+    frameWidth: 96,
+    frameHeight: 96,
+    scale: 0.58,
+    stationScale: 0.88,
+    originY: 0.82,
+    cols: 4
   };
 
   const RAMOS_TALK_ASSET = {
@@ -709,13 +710,13 @@
 
   const RAMOS_SHOOT_ASSET = {
     key: 'ramos_shoot_sheet',
-    path: 'assets/characters/npcs/partners/ramos/ramos_shoot_6x4_128.png',
+    path: 'assets/characters/npcs/partners/ramos/ramos_aim_emptyhands_4dir_4x4_128.png',
     frameWidth: 128,
     frameHeight: 128,
-    scale: SCALE_LOCK.ramosCityScale,
-    stationScale: SCALE_LOCK.stationHumanScale128,
-    originY: 0.84,
-    cols: 6
+    scale: 0.44,
+    stationScale: 0.88,
+    originY: 0.86,
+    cols: 4
   };
 
   const RAMOS_SMALL_TALK_LINES = [
@@ -759,8 +760,8 @@
 
 
   const GROUND_ASSET = {
-    key: 'raven_hook_world_abcd_base_4096x4096',
-    path: 'assets/city/pages/raven_hook_world_abcd_base_4096x4096.png',
+    key: 'raven_hook_world_abcd_single_aligned_4096',
+    path: 'assets/city/pages/raven_hook_world_abcd_single_aligned_4096x4096.jpg',
     width: 4096,
     height: 4096
   };
@@ -937,10 +938,10 @@
 
 
   const PLAYER_CAR_SINGLE_ASSET = {
-    key: 'meridian_sentinel_lx_top',
-    path: 'assets/vehicles_single/meridian_sentinel_lx_top.png',
-    w: 80,
-    h: 132
+    key: 'malcolm_monte_carlo_detective_top',
+    path: 'assets/vehicles_single/malcolm_monte_carlo_detective_top.png',
+    w: 64,
+    h: 118
   };
 
   const PLAYER_CAR_HANDLING = {
@@ -11870,6 +11871,41 @@
     }
   })();
 
+
+
+  // ALIGNED_ASSETS_MAP_FIX_019
+  (function installAlignedAssetsMapFix019() {
+    const ALIGNED_COLLISION_RECTS_019 = [{"id":"aligned_a_police_hq","x":114,"y":114,"w":817,"h":784,"type":"building"},{"id":"aligned_a_parking_annex","x":1029,"y":114,"w":800,"h":751,"type":"building"},{"id":"aligned_a_parking_block","x":114,"y":1094,"w":817,"h":751,"type":"building"},{"id":"aligned_a_small_blocks","x":1029,"y":1094,"w":800,"h":751,"type":"building"},{"id":"aligned_b_kens_east_market","x":2221,"y":114,"w":751,"h":800,"type":"building"},{"id":"aligned_b_red_gull_diner","x":3168,"y":180,"w":719,"h":621,"type":"building"},{"id":"aligned_b_pawn_row","x":2221,"y":1094,"w":751,"h":751,"type":"building"},{"id":"aligned_b_russo_auto","x":3168,"y":1094,"w":719,"h":751,"type":"building"},{"id":"aligned_c_records_annex","x":114,"y":2254,"w":523,"h":670,"type":"building"},{"id":"aligned_c_courthouse","x":686,"y":2205,"w":849,"h":784,"type":"building"},{"id":"aligned_c_city_hall","x":1568,"y":2237,"w":376,"h":653,"type":"building"},{"id":"aligned_c_tow_yard","x":114,"y":3266,"w":621,"h":604,"type":"building"},{"id":"aligned_c_impound_bail","x":784,"y":3266,"w":490,"h":604,"type":"building"},{"id":"aligned_c_legal_row","x":1323,"y":3266,"w":621,"h":604,"type":"building"},{"id":"aligned_d_neon_nights","x":2205,"y":2205,"w":343,"h":359,"type":"building"},{"id":"aligned_d_blue_lantern","x":2629,"y":2205,"w":359,"h":359,"type":"building"},{"id":"aligned_d_bell_cartage","x":3087,"y":2172,"w":751,"h":392,"type":"building"},{"id":"aligned_d_rusty_nail","x":2139,"y":2678,"w":359,"h":441,"type":"building"},{"id":"aligned_d_cheap_rooms","x":2646,"y":2662,"w":392,"h":441,"type":"building"},{"id":"aligned_d_dock_warehouse","x":3103,"y":2662,"w":719,"h":425,"type":"building"},{"id":"aligned_d_pawn_shop","x":2123,"y":3168,"w":343,"h":392,"type":"building"},{"id":"aligned_d_dock_yard_small","x":2613,"y":3168,"w":376,"h":392,"type":"building"},{"id":"aligned_d_red_gull_liquors","x":2123,"y":3626,"w":376,"h":359,"type":"building"},{"id":"aligned_d_back_alley","x":2629,"y":3626,"w":376,"h":359,"type":"building"},{"id":"aligned_d_right_harbor_water","x":3952,"y":2123,"w":144,"h":1829,"type":"water"},{"id":"aligned_d_bottom_harbor_water","x":1960,"y":4001,"w":2136,"h":95,"type":"water"}];
+    function setStrictAlignedCollision019() { if (Array.isArray(COLLISION_RECTS)) COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...ALIGNED_COLLISION_RECTS_019); }
+    setStrictAlignedCollision019();
+    if (typeof PLAYER_ASSET !== 'undefined') { PLAYER_ASSET.cols=4; PLAYER_ASSET.originY=0.82; PLAYER_ASSET.frameWidth=96; PLAYER_ASSET.frameHeight=96; }
+    if (typeof RAMOS_WALK_ASSET !== 'undefined') { RAMOS_WALK_ASSET.cols=4; RAMOS_WALK_ASSET.frameWidth=96; RAMOS_WALK_ASSET.frameHeight=96; RAMOS_WALK_ASSET.originY=0.82; RAMOS_WALK_ASSET.scale=0.58; RAMOS_WALK_ASSET.stationScale=0.88; }
+    if (typeof PLAYER_CAR_SINGLE_ASSET !== 'undefined') { PLAYER_CAR_SINGLE_ASSET.key='malcolm_monte_carlo_detective_top'; PLAYER_CAR_SINGLE_ASSET.path='assets/vehicles_single/malcolm_monte_carlo_detective_top.png'; PLAYER_CAR_SINGLE_ASSET.w=64; PLAYER_CAR_SINGLE_ASSET.h=118; }
+    if (typeof VEHICLE_UNIFORM_SCALE_LOCK !== 'undefined') VEHICLE_UNIFORM_SCALE_LOCK.malcolm_monte_carlo_detective_top = 0.58;
+    if (typeof GameScene !== 'undefined') {
+      GameScene.prototype.applyGroundMap = function() {
+        if (this.groundChunkImages) for (const img of Object.values(this.groundChunkImages)) img?.destroy?.();
+        this.groundChunkImages={}; if (this.realGround?.destroy) this.realGround.destroy(); this.realGround=null;
+        if (this.textures.exists(GROUND_ASSET.key)) { this.realGround=this.add.image(0,0,GROUND_ASSET.key).setOrigin(0,0).setDisplaySize(4096,4096).setDepth(0); this.groundChunkImages.singleAlignedWorld=this.realGround; }
+        if (this.groundGraphics) this.groundGraphics.setVisible(false);
+      };
+      GameScene.prototype.createCollision = function() {
+        setStrictAlignedCollision019(); if (this.walls?.clear) this.walls.clear(true,true); this.walls=this.physics.add.staticGroup();
+        for (const r of COLLISION_RECTS) { const rect=this.add.rectangle(r.x+r.w/2,r.y+r.h/2,r.w,r.h,r.type==='water'?0x003355:0xff0000,0); this.physics.add.existing(rect,true); this.walls.add(rect); }
+      };
+      GameScene.prototype.createPlayerAnims = function() {
+        if (this.anims.exists('detective_walk_south') || !this.textures.exists(PLAYER_ASSET.key)) return;
+        const rows=[['south',0],['southwest',1],['west',2],['northwest',3],['north',4],['northeast',5],['east',6],['southeast',7]]; const cols=PLAYER_ASSET.cols||4;
+        for (const [name,row] of rows) this.anims.create({key:`detective_walk_${name}`,frames:this.anims.generateFrameNumbers(PLAYER_ASSET.key,{start:row*cols,end:row*cols+cols-1}),frameRate:8,repeat:-1});
+      };
+      GameScene.prototype.frameForFacing = function() { const rowByFacing={S:0,SW:1,W:2,NW:3,N:4,NE:5,E:6,SE:7}; return (rowByFacing[this.playerFacing]||0)*(PLAYER_ASSET.cols||4); };
+      GameScene.prototype.animForFacing = function() { const n={S:'south',SW:'southwest',W:'west',NW:'northwest',N:'north',NE:'northeast',E:'east',SE:'southeast'}; return `detective_walk_${n[this.playerFacing]||'south'}`; };
+      const oldUpdatePlayerSprite019=GameScene.prototype.updatePlayerSprite;
+      if (typeof oldUpdatePlayerSprite019==='function') GameScene.prototype.updatePlayerSprite=function(moving=false) { const result=oldUpdatePlayerSprite019.call(this,moving); if (this.playerSprite) { this.playerSprite.setOrigin?.(0.5,0.82); this.playerSprite.setScale?.(PLAYER_ASSET.scale||0.58); this.playerSprite.setFlipX?.(false); } return result; };
+      const oldCreate019=GameScene.prototype.create;
+      GameScene.prototype.create=function(...args) { setStrictAlignedCollision019(); const result=oldCreate019.apply(this,args); this.applyGroundMap?.(); this.createCollision?.(); if (this.player&&this.walls) this.physics.add.collider(this.player,this.walls); if (this.car&&this.walls) this.physics.add.collider(this.car,this.walls,()=>this.carHitWall?.()); this.time?.delayedCall?.(250,()=>{this.applyGroundMap?.();this.setupPlayerTopDownCarSprite?.();}); return result; };
+    }
+  })();
 
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
