@@ -1,0 +1,152 @@
+{
+  "rule": "white=open walk/drive, black=blocked collision",
+  "notes": [
+    "Sidewalks, crosswalks, roads, parking lots, driveways, and motor pool yard are open.",
+    "Building footprints and motor pool fence/wall segments are blocked.",
+    "NPC crossing should be controlled with path nodes even though mask allows roads/crosswalks."
+  ],
+  "blocked_rects_2048_approx": [
+    {
+      "name": "police_hq_main_l_shape",
+      "type": "polygon",
+      "points": [
+        [
+          175,
+          160
+        ],
+        [
+          790,
+          160
+        ],
+        [
+          790,
+          455
+        ],
+        [
+          845,
+          455
+        ],
+        [
+          845,
+          600
+        ],
+        [
+          740,
+          600
+        ],
+        [
+          740,
+          760
+        ],
+        [
+          260,
+          760
+        ],
+        [
+          260,
+          610
+        ],
+        [
+          145,
+          610
+        ],
+        [
+          145,
+          435
+        ],
+        [
+          250,
+          435
+        ],
+        [
+          250,
+          245
+        ],
+        [
+          175,
+          245
+        ]
+      ]
+    },
+    {
+      "name": "police_hq_roof_core",
+      "type": "rect",
+      "x": 350,
+      "y": 210,
+      "w": 270,
+      "h": 120
+    },
+    {
+      "name": "motor_pool_garage",
+      "type": "rect",
+      "x": 1260,
+      "y": 135,
+      "w": 550,
+      "h": 215
+    },
+    {
+      "name": "motor_pool_support",
+      "type": "rect",
+      "x": 1580,
+      "y": 585,
+      "w": 105,
+      "h": 105
+    },
+    {
+      "name": "parking_annex",
+      "type": "rect",
+      "x": 220,
+      "y": 1690,
+      "w": 620,
+      "h": 195
+    },
+    {
+      "name": "parking_annex_left_end",
+      "type": "rect",
+      "x": 145,
+      "y": 1745,
+      "w": 85,
+      "h": 140
+    },
+    {
+      "name": "parking_annex_right_end",
+      "type": "rect",
+      "x": 840,
+      "y": 1740,
+      "w": 90,
+      "h": 145
+    },
+    {
+      "name": "civic_building_nw",
+      "type": "rect",
+      "x": 1160,
+      "y": 1170,
+      "w": 260,
+      "h": 370
+    },
+    {
+      "name": "civic_building_sw",
+      "type": "rect",
+      "x": 1180,
+      "y": 1645,
+      "w": 270,
+      "h": 265
+    },
+    {
+      "name": "civic_building_ne",
+      "type": "rect",
+      "x": 1585,
+      "y": 1165,
+      "w": 320,
+      "h": 345
+    },
+    {
+      "name": "civic_building_se",
+      "type": "rect",
+      "x": 1595,
+      "y": 1580,
+      "w": 340,
+      "h": 325
+    }
+  ]
+}

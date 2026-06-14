@@ -1,0 +1,44 @@
+{
+  "chunkId": "police_hq_chunk_a",
+  "name": "Police HQ / Motor Pool District",
+  "status": "locked",
+  "size": {
+    "width": 2048,
+    "height": 2048
+  },
+  "paths": {
+    "map": "assets/city/chunks/police_hq/police_hq_chunk_a_2048.png",
+    "collisionMask": "assets/city/chunks/police_hq/police_hq_chunk_a_collision_2048.png",
+    "preview": "docs/map/police_hq/police_hq_chunk_a_preview_1024.jpg",
+    "debugOverlay": "docs/map/police_hq/police_hq_chunk_a_collision_debug_overlay.png",
+    "collisionNotes": "config/map/police_hq_chunk_a_collision_notes.json"
+  },
+  "collisionRule": "white=open/walkable/drivable; black=blocked/collision",
+  "renderDepths": {
+    "mapBase": 0,
+    "vehicles": 22,
+    "player": 31,
+    "roofOverlays": 45,
+    "ui": 2000
+  },
+  "spawnSuggestions": {
+    "playerStationExit": {
+      "x": 520,
+      "y": 735
+    },
+    "motorPoolCarSpawn": {
+      "x": 1570,
+      "y": 560
+    },
+    "policeParkingSpawn": {
+      "x": 430,
+      "y": 1320
+    }
+  },
+  "notes": [
+    "This is Chunk A for the new world map workflow.",
+    "Use this chunk as the style anchor for the remaining three chunks.",
+    "Sidewalks, crosswalks, roads, parking lots, driveways, and motor pool yard are open on collision mask.",
+    "Building footprints and motor pool fence/wall segments are blocked."
+  ]
+}
