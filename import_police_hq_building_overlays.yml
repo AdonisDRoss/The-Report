@@ -1,0 +1,13 @@
+# Copy/paste upload target suggestion
+upload_target:
+  repo_path: assets/maps/raven_hook/chunk_a_police_hq/buildings/
+  files:
+    - 01_police_hq_main.png
+    - 02_motor_pool_garage.png
+    - 03_utility_shed_small.png
+    - 04_civic_support_north_tall.png
+    - 05_civic_support_north_square.png
+    - 06_parking_annex_wide.png
+    - 07_civic_support_south_square.png
+    - 08_civic_support_south_tall.png
+    - police_hq_building_overlays_sheet_transparent.png
