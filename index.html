@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Raven Hook Central — Chunk B Nodes Fixed</title>
+  <title>The Report — Raven Hook Central — AB Nodes Merged</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -61,7 +61,7 @@
   // TWO_CHUNK_ONSCREEN_PATCH_008: adds East Market Chunk B beside Police HQ Chunk A and map-inspect zoom mode.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'chunk-b-nodes-correct-side-010';
+  const ASSET_REV = 'chunk-ab-merged-nodes-011';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -11013,6 +11013,128 @@
 
         this.message = 'Route debug on. Cars: yellow/orange road lanes. Civilians: blue sidewalks, green crosswalks.';
         this.messageTimer = 3200;
+      };
+    }
+  })();
+
+
+
+  // CHUNK_AB_MERGED_NODES_PATCH_011
+  // Merges Chunk A + Chunk B traffic/pedestrian nodes. Cars stay on road lanes; civilians stay on sidewalks except crosswalk nodes.
+  (function installChunkABMergedNodesPatch011() {
+    const CHUNK_B_ROAD_NODES_011 = [{"id":"b_rd_top_eb_w","x":2118,"y":150,"lane":"eastbound","links":["b_rd_top_eb_mid"],"road":"top"},{"id":"b_rd_top_eb_mid","x":2978,"y":150,"lane":"eastbound","stop":true,"intersection":"b_int_top_main","links":["b_rd_top_eb_e","b_rd_main_sb_top"],"road":"top"},{"id":"b_rd_top_eb_e","x":4038,"y":150,"lane":"eastbound","links":["b_rd_top_wb_e"],"road":"top"},{"id":"b_rd_top_wb_e","x":4038,"y":80,"lane":"westbound","links":["b_rd_top_wb_mid"],"road":"top"},{"id":"b_rd_top_wb_mid","x":3158,"y":80,"lane":"westbound","stop":true,"intersection":"b_int_top_main","links":["b_rd_top_wb_w","b_rd_main_nb_top"],"road":"top"},{"id":"b_rd_top_wb_w","x":2118,"y":80,"lane":"westbound","links":["b_rd_top_eb_w"],"road":"top"},{"id":"b_rd_main_sb_top","x":3018,"y":70,"lane":"southbound","links":["b_rd_main_sb_center"],"road":"main"},{"id":"b_rd_main_sb_center","x":3018,"y":990,"lane":"southbound","stop":true,"intersection":"b_int_center","links":["b_rd_main_sb_bottom","b_rd_mid_eb_w"],"road":"main"},{"id":"b_rd_main_sb_bottom","x":3018,"y":1985,"lane":"southbound","links":["b_rd_bottom_eb_mid"],"road":"main"},{"id":"b_rd_main_nb_bottom","x":3128,"y":1985,"lane":"northbound","links":["b_rd_main_nb_center"],"road":"main"},{"id":"b_rd_main_nb_center","x":3128,"y":1085,"lane":"northbound","stop":true,"intersection":"b_int_center","links":["b_rd_main_nb_top","b_rd_mid_wb_e"],"road":"main"},{"id":"b_rd_main_nb_top","x":3128,"y":70,"lane":"northbound","links":["b_rd_top_wb_mid"],"road":"main"},{"id":"b_rd_mid_eb_w","x":2118,"y":1128,"lane":"eastbound","links":["b_rd_mid_eb_center"],"road":"middle"},{"id":"b_rd_mid_eb_center","x":2988,"y":1128,"lane":"eastbound","stop":true,"intersection":"b_int_center","links":["b_rd_mid_eb_e","b_rd_main_sb_bottom"],"road":"middle"},{"id":"b_rd_mid_eb_e","x":4038,"y":1128,"lane":"eastbound","links":["b_rd_mid_wb_e"],"road":"middle"},{"id":"b_rd_mid_wb_e","x":4038,"y":1048,"lane":"westbound","links":["b_rd_mid_wb_center"],"road":"middle"},{"id":"b_rd_mid_wb_center","x":3168,"y":1048,"lane":"westbound","stop":true,"intersection":"b_int_center","links":["b_rd_mid_wb_w","b_rd_main_nb_top"],"road":"middle"},{"id":"b_rd_mid_wb_w","x":2118,"y":1048,"lane":"westbound","links":["b_rd_mid_eb_w"],"road":"middle"},{"id":"b_rd_bottom_eb_w","x":2118,"y":1920,"lane":"eastbound","links":["b_rd_bottom_eb_mid"],"road":"bottom"},{"id":"b_rd_bottom_eb_mid","x":2988,"y":1920,"lane":"eastbound","stop":true,"intersection":"b_int_bottom_main","links":["b_rd_bottom_eb_e","b_rd_main_sb_bottom"],"road":"bottom"},{"id":"b_rd_bottom_eb_e","x":4038,"y":1920,"lane":"eastbound","links":["b_rd_bottom_wb_e"],"road":"bottom"},{"id":"b_rd_bottom_wb_e","x":4038,"y":1845,"lane":"westbound","links":["b_rd_bottom_wb_mid"],"road":"bottom"},{"id":"b_rd_bottom_wb_mid","x":3158,"y":1845,"lane":"westbound","stop":true,"intersection":"b_int_bottom_main","links":["b_rd_bottom_wb_w","b_rd_main_nb_bottom"],"road":"bottom"},{"id":"b_rd_bottom_wb_w","x":2118,"y":1845,"lane":"westbound","links":["b_rd_bottom_eb_w"],"road":"bottom"},{"id":"b_rd_russo_front_nb_s","x":3533,"y":1985,"lane":"northbound","links":["b_rd_russo_front_nb_n"],"road":"russo_front"},{"id":"b_rd_russo_front_nb_n","x":3533,"y":1445,"lane":"northbound","links":["b_rd_mid_wb_e"],"road":"russo_front"},{"id":"b_rd_russo_front_sb_n","x":3443,"y":1445,"lane":"southbound","links":["b_rd_russo_front_sb_s"],"road":"russo_front"},{"id":"b_rd_russo_front_sb_s","x":3443,"y":1985,"lane":"southbound","links":["b_rd_bottom_eb_mid"],"road":"russo_front"}];
+    const CHUNK_B_SIDEWALK_NODES_011 = [{"id":"b_sw_ul_nw","x":2163,"y":160,"links":["b_sw_ul_top","b_sw_ul_left"]},{"id":"b_sw_ul_top","x":2608,"y":160,"links":["b_sw_ul_nw","b_sw_chens_front","b_sw_ul_ne"]},{"id":"b_sw_ul_ne","x":2898,"y":160,"links":["b_sw_ul_top","b_sw_ul_right"]},{"id":"b_sw_ul_left","x":2158,"y":620,"links":["b_sw_ul_nw","b_sw_kims_front_w"]},{"id":"b_sw_ul_right","x":2918,"y":655,"links":["b_sw_ul_ne","b_sw_kims_front_e","b_cross_mid_w"]},{"id":"b_sw_chens_front","x":2568,"y":440,"links":["b_sw_ul_top","b_sw_lucky_front"]},{"id":"b_sw_lucky_front","x":2698,"y":440,"links":["b_sw_chens_front","b_sw_eastmarket_front"]},{"id":"b_sw_eastmarket_front","x":2828,"y":440,"links":["b_sw_lucky_front","b_sw_ul_right"]},{"id":"b_sw_kims_front_w","x":2233,"y":850,"links":["b_sw_ul_left","b_sw_kims_front_c"]},{"id":"b_sw_kims_front_c","x":2488,"y":850,"links":["b_sw_kims_front_w","b_sw_kims_front_e"]},{"id":"b_sw_kims_front_e","x":2808,"y":850,"links":["b_sw_kims_front_c","b_sw_ul_right"]},{"id":"b_sw_ur_nw","x":3278,"y":175,"links":["b_sw_ur_top","b_sw_diner_back"]},{"id":"b_sw_ur_top","x":3728,"y":175,"links":["b_sw_ur_nw","b_sw_ur_ne","b_sw_top_store_front"]},{"id":"b_sw_ur_ne","x":3993,"y":175,"links":["b_sw_ur_top","b_sw_ur_right"]},{"id":"b_sw_ur_right","x":3993,"y":650,"links":["b_sw_ur_ne","b_sw_ur_se"]},{"id":"b_sw_ur_se","x":3908,"y":865,"links":["b_sw_ur_right","b_sw_diner_front_e"]},{"id":"b_sw_diner_front_e","x":3733,"y":865,"links":["b_sw_ur_se","b_sw_diner_front_c"]},{"id":"b_sw_diner_front_c","x":3563,"y":865,"links":["b_sw_diner_front_e","b_sw_diner_front_w"]},{"id":"b_sw_diner_front_w","x":3358,"y":865,"links":["b_sw_diner_front_c","b_sw_diner_back","b_cross_mid_e"]},{"id":"b_sw_diner_back","x":3333,"y":530,"links":["b_sw_ur_nw","b_sw_diner_front_w"]},{"id":"b_sw_top_store_front","x":3793,"y":365,"links":["b_sw_ur_top","b_sw_ur_right"]},{"id":"b_sw_ll_nw","x":2163,"y":1240,"links":["b_sw_ll_top","b_sw_ll_left"]},{"id":"b_sw_ll_top","x":2623,"y":1240,"links":["b_sw_ll_nw","b_sw_ll_ne"]},{"id":"b_sw_ll_ne","x":2918,"y":1240,"links":["b_sw_ll_top","b_sw_ll_right","b_cross_mid_w"]},{"id":"b_sw_ll_left","x":2158,"y":1590,"links":["b_sw_ll_nw","b_sw_pawn_front_w"]},{"id":"b_sw_ll_right","x":2918,"y":1660,"links":["b_sw_ll_ne","b_sw_ll_se"]},{"id":"b_sw_ll_se","x":2843,"y":1810,"links":["b_sw_ll_right","b_sw_pawn_front_e"]},{"id":"b_sw_pawn_front_w","x":2233,"y":1780,"links":["b_sw_ll_left","b_sw_pawn_front_c"]},{"id":"b_sw_pawn_front_c","x":2478,"y":1780,"links":["b_sw_pawn_front_w","b_sw_pawn_front_e"]},{"id":"b_sw_pawn_front_e","x":2808,"y":1780,"links":["b_sw_pawn_front_c","b_sw_ll_se"]},{"id":"b_sw_lr_nw","x":3268,"y":1240,"links":["b_sw_lr_top","b_sw_lr_left","b_cross_mid_e"]},{"id":"b_sw_lr_top","x":3648,"y":1240,"links":["b_sw_lr_nw","b_sw_lr_ne","b_sw_service_shed"]},{"id":"b_sw_lr_ne","x":3993,"y":1240,"links":["b_sw_lr_top","b_sw_lr_right"]},{"id":"b_sw_lr_left","x":3268,"y":1590,"links":["b_sw_lr_nw","b_sw_russo_front_w"]},{"id":"b_sw_lr_right","x":3993,"y":1665,"links":["b_sw_lr_ne","b_sw_lr_se"]},{"id":"b_sw_lr_se","x":3893,"y":1860,"links":["b_sw_lr_right","b_sw_russo_front_e"]},{"id":"b_sw_russo_front_w","x":3308,"y":1785,"links":["b_sw_lr_left","b_sw_russo_front_c"]},{"id":"b_sw_russo_front_c","x":3498,"y":1785,"links":["b_sw_russo_front_w","b_sw_russo_front_e"]},{"id":"b_sw_russo_front_e","x":3728,"y":1785,"links":["b_sw_russo_front_c","b_sw_lr_se"]},{"id":"b_sw_service_shed","x":3858,"y":1190,"links":["b_sw_lr_top","b_sw_lr_right"]},{"id":"b_cross_top_w","x":2993,"y":160,"crosswalk":true,"links":["b_sw_ul_ne","b_cross_top_e"]},{"id":"b_cross_top_e","x":3183,"y":160,"crosswalk":true,"links":["b_cross_top_w","b_sw_ur_nw"]},{"id":"b_cross_mid_w","x":2993,"y":1048,"crosswalk":true,"links":["b_sw_ul_right","b_sw_ll_ne","b_cross_mid_c"]},{"id":"b_cross_mid_c","x":3088,"y":1048,"crosswalk":true,"links":["b_cross_mid_w","b_cross_mid_e"]},{"id":"b_cross_mid_e","x":3183,"y":1048,"crosswalk":true,"links":["b_cross_mid_c","b_sw_diner_front_w","b_sw_lr_nw"]},{"id":"b_cross_bottom_w","x":2993,"y":1840,"crosswalk":true,"links":["b_sw_ll_se","b_cross_bottom_e"]},{"id":"b_cross_bottom_e","x":3183,"y":1840,"crosswalk":true,"links":["b_cross_bottom_w","b_sw_lr_left"]}];
+    const CHUNK_AB_TRAFFIC_SPAWNS_011 = [{"key":"generic_civilian_sedan","start":"rd_station_w","police":false,"maxSpeed":70},{"key":"raven_hook_taxi_cab","start":"rd_market_w","police":false,"maxSpeed":68},{"key":"unmarked_detective_sedan","start":"rd_civic_n","police":true,"maxSpeed":72},{"key":"beat_up_pickup_truck","start":"rd_station_mid","police":false,"maxSpeed":58},{"key":"generic_civilian_sedan","start":"b_rd_mid_eb_w","police":false,"maxSpeed":66},{"key":"raven_hook_taxi_cab","start":"b_rd_top_wb_e","police":false,"maxSpeed":64},{"key":"beat_up_pickup_truck","start":"b_rd_bottom_eb_w","police":false,"maxSpeed":58},{"key":"los_reyes_lowrider","start":"b_rd_russo_front_nb_s","police":false,"maxSpeed":62},{"key":"raven_hook_utility_service_truck","start":"b_rd_mid_wb_e","police":false,"maxSpeed":54}];
+
+    function addItemsToMap(mapObj, items) {
+      if (!mapObj) return;
+      for (const item of items) mapObj[item.id] = item;
+    }
+
+    // Restore/preserve Chunk A nodes from the original arrays, then add Chunk B nodes.
+    if (typeof RH_RD_PATCH_MAP !== 'undefined') {
+      if (Array.isArray(RH_ROAD_PATCH_NODES)) {
+        for (const n of RH_ROAD_PATCH_NODES) {
+          if (Number(n.x) < 2048 && Number(n.y) < 2048) RH_RD_PATCH_MAP[n.id] = n;
+        }
+      }
+      addItemsToMap(RH_RD_PATCH_MAP, CHUNK_B_ROAD_NODES_011);
+    }
+
+    if (typeof RH_SW_PATCH_MAP !== 'undefined') {
+      if (Array.isArray(RH_SIDEWALK_PATCH_NODES)) {
+        for (const n of RH_SIDEWALK_PATCH_NODES) {
+          if (Number(n.x) < 2048 && Number(n.y) < 2048) RH_SW_PATCH_MAP[n.id] = n;
+        }
+      }
+      addItemsToMap(RH_SW_PATCH_MAP, CHUNK_B_SIDEWALK_NODES_011);
+    }
+
+    if (Array.isArray(RH_TRAFFIC_SPAWNS)) {
+      RH_TRAFFIC_SPAWNS.splice(0, RH_TRAFFIC_SPAWNS.length, ...CHUNK_AB_TRAFFIC_SPAWNS_011);
+    }
+
+    if (typeof CityScene !== 'undefined') {
+      const oldApplyGroundMap011 = CityScene.prototype.applyGroundMap;
+      CityScene.prototype.applyGroundMap = function(...args) {
+        if (typeof oldApplyGroundMap011 === 'function') oldApplyGroundMap011.apply(this, args);
+
+        if (!this.groundChunkImages) this.groundChunkImages = {};
+        if (!this.groundChunkImages.chunkA && this.textures.exists(GROUND_ASSET.key)) {
+          this.groundChunkImages.chunkA = this.add.image(0, 0, GROUND_ASSET.key)
+            .setOrigin(0, 0)
+            .setDisplaySize(GROUND_ASSET.width || 2048, GROUND_ASSET.height || 2048)
+            .setDepth(0);
+        }
+        if (!this.groundChunkImages.chunkB && this.textures.exists(EAST_MARKET_CHUNK_B_ASSET.key)) {
+          this.groundChunkImages.chunkB = this.add.image(EAST_MARKET_CHUNK_B_ASSET.x, EAST_MARKET_CHUNK_B_ASSET.y, EAST_MARKET_CHUNK_B_ASSET.key)
+            .setOrigin(0, 0)
+            .setDisplaySize(EAST_MARKET_CHUNK_B_ASSET.width, EAST_MARKET_CHUNK_B_ASSET.height)
+            .setDepth(0);
+        }
+      };
+
+      const oldCreate011 = CityScene.prototype.create;
+      CityScene.prototype.create = function(...args) {
+        const result = oldCreate011.apply(this, args);
+
+        // Robust fallback: if Chunk B was not in preload, queue it now and redraw when ready.
+        if (!this.textures.exists(EAST_MARKET_CHUNK_B_ASSET.key) && !this._chunkBLoadQueued011) {
+          this._chunkBLoadQueued011 = true;
+          this.load.image(EAST_MARKET_CHUNK_B_ASSET.key, A(EAST_MARKET_CHUNK_B_ASSET.path));
+          this.load.once(`filecomplete-image-${EAST_MARKET_CHUNK_B_ASSET.key}`, () => {
+            this._chunkBLoadQueued011 = false;
+            this.applyGroundMap?.();
+          });
+          if (!this.load.isLoading()) this.load.start();
+        } else {
+          this.applyGroundMap?.();
+        }
+
+        return result;
+      };
+
+      GameScene.prototype.createCivilians = function() {
+        this.civilians = [];
+        const starts = [
+          // Chunk A
+          'sw_station_01','sw_station_02','sw_station_03','sw_civic_01','sw_civic_02','sw_station_cross',
+          // Chunk B
+          'b_sw_kims_front_c','b_sw_chens_front','b_sw_diner_front_c','b_sw_pawn_front_c','b_sw_russo_front_c','b_sw_top_store_front',
+          'b_sw_ll_top','b_sw_lr_top','b_sw_ul_left','b_sw_ur_right'
+        ];
+
+        for (let i = 0; i < Math.min(starts.length, MAX_CITY_CIVILIANS); i++) {
+          const node = RH_SW_PATCH_MAP[starts[i]];
+          if (!node) continue;
+          const assetDef = CIVILIAN_ASSETS[i % CIVILIAN_ASSETS.length];
+          const body = this.add.rectangle(node.x, node.y, 20, 28, 0x00ff00, 0).setDepth(29);
+          this.physics.add.existing(body);
+          if (body.body) {
+            body.body.setCollideWorldBounds(true);
+            body.body.setSize(18, 22);
+          }
+          if (this.walls) this.physics.add.collider(body, this.walls);
+
+          let sprite;
+          if (this.textures.exists(assetDef.key)) {
+            sprite = this.add.sprite(node.x, node.y, assetDef.key, 0)
+              .setOrigin(0.5, 0.88)
+              .setScale(CIV_CITY_SCALE)
+              .setDepth(30);
+          } else {
+            sprite = this.add.rectangle(node.x, node.y, 18, 28, 0xbfc7d1, 0.85).setDepth(30);
+            sprite._isFallback = true;
+          }
+
+          this.civilians.push({
+            body, sprite, assetKey:assetDef.key,
+            nodeId:starts[i], targetNodeId:null, prevNodeId:null,
+            speed:Phaser.Math.Between(42,62),
+            pauseTimer:Phaser.Math.Between(250,1400),
+            facing:'S'
+          });
+        }
       };
     }
   })();
