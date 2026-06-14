@@ -54,9 +54,16 @@
   // CAR_CONTROL_HEADLIGHT_SPRITE_GUARD_PATCH_001: fixes disappearing car sprites; X accelerate, A brake, Y headlights, Z handbrake.
   // ASSET_SCALE_LOCK_PATCH_001: all human and vehicle assets use locked display scale. GTA_STYLE_PLAYER_CAR_HANDLING_PATCH_001: player car drift physics and top-down detective sedan. RUNTIME_VEHICLE_LIGHTS_PATCH_001: adds runtime headlights and police strobes. SINGLE_TOPDOWN_TRAFFIC_PATCH_001: NPC cars use single top-down sprites and code rotation. WORLD_OVERLAY_AND_ASSET_VISIBILITY_FIX_001: adds map overlay and replaces fallback boxes after lazy loading. RAVEN_HOOK_WORLD_BASE_PAGE01_GAMEPLAY_READY: swaps city to 4096x4096 four-chunk base layer with gameplay collisions, doors, spawns, and case nodes.
   // RAVEN_HOOK_POLICE_MAP_VEHICLE_SPRITE_UPDATE_001: uses new Police HQ chunk A map, new police/SWAT sprite sheets, new vehicle set, and new building overlays.
+  // RAVEN_HOOK_FORCE_NEW_ASSETS_PATCH_002: functional force-new-assets patch + cache-busted local asset URLs.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const A = (p) => ASSET_BASE + String(p).replace(/^\/?/, '');
+  const ASSET_REV = 'police-map-vehicles-003-hard';
+  const A = (p) => {
+    const clean = String(p).replace(/^\/?/, '');
+    if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
+    const sep = clean.includes('?') ? '&' : '?';
+    return ASSET_BASE + clean + sep + 'v=' + ASSET_REV;
+  };
 
   const CAMERA = {
     // CAMERA_ZOOM_OUT_LOCKED_CONTROLS_001: slight zoom-out; mobile controls stay fixed screen-space.
@@ -10127,6 +10134,226 @@
       }
     };
   }
+
+
+  // RAVEN_HOOK_FORCE_NEW_ASSETS_PATCH_002
+  // Forces the new Police HQ chunk, police/SWAT sheets, vehicle set, and overlays to be used.
+  (function installRavenHookForceNewAssetsPatch002() {
+    const POLICE_V2_SPRITES = [
+      { key:'patrol_black_male', path:'assets/characters/police/patrol_black_male.png', fw:96, fh:96 },
+      { key:'patrol_white_male', path:'assets/characters/police/patrol_white_male.png', fw:96, fh:96 },
+      { key:'patrol_latino_male_pompadour', path:'assets/characters/police/patrol_latino_male_pompadour.png', fw:96, fh:96 },
+      { key:'patrol_white_female', path:'assets/characters/police/patrol_white_female.png', fw:96, fh:96 },
+      { key:'patrol_black_female', path:'assets/characters/police/patrol_black_female.png', fw:96, fh:96 },
+      { key:'patrol_latina_female', path:'assets/characters/police/patrol_latina_female.png', fw:96, fh:96 },
+      { key:'swat_male_operator', path:'assets/characters/police/swat_male_operator.png', fw:96, fh:96 },
+      { key:'swat_female_operator', path:'assets/characters/police/swat_female_operator.png', fw:96, fh:96 }
+    ];
+
+    if (Array.isArray(POLICE_NPC_ASSETS)) {
+      POLICE_NPC_ASSETS.splice(0, POLICE_NPC_ASSETS.length, ...POLICE_V2_SPRITES);
+    }
+
+    const VEHICLE_V2_ASSETS = [
+      { model:'generic_civilian_sedan', key:'generic_civilian_sedan_north', path:'assets/vehicles/civilian/generic_civilian_sedan_north.png', w:64, h:128, scale:0.12 },
+      { model:'raven_hook_taxi_cab', key:'raven_hook_taxi_cab_north', path:'assets/vehicles/civilian/raven_hook_taxi_cab_north.png', w:64, h:128, scale:0.12 },
+      { model:'beat_up_pickup_truck', key:'beat_up_pickup_truck_north', path:'assets/vehicles/civilian/beat_up_pickup_truck_north.png', w:72, h:136, scale:0.13 },
+      { model:'raven_hook_utility_service_truck', key:'raven_hook_utility_service_truck_north', path:'assets/vehicles/civilian/raven_hook_utility_service_truck_north.png', w:74, h:142, scale:0.13 },
+      { model:'raven_hook_ambulance', key:'raven_hook_ambulance_north', path:'assets/vehicles/civilian/raven_hook_ambulance_north.png', w:78, h:150, scale:0.14 },
+      { model:'unmarked_detective_sedan', key:'unmarked_detective_sedan_north', path:'assets/vehicles/police/unmarked_detective_sedan_north.png', w:64, h:128, scale:0.12 },
+      { model:'raven_hook_swat_van', key:'raven_hook_swat_van_north', path:'assets/vehicles/police/raven_hook_swat_van_north.png', w:80, h:154, scale:0.145 },
+      { model:'los_reyes_lowrider', key:'los_reyes_lowrider_north', path:'assets/vehicles/gangs/los_reyes/los_reyes_lowrider_north.png', w:64, h:128, scale:0.12 },
+      { model:'los_reyes_garage_van', key:'los_reyes_garage_van_north', path:'assets/vehicles/gangs/los_reyes/los_reyes_garage_van_north.png', w:74, h:142, scale:0.135 },
+      { model:'iron_dogs_muscle_car', key:'iron_dogs_muscle_car_north', path:'assets/vehicles/gangs/iron_dogs/iron_dogs_muscle_car_north.png', w:68, h:132, scale:0.125 },
+      { model:'iron_dogs_tow_truck', key:'iron_dogs_tow_truck_north', path:'assets/vehicles/gangs/iron_dogs/iron_dogs_tow_truck_north.png', w:84, h:160, scale:0.15 },
+      { model:'holloway_kings_luxury_sedan', key:'holloway_kings_luxury_sedan_north', path:'assets/vehicles/gangs/holloway_kings/holloway_kings_luxury_sedan_north.png', w:68, h:132, scale:0.125 },
+      { model:'maze_royale_luxury_coupe', key:'maze_royale_luxury_coupe_north', path:'assets/vehicles/gangs/holloway_kings/maze_royale_luxury_coupe_north.png', w:68, h:132, scale:0.125 },
+      { model:'neon_knives_coupe', key:'neon_knives_coupe_north', path:'assets/vehicles/gangs/neon_knives/neon_knives_coupe_north.png', w:66, h:130, scale:0.12 },
+      { model:'receipt_crew_sedan', key:'receipt_crew_sedan_north', path:'assets/vehicles/gangs/receipt_crew/receipt_crew_sedan_north.png', w:66, h:130, scale:0.12 },
+      { model:'moretti_crew_car', key:'moretti_crew_car_north', path:'assets/vehicles/gangs/moretti_crew/moretti_crew_car_north.png', w:68, h:132, scale:0.125 },
+      { model:'moretti_crew_strip_van', key:'moretti_crew_strip_van_north', path:'assets/vehicles/gangs/moretti_crew/moretti_crew_strip_van_north.png', w:74, h:142, scale:0.135 },
+      { model:'vescari_family_sedan', key:'vescari_family_sedan_north', path:'assets/vehicles/fronts/vescari_family/vescari_family_sedan_north.png', w:68, h:132, scale:0.125 },
+      { model:'vescari_funeral_hearse', key:'vescari_funeral_hearse_north', path:'assets/vehicles/fronts/vescari_family/vescari_funeral_hearse_north.png', w:74, h:148, scale:0.14 },
+      { model:'bell_cartage_cold_storage_truck', key:'bell_cartage_cold_storage_truck_north', path:'assets/vehicles/fronts/bell_cartage/bell_cartage_cold_storage_truck_north.png', w:84, h:162, scale:0.155 }
+    ];
+
+    if (Array.isArray(SINGLE_VEHICLE_ASSETS)) {
+      const oldFallbackKeys = new Set([
+        'meridian_sentinel_patrol_top',
+        'blackthorne_regent_top',
+        'blackthorne_regent_taxi_top',
+        'rustway_comet_top',
+        'fairline_metro_top',
+        'ironcrest_wagon_top',
+        'bluewater_delivery_top',
+        'solara_mirage_top',
+        'northstar_vantage_top'
+      ]);
+      for (let i = SINGLE_VEHICLE_ASSETS.length - 1; i >= 0; i--) {
+        if (oldFallbackKeys.has(SINGLE_VEHICLE_ASSETS[i].key)) SINGLE_VEHICLE_ASSETS.splice(i, 1);
+      }
+      const seen = new Set(SINGLE_VEHICLE_ASSETS.map(v => v.key));
+      for (const v of VEHICLE_V2_ASSETS) {
+        const item = { key:v.key, path:v.path, w:v.w, h:v.h };
+        if (!seen.has(item.key)) {
+          SINGLE_VEHICLE_ASSETS.push(item);
+          seen.add(item.key);
+        }
+        if (typeof SINGLE_VEHICLE_TOP_META === 'object') SINGLE_VEHICLE_TOP_META[item.key] = item;
+      }
+    }
+
+    if (typeof SINGLE_VEHICLE_MODEL_TO_TOP === 'object') {
+      for (const v of VEHICLE_V2_ASSETS) SINGLE_VEHICLE_MODEL_TO_TOP[v.model] = v.key;
+      SINGLE_VEHICLE_MODEL_TO_TOP.meridian_sentinel_patrol = 'unmarked_detective_sedan_north';
+      SINGLE_VEHICLE_MODEL_TO_TOP.blackthorne_regent = 'generic_civilian_sedan_north';
+      SINGLE_VEHICLE_MODEL_TO_TOP.blackthorne_regent_taxi = 'raven_hook_taxi_cab_north';
+      SINGLE_VEHICLE_MODEL_TO_TOP.rustway_comet = 'beat_up_pickup_truck_north';
+      SINGLE_VEHICLE_MODEL_TO_TOP.fairline_metro = 'generic_civilian_sedan_north';
+      SINGLE_VEHICLE_MODEL_TO_TOP.ironcrest_wagon = 'raven_hook_utility_service_truck_north';
+      SINGLE_VEHICLE_MODEL_TO_TOP.bluewater_delivery = 'bell_cartage_cold_storage_truck_north';
+      SINGLE_VEHICLE_MODEL_TO_TOP.solara_mirage = 'neon_knives_coupe_north';
+      SINGLE_VEHICLE_MODEL_TO_TOP.northstar_vantage = 'holloway_kings_luxury_sedan_north';
+    }
+
+    if (typeof VEHICLE_UNIFORM_SCALE_LOCK === 'object') {
+      for (const v of VEHICLE_V2_ASSETS) VEHICLE_UNIFORM_SCALE_LOCK[v.key] = v.scale;
+    }
+
+    if (Array.isArray(RH_TRAFFIC_SPAWNS)) {
+      RH_TRAFFIC_SPAWNS.splice(0, RH_TRAFFIC_SPAWNS.length,
+        { key:'generic_civilian_sedan', start:'rd_station_w', police:false, maxSpeed:76 },
+        { key:'raven_hook_taxi_cab', start:'rd_market_w', police:false, maxSpeed:74 },
+        { key:'beat_up_pickup_truck', start:'rd_market_e_w', police:false, maxSpeed:66 },
+        { key:'raven_hook_utility_service_truck', start:'rd_civic_n', police:false, maxSpeed:60 },
+        { key:'moretti_crew_car', start:'rd_oldtown_n', police:false, maxSpeed:76 },
+        { key:'vescari_family_sedan', start:'rd_oldtown_s', police:false, maxSpeed:70 },
+        { key:'iron_dogs_muscle_car', start:'rd_station_mid_w', police:false, maxSpeed:78 },
+        { key:'raven_hook_swat_van', start:'rd_river_s', police:true, maxSpeed:58 }
+      );
+    }
+
+    const CHUNK_A_IMAGES = [
+      { key:'police_hq_chunk_a_2048', name:'Chunk A Police HQ Base', path:'assets/city/chunks/police_hq/police_hq_chunk_a_2048.png', place:[0,0,2048,2048], depth:1 },
+      { key:'chunk_a_police_hq_main_overlay', name:'Police HQ Main Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/01_police_hq_main.png', place:[108,95,934,866], depth:ROOF_DEPTH + 16 },
+      { key:'chunk_a_motor_pool_garage_overlay', name:'Motor Pool Garage Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/02_motor_pool_garage.png', place:[1209,101,670,338], depth:ROOF_DEPTH + 16 },
+      { key:'chunk_a_utility_shed_overlay', name:'Utility Shed Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/03_utility_shed_small.png', place:[1647,621,157,170], depth:ROOF_DEPTH + 16 },
+      { key:'chunk_a_civic_support_north_tall_overlay', name:'Civic Support North Tall Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/04_civic_support_north_tall.png', place:[1094,978,356,510], depth:ROOF_DEPTH + 16 },
+      { key:'chunk_a_civic_support_north_square_overlay', name:'Civic Support North Square Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/05_civic_support_north_square.png', place:[1528,1011,397,374], depth:ROOF_DEPTH + 16 },
+      { key:'chunk_a_parking_annex_overlay', name:'Parking Annex Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/06_parking_annex_wide.png', place:[116,1382,844,319], depth:ROOF_DEPTH + 16 },
+      { key:'chunk_a_civic_support_south_square_overlay', name:'Civic Support South Square Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/07_civic_support_south_square.png', place:[1574,1384,299,537], depth:ROOF_DEPTH + 16 },
+      { key:'chunk_a_civic_support_south_tall_overlay', name:'Civic Support South Tall Overlay', path:'assets/maps/raven_hook/chunk_a_police_hq/buildings/08_civic_support_south_tall.png', place:[1122,1501,312,392], depth:ROOF_DEPTH + 16 }
+    ];
+
+    if (Array.isArray(BUILDING_IMAGE_ASSETS)) {
+      const removeKeys = new Set([
+        'raven_hook_police_station_main_slotfit',
+        'raven_hook_police_motor_pool_overlay_open'
+      ]);
+      for (let i = BUILDING_IMAGE_ASSETS.length - 1; i >= 0; i--) {
+        const b = BUILDING_IMAGE_ASSETS[i];
+        if (removeKeys.has(b.key)) BUILDING_IMAGE_ASSETS.splice(i, 1);
+      }
+      const existing = new Set(BUILDING_IMAGE_ASSETS.map(b => b.key));
+      for (let i = CHUNK_A_IMAGES.length - 1; i >= 0; i--) {
+        if (!existing.has(CHUNK_A_IMAGES[i].key)) BUILDING_IMAGE_ASSETS.unshift(CHUNK_A_IMAGES[i]);
+      }
+    }
+
+    const CHUNK_A_COLLISION_RECTS = [
+      { id:'col_chunk_a_police_hq_main', x:145, y:160, w:700, h:600, type:'building' },
+      { id:'col_chunk_a_police_hq_roof_core', x:350, y:210, w:270, h:120, type:'building' },
+      { id:'col_chunk_a_motor_pool_garage', x:1260, y:135, w:550, h:215, type:'building' },
+      { id:'col_chunk_a_motor_pool_support', x:1580, y:585, w:105, h:105, type:'building' },
+      { id:'col_chunk_a_parking_annex_main', x:220, y:1690, w:620, h:195, type:'building' },
+      { id:'col_chunk_a_parking_annex_left', x:145, y:1745, w:85, h:140, type:'building' },
+      { id:'col_chunk_a_parking_annex_right', x:840, y:1740, w:90, h:145, type:'building' },
+      { id:'col_chunk_a_civic_nw', x:1160, y:1170, w:260, h:370, type:'building' },
+      { id:'col_chunk_a_civic_sw', x:1180, y:1645, w:270, h:265, type:'building' },
+      { id:'col_chunk_a_civic_ne', x:1585, y:1165, w:320, h:345, type:'building' },
+      { id:'col_chunk_a_civic_se', x:1595, y:1580, w:340, h:325, type:'building' }
+    ];
+
+    if (Array.isArray(COLLISION_RECTS)) {
+      const kept = COLLISION_RECTS.filter(r => {
+        if (!r || r.type !== 'building') return true;
+        const rx = Number(r.x) || 0, ry = Number(r.y) || 0;
+        return !(rx < 2048 && ry < 2048);
+      });
+      COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...CHUNK_A_COLLISION_RECTS, ...kept);
+    }
+
+    if (Array.isArray(SPAWN_POINTS)) {
+      const playerStart = SPAWN_POINTS.find(s => s.id === 'player_start');
+      if (playerStart) { playerStart.x = 520; playerStart.y = 735; }
+      const sedanSpawn = SPAWN_POINTS.find(s => s.id === 'detective_sedan');
+      if (sedanSpawn) { sedanSpawn.x = 1570; sedanSpawn.y = 560; }
+      const worker = SPAWN_POINTS.find(s => s.id === 'precinct_worker');
+      if (worker) { worker.x = 650; worker.y = 770; }
+    }
+
+    if (Array.isArray(INTERACTION_ZONES)) {
+      const door = INTERACTION_ZONES.find(z => z.id === 'rhpq_police_station_door');
+      if (door) { door.x = 480; door.y = 690; door.w = 120; door.h = 90; door.label = 'Raven Hook Police HQ'; }
+      const motor = INTERACTION_ZONES.find(z => z.id === 'precinct_annex_door');
+      if (motor) { motor.x = 1500; motor.y = 700; motor.w = 160; motor.h = 110; motor.label = 'Police Motor Pool'; }
+    }
+
+    if (typeof PoliceStationScene !== 'undefined') {
+      PoliceStationScene.prototype.createStationPoliceNPCs = function() {
+        if (this.stationNpcs?.length > 0) return;
+        this.stationNpcs = this.stationNpcs || [];
+        const cfgs = [
+          { routeKey:'frontDesk', assetKey:'patrol_white_female', label:'Desk is open. Sign in at the front.' },
+          { routeKey:'recordsHall', assetKey:'patrol_black_male', label:'Records is down the hall, left side.' },
+          { routeKey:'hallway', assetKey:'patrol_latina_female', label:'Keep moving. No loitering.' },
+          { routeKey:'upstairs', assetKey:'swat_male_operator', label:'Detectives are upstairs — Floor 2.' }
+        ];
+        for (let i = 0; i < Math.min(cfgs.length, MAX_STATION_POLICE); i++) {
+          const cfg = cfgs[i];
+          const route = POLICE_STATION_NPC_ROUTES[cfg.routeKey];
+          if (!route?.length) continue;
+          const start = route[0];
+          const body = this.add.rectangle(start.x, start.y, 28, 44, 0x0000ff, 0).setDepth(29);
+          this.physics.add.existing(body);
+          if (body.body) body.body.setCollideWorldBounds(true);
+          this.physics.add.collider(body, this.walls);
+          let sprite;
+          if (this.textures.exists(cfg.assetKey)) {
+            if (!this.anims.exists(`snpc_walk_south_${cfg.assetKey}`)) {
+              for (const [name, row] of [['south',0],['north',4],['west',2],['east',6]]) {
+                this.anims.create({
+                  key:`snpc_walk_${name}_${cfg.assetKey}`,
+                  frames:this.anims.generateFrameNumbers(cfg.assetKey, { start:row * 4, end:row * 4 + 3 }),
+                  frameRate:7,
+                  repeat:-1
+                });
+              }
+            }
+            sprite = this.add.sprite(start.x, start.y, cfg.assetKey, 0)
+              .setOrigin(0.5, 0.88)
+              .setScale(0.82)
+              .setDepth(30);
+          } else {
+            sprite = this.add.rectangle(start.x, start.y, 28, 50, 0x2255aa, 1)
+              .setStrokeStyle(2, 0x88bbff, 0.8)
+              .setDepth(30);
+          }
+          this.stationNpcs.push({
+            body,
+            sprite,
+            assetKey:cfg.assetKey,
+            route,
+            routeIndex:0,
+            facing:'S',
+            pauseTimer:Phaser.Math.Between(600, 1600),
+            label:cfg.label
+          });
+        }
+      };
+    }
+  })();
+
 
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
