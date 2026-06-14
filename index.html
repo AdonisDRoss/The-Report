@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Sprite Direction + Roads + Car Input Fix</title>
+  <title>The Report — Intersection Car Assist Fix</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -66,9 +66,10 @@
   // CHUNK_D_RED_GULL_STRIP_GAME_READY_PATCH_016: adds full ABCD world with Red Gull Strip/Old Harbor.
   // CHUNK_D_CLEAN_WATER_BLOCK_GAME_READY_PATCH_017: clean Chunk D, streets/sidewalks open, water blocked.
   // SINGLE_WORLD_NO_OVERLAP_PATCH_018: single full-world ground, no overlapping chunk layers.
+  // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'sprite-road-car-input-fix-020';
+  const ASSET_REV = 'intersection-car-assist-021';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -12162,6 +12163,167 @@
       };
     }
   })();
+
+
+  // INTERSECTION_CAR_ASSIST_PATCH_021
+  // Shrinks car body, opens intersection corridors, softens edge bounce, and adds low-speed turning assist.
+  (function installIntersectionCarAssistPatch021() {
+    const OPEN_ROAD_RECTS_021 = [{"id":"open_ab_c_seam_top","x":1900,"y":0,"w":320,"h":2048},{"id":"open_cd_seam_bottom","x":1900,"y":2048,"w":330,"h":2048},{"id":"open_ac_bd_seam","x":0,"y":1900,"w":4096,"h":330},{"id":"open_a_station_drive","x":0,"y":0,"w":4096,"h":275},{"id":"open_a_mid_eastwest","x":0,"y":910,"w":4096,"h":310},{"id":"open_a_bottom_eastwest","x":0,"y":1765,"w":4096,"h":310},{"id":"open_b_top_street","x":2048,"y":0,"w":2048,"h":275},{"id":"open_b_mid_street","x":2048,"y":900,"w":2048,"h":330},{"id":"open_b_bottom_street","x":2048,"y":1765,"w":2048,"h":310},{"id":"open_b_russo_drive","x":3380,"y":1320,"w":430,"h":728},{"id":"open_c_north_street","x":0,"y":2048,"w":2048,"h":300},{"id":"open_c_mid_street","x":0,"y":2925,"w":2048,"h":330},{"id":"open_c_south_street","x":0,"y":3780,"w":2048,"h":300},{"id":"open_c_main_vertical","x":900,"y":2048,"w":280,"h":2048},{"id":"open_d_north_street","x":2048,"y":2048,"w":2048,"h":310},{"id":"open_d_mid_street","x":2048,"y":2930,"w":2048,"h":320},{"id":"open_d_south_street","x":2048,"y":3785,"w":2048,"h":300},{"id":"open_d_west_vertical","x":2048,"y":2048,"w":230,"h":2048},{"id":"open_d_center_vertical","x":3000,"y":2048,"w":250,"h":2048},{"id":"open_d_dock_vertical","x":3780,"y":2048,"w":250,"h":1900}];
+
+    function overlap(a,b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    function rectFrom(r) {
+      return { x:Number(r.x)||0, y:Number(r.y)||0, w:Number(r.w)||0, h:Number(r.h)||0 };
+    }
+
+    function isProtectedWater(r) {
+      return r && r.type === 'water';
+    }
+
+    function isRoadOpenCollision(r) {
+      if (!r || isProtectedWater(r)) return false;
+      const rr = rectFrom(r);
+      // Remove only broad road/intersection blockers, never small/tight buildings.
+      // Small buildings stay blocked even if close to road.
+      const area = rr.w * rr.h;
+      const broad = rr.w >= 180 || rr.h >= 180 || area >= 45000;
+      if (!broad) return false;
+      return OPEN_ROAD_RECTS_021.some(o => overlap(rr, o));
+    }
+
+    function applyIntersectionOpenRects021() {
+      if (!Array.isArray(COLLISION_RECTS)) return;
+      const kept = COLLISION_RECTS.filter(r => !isRoadOpenCollision(r));
+      COLLISION_RECTS.splice(0, COLLISION_RECTS.length, ...kept);
+    }
+
+    function insideOpenRoad021(x,y) {
+      return OPEN_ROAD_RECTS_021.some(r => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h);
+    }
+
+    applyIntersectionOpenRects021();
+
+    if (typeof GameScene !== 'undefined') {
+      const oldCreateEntities021 = GameScene.prototype.createEntities;
+      if (typeof oldCreateEntities021 === 'function') {
+        GameScene.prototype.createEntities = function(...args) {
+          const result = oldCreateEntities021.apply(this, args);
+          if (this.car?.body) {
+            // Slightly smaller than old 34x62, to avoid corner catches.
+            this.car.body.setSize(26, 48);
+            this.car.body.setOffset?.(-13, -24);
+          }
+          return result;
+        };
+      }
+
+      const oldSyncVehicleSprites021 = GameScene.prototype.syncVehicleSprites;
+      if (typeof oldSyncVehicleSprites021 === 'function') {
+        GameScene.prototype.syncVehicleSprites = function(...args) {
+          const result = oldSyncVehicleSprites021.apply(this, args);
+          if (this.car?.body) {
+            this.car.body.setSize(26, 48);
+            this.car.body.setOffset?.(-13, -24);
+          }
+          return result;
+        };
+      }
+
+      const oldCreateWalls021 = GameScene.prototype.createWalls;
+      GameScene.prototype.createWalls = function(...args) {
+        applyIntersectionOpenRects021();
+        return oldCreateWalls021.apply(this, args);
+      };
+
+      const oldUpdateCar021 = GameScene.prototype.updateCar;
+      if (typeof oldUpdateCar021 === 'function') {
+        GameScene.prototype.updateCar = function(dt) {
+          const beforeHeading = this.car?.heading || 0;
+          const beforeSpeed = this.car ? Math.hypot(this.car.vx || 0, this.car.vy || 0) : 0;
+          const result = oldUpdateCar021.call(this, dt);
+
+          if (this.car) {
+            const d = this.inputDir?.() || {};
+            const speed = Math.hypot(this.car.vx || 0, this.car.vy || 0);
+            const inRoad = insideOpenRoad021(this.car.x || 0, this.car.y || 0);
+
+            // Low-speed intersection assist: more steering and mild forward pull under 90 speed.
+            if (inRoad && speed < 95) {
+              const turnInput = (d.left ? -1 : 0) + (d.right ? 1 : 0) + (Math.abs(d.ax || 0) > 0.18 ? Math.sign(d.ax) : 0);
+              if (turnInput) {
+                this.car.heading += turnInput * 1.95 * dt;
+              }
+
+              // If gas is held or latched, give enough torque to not stall inside intersections.
+              const wantsGas = d.up || d.driveGas || d.x || this._driveGasLatchUntil021 && (this.time?.now || 0) < this._driveGasLatchUntil021;
+              if (wantsGas) {
+                const fx = Math.cos(this.car.heading || 0);
+                const fy = Math.sin(this.car.heading || 0);
+                this.car.vx = (this.car.vx || 0) + fx * 260 * dt;
+                this.car.vy = (this.car.vy || 0) + fy * 260 * dt;
+                this.car.body?.setVelocity(this.car.vx, this.car.vy);
+              }
+            }
+
+            if (this.car.body) {
+              this.car.body.setSize(26, 48);
+              this.car.body.setOffset?.(-13, -24);
+            }
+          }
+
+          return result;
+        };
+      }
+
+      // X tap latch: one tap gives a short gas hold so acceleration does not require spam-tapping.
+      const oldInputDir021 = GameScene.prototype.inputDir;
+      if (typeof oldInputDir021 === 'function') {
+        GameScene.prototype.inputDir = function(...args) {
+          const d = oldInputDir021.apply(this, args) || {};
+          const now = this.time?.now || performance.now?.() || Date.now();
+
+          if (this.inCar) {
+            const gasPressed = !!(d.up || d.driveGas || d.x || this.mobile?.x || this.mobile?.driveGas);
+            if (gasPressed) this._driveGasLatchUntil021 = now + 520;
+            if (this._driveGasLatchUntil021 && now < this._driveGasLatchUntil021) {
+              d.up = true;
+              d.driveGas = true;
+            }
+          }
+
+          return d;
+        };
+      }
+
+      const oldCarHitWall021 = GameScene.prototype.carHitWall;
+      GameScene.prototype.carHitWall = function() {
+        if (this.car) {
+          const x = this.car.x || 0;
+          const y = this.car.y || 0;
+          const vx = this.car.vx || this.car.body?.velocity?.x || 0;
+          const vy = this.car.vy || this.car.body?.velocity?.y || 0;
+          const speed = Math.hypot(vx, vy);
+
+          if (insideOpenRoad021(x, y)) {
+            // Soft scrape: do not hard-stop in a valid road/intersection.
+            this.car.vx = vx * 0.72;
+            this.car.vy = vy * 0.72;
+            // Nudge along travel vector out of the sliver.
+            const nx = speed > 1 ? vx / speed : Math.cos(this.car.heading || 0);
+            const ny = speed > 1 ? vy / speed : Math.sin(this.car.heading || 0);
+            this.car.setPosition(x + nx * 20, y + ny * 20);
+            this.car.body?.setVelocity(this.car.vx, this.car.vy);
+            return;
+          }
+        }
+
+        if (typeof oldCarHitWall021 === 'function') return oldCarHitWall021.apply(this, arguments);
+      };
+    }
+  })();
+
 
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
