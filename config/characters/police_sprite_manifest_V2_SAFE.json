@@ -1,0 +1,55 @@
+{
+  "pack": "the_report_police_phaser_ready_V2_SAFE",
+  "fix": "No per-frame crop/recenter. Sheets are resized whole to 384x768 and backgrounds are removed per 96x96 cell.",
+  "format": "384x768 PNG, 4 columns x 8 rows, 96x96 per frame, transparent background",
+  "sprites": [
+    {
+      "id": "patrol_black_male",
+      "file": "patrol_black_male.png",
+      "source": "/mnt/data/D1A73ADD-28E4-4DFD-910E-1DD095C73FFF.png",
+      "repoPath": "assets/characters/police/patrol_black_male.png"
+    },
+    {
+      "id": "patrol_white_male",
+      "file": "patrol_white_male.png",
+      "source": "/mnt/data/A2A60665-A35B-4618-BD10-520EA78D66B6.png",
+      "repoPath": "assets/characters/police/patrol_white_male.png"
+    },
+    {
+      "id": "patrol_latino_male_pompadour",
+      "file": "patrol_latino_male_pompadour.png",
+      "source": "/mnt/data/CE2FC699-28A4-419D-BD42-83965F4DB2CD.png",
+      "repoPath": "assets/characters/police/patrol_latino_male_pompadour.png"
+    },
+    {
+      "id": "patrol_white_female",
+      "file": "patrol_white_female.png",
+      "source": "/mnt/data/01543E0D-76F9-4D49-AC40-D58CA07B79D8.png",
+      "repoPath": "assets/characters/police/patrol_white_female.png"
+    },
+    {
+      "id": "patrol_black_female",
+      "file": "patrol_black_female.png",
+      "source": "/mnt/data/EB4A00AF-1036-4C2B-A4EE-7EDB9AD7E3F1.png",
+      "repoPath": "assets/characters/police/patrol_black_female.png"
+    },
+    {
+      "id": "patrol_latina_female",
+      "file": "patrol_latina_female.png",
+      "source": "/mnt/data/E27C88F9-A522-474E-BCB1-28B06FAAD889.png",
+      "repoPath": "assets/characters/police/patrol_latina_female.png"
+    },
+    {
+      "id": "swat_male_operator",
+      "file": "swat_male_operator.png",
+      "source": "/mnt/data/15D2156D-FC80-4B18-8E79-7FEC6FAAF8B7.png",
+      "repoPath": "assets/characters/police/swat_male_operator.png"
+    },
+    {
+      "id": "swat_female_operator",
+      "file": "swat_female_operator.png",
+      "source": "/mnt/data/tactical_swat_operator_sprite_sheet.png",
+      "repoPath": "assets/characters/police/swat_female_operator.png"
+    }
+  ]
+}
