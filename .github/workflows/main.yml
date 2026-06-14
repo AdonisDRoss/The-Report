@@ -1,4 +1,4 @@
-name: Import Police HQ Building Overlays
+name: Import Raven Hook Vehicle Set
 
 on:
   workflow_dispatch:
@@ -7,47 +7,36 @@ permissions:
   contents: write
 
 jobs:
-  import-police-hq-building-overlays:
+  import-vehicle-set:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Check overlay ZIP
+      - name: Check vehicle ZIP
         run: |
           ls -lah
-          test -f police_hq_building_overlays_PHASER_READY.zip
+          test -f the_report_vehicle_set_WORKFLOW_PACK.zip
 
-      - name: Unzip overlay pack
+      - name: Unzip vehicle set
         run: |
-          rm -rf /tmp/police_hq_building_overlays
-          mkdir -p /tmp/police_hq_building_overlays
-          unzip -o police_hq_building_overlays_PHASER_READY.zip -d /tmp/police_hq_building_overlays
+          unzip -o the_report_vehicle_set_WORKFLOW_PACK.zip
 
-      - name: Copy overlays to game assets
+      - name: Show imported vehicle files
         run: |
-          mkdir -p assets/maps/raven_hook/chunk_a_police_hq/buildings
-          cp /tmp/police_hq_building_overlays/*.png assets/maps/raven_hook/chunk_a_police_hq/buildings/
+          find assets/vehicles -type f | sort || true
+          find config/vehicles -type f | sort || true
+          find docs/vehicles -type f | sort || true
+          find docs/previews/vehicles -type f | sort || true
 
-      - name: Copy overlay docs
-        run: |
-          mkdir -p docs/map/police_hq/building_overlays
-          cp /tmp/police_hq_building_overlays/README_UPLOAD_PATHS.txt docs/map/police_hq/building_overlays/README_UPLOAD_PATHS.txt || true
-          cp /tmp/police_hq_building_overlays/import_police_hq_building_overlays.yml docs/map/police_hq/building_overlays/import_police_hq_building_overlays.yml || true
-
-      - name: Show imported files
-        run: |
-          find assets/maps/raven_hook/chunk_a_police_hq/buildings -type f | sort
-          find docs/map/police_hq/building_overlays -type f | sort || true
-
-      - name: Commit imported overlays
+      - name: Commit imported vehicle set
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add assets/maps/raven_hook/chunk_a_police_hq/buildings docs/map/police_hq/building_overlays
+          git add assets/vehicles config/vehicles docs/vehicles docs/previews/vehicles README_VEHICLE_SET.md
           if git diff --cached --quiet; then
-            echo "No overlay changes to commit."
+            echo "No vehicle changes to commit."
           else
-            git commit -m "Import Police HQ building overlays"
+            git commit -m "Import Raven Hook vehicle set"
             git push
           fi
