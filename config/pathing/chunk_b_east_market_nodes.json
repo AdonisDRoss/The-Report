@@ -1,0 +1,1585 @@
+{
+  "chunk": "B / East Market",
+  "world_offset": {
+    "x": 2048,
+    "y": 0
+  },
+  "traffic_rule": "US right-side driving: eastbound uses south/lower lane, westbound uses north/upper lane, northbound uses east/right lane, southbound uses west/left lane.",
+  "road_nodes_local": [
+    {
+      "id": "b_rd_top_eb_w",
+      "x": 90,
+      "y": 168,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_top_eb_mid"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_eb_mid",
+      "x": 950,
+      "y": 168,
+      "lane": "eastbound",
+      "stop": true,
+      "intersection": "b_int_top_main",
+      "links": [
+        "b_rd_top_eb_e",
+        "b_rd_main_sb_top"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_eb_e",
+      "x": 1980,
+      "y": 168,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_top_wb_e"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_wb_e",
+      "x": 1980,
+      "y": 96,
+      "lane": "westbound",
+      "links": [
+        "b_rd_top_wb_mid"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_wb_mid",
+      "x": 1085,
+      "y": 96,
+      "lane": "westbound",
+      "stop": true,
+      "intersection": "b_int_top_main",
+      "links": [
+        "b_rd_top_wb_w",
+        "b_rd_main_nb_top"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_wb_w",
+      "x": 90,
+      "y": 96,
+      "lane": "westbound",
+      "links": [
+        "b_rd_top_eb_w"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_main_sb_top",
+      "x": 970,
+      "y": 90,
+      "lane": "southbound",
+      "links": [
+        "b_rd_main_sb_mid"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_sb_mid",
+      "x": 970,
+      "y": 990,
+      "lane": "southbound",
+      "stop": true,
+      "intersection": "b_int_center",
+      "links": [
+        "b_rd_main_sb_south",
+        "b_rd_mid_eb_w"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_sb_south",
+      "x": 970,
+      "y": 1980,
+      "lane": "southbound",
+      "links": [
+        "b_rd_bottom_eb_mid"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_nb_south",
+      "x": 1082,
+      "y": 1980,
+      "lane": "northbound",
+      "links": [
+        "b_rd_main_nb_mid"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_nb_mid",
+      "x": 1082,
+      "y": 1140,
+      "lane": "northbound",
+      "stop": true,
+      "intersection": "b_int_center",
+      "links": [
+        "b_rd_main_nb_top",
+        "b_rd_mid_wb_e"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_nb_top",
+      "x": 1082,
+      "y": 90,
+      "lane": "northbound",
+      "links": [
+        "b_rd_top_wb_mid"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_mid_eb_w",
+      "x": 80,
+      "y": 1128,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_mid_eb_main"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_eb_main",
+      "x": 945,
+      "y": 1128,
+      "lane": "eastbound",
+      "stop": true,
+      "intersection": "b_int_center",
+      "links": [
+        "b_rd_mid_eb_e",
+        "b_rd_main_sb_south"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_eb_e",
+      "x": 1985,
+      "y": 1128,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_mid_wb_e"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_wb_e",
+      "x": 1985,
+      "y": 1048,
+      "lane": "westbound",
+      "links": [
+        "b_rd_mid_wb_main"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_wb_main",
+      "x": 1105,
+      "y": 1048,
+      "lane": "westbound",
+      "stop": true,
+      "intersection": "b_int_center",
+      "links": [
+        "b_rd_mid_wb_w",
+        "b_rd_main_nb_top"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_wb_w",
+      "x": 80,
+      "y": 1048,
+      "lane": "westbound",
+      "links": [
+        "b_rd_mid_eb_w"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_bottom_eb_w",
+      "x": 90,
+      "y": 1900,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_bottom_eb_main"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_eb_main",
+      "x": 950,
+      "y": 1900,
+      "lane": "eastbound",
+      "stop": true,
+      "intersection": "b_int_bottom_main",
+      "links": [
+        "b_rd_bottom_eb_e",
+        "b_rd_main_sb_south"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_eb_e",
+      "x": 1980,
+      "y": 1900,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_bottom_wb_e"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_wb_e",
+      "x": 1980,
+      "y": 1825,
+      "lane": "westbound",
+      "links": [
+        "b_rd_bottom_wb_main"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_wb_main",
+      "x": 1085,
+      "y": 1825,
+      "lane": "westbound",
+      "stop": true,
+      "intersection": "b_int_bottom_main",
+      "links": [
+        "b_rd_bottom_wb_w",
+        "b_rd_main_nb_south"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_wb_w",
+      "x": 90,
+      "y": 1825,
+      "lane": "westbound",
+      "links": [
+        "b_rd_bottom_eb_w"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_russo_front_nb_s",
+      "x": 1475,
+      "y": 1980,
+      "lane": "northbound",
+      "links": [
+        "b_rd_russo_front_nb_n"
+      ],
+      "road": "russo_frontage"
+    },
+    {
+      "id": "b_rd_russo_front_nb_n",
+      "x": 1475,
+      "y": 1450,
+      "lane": "northbound",
+      "links": [
+        "b_rd_mid_wb_e"
+      ],
+      "road": "russo_frontage"
+    },
+    {
+      "id": "b_rd_russo_front_sb_n",
+      "x": 1395,
+      "y": 1450,
+      "lane": "southbound",
+      "links": [
+        "b_rd_russo_front_sb_s"
+      ],
+      "road": "russo_frontage"
+    },
+    {
+      "id": "b_rd_russo_front_sb_s",
+      "x": 1395,
+      "y": 1980,
+      "lane": "southbound",
+      "links": [
+        "b_rd_bottom_eb_main"
+      ],
+      "road": "russo_frontage"
+    }
+  ],
+  "road_nodes_world": [
+    {
+      "id": "b_rd_top_eb_w",
+      "x": 2138,
+      "y": 168,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_top_eb_mid"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_eb_mid",
+      "x": 2998,
+      "y": 168,
+      "lane": "eastbound",
+      "stop": true,
+      "intersection": "b_int_top_main",
+      "links": [
+        "b_rd_top_eb_e",
+        "b_rd_main_sb_top"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_eb_e",
+      "x": 4028,
+      "y": 168,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_top_wb_e"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_wb_e",
+      "x": 4028,
+      "y": 96,
+      "lane": "westbound",
+      "links": [
+        "b_rd_top_wb_mid"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_wb_mid",
+      "x": 3133,
+      "y": 96,
+      "lane": "westbound",
+      "stop": true,
+      "intersection": "b_int_top_main",
+      "links": [
+        "b_rd_top_wb_w",
+        "b_rd_main_nb_top"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_top_wb_w",
+      "x": 2138,
+      "y": 96,
+      "lane": "westbound",
+      "links": [
+        "b_rd_top_eb_w"
+      ],
+      "road": "top"
+    },
+    {
+      "id": "b_rd_main_sb_top",
+      "x": 3018,
+      "y": 90,
+      "lane": "southbound",
+      "links": [
+        "b_rd_main_sb_mid"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_sb_mid",
+      "x": 3018,
+      "y": 990,
+      "lane": "southbound",
+      "stop": true,
+      "intersection": "b_int_center",
+      "links": [
+        "b_rd_main_sb_south",
+        "b_rd_mid_eb_w"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_sb_south",
+      "x": 3018,
+      "y": 1980,
+      "lane": "southbound",
+      "links": [
+        "b_rd_bottom_eb_mid"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_nb_south",
+      "x": 3130,
+      "y": 1980,
+      "lane": "northbound",
+      "links": [
+        "b_rd_main_nb_mid"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_nb_mid",
+      "x": 3130,
+      "y": 1140,
+      "lane": "northbound",
+      "stop": true,
+      "intersection": "b_int_center",
+      "links": [
+        "b_rd_main_nb_top",
+        "b_rd_mid_wb_e"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_main_nb_top",
+      "x": 3130,
+      "y": 90,
+      "lane": "northbound",
+      "links": [
+        "b_rd_top_wb_mid"
+      ],
+      "road": "main"
+    },
+    {
+      "id": "b_rd_mid_eb_w",
+      "x": 2128,
+      "y": 1128,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_mid_eb_main"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_eb_main",
+      "x": 2993,
+      "y": 1128,
+      "lane": "eastbound",
+      "stop": true,
+      "intersection": "b_int_center",
+      "links": [
+        "b_rd_mid_eb_e",
+        "b_rd_main_sb_south"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_eb_e",
+      "x": 4033,
+      "y": 1128,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_mid_wb_e"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_wb_e",
+      "x": 4033,
+      "y": 1048,
+      "lane": "westbound",
+      "links": [
+        "b_rd_mid_wb_main"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_wb_main",
+      "x": 3153,
+      "y": 1048,
+      "lane": "westbound",
+      "stop": true,
+      "intersection": "b_int_center",
+      "links": [
+        "b_rd_mid_wb_w",
+        "b_rd_main_nb_top"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_mid_wb_w",
+      "x": 2128,
+      "y": 1048,
+      "lane": "westbound",
+      "links": [
+        "b_rd_mid_eb_w"
+      ],
+      "road": "middle"
+    },
+    {
+      "id": "b_rd_bottom_eb_w",
+      "x": 2138,
+      "y": 1900,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_bottom_eb_main"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_eb_main",
+      "x": 2998,
+      "y": 1900,
+      "lane": "eastbound",
+      "stop": true,
+      "intersection": "b_int_bottom_main",
+      "links": [
+        "b_rd_bottom_eb_e",
+        "b_rd_main_sb_south"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_eb_e",
+      "x": 4028,
+      "y": 1900,
+      "lane": "eastbound",
+      "links": [
+        "b_rd_bottom_wb_e"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_wb_e",
+      "x": 4028,
+      "y": 1825,
+      "lane": "westbound",
+      "links": [
+        "b_rd_bottom_wb_main"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_wb_main",
+      "x": 3133,
+      "y": 1825,
+      "lane": "westbound",
+      "stop": true,
+      "intersection": "b_int_bottom_main",
+      "links": [
+        "b_rd_bottom_wb_w",
+        "b_rd_main_nb_south"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_bottom_wb_w",
+      "x": 2138,
+      "y": 1825,
+      "lane": "westbound",
+      "links": [
+        "b_rd_bottom_eb_w"
+      ],
+      "road": "bottom"
+    },
+    {
+      "id": "b_rd_russo_front_nb_s",
+      "x": 3523,
+      "y": 1980,
+      "lane": "northbound",
+      "links": [
+        "b_rd_russo_front_nb_n"
+      ],
+      "road": "russo_frontage"
+    },
+    {
+      "id": "b_rd_russo_front_nb_n",
+      "x": 3523,
+      "y": 1450,
+      "lane": "northbound",
+      "links": [
+        "b_rd_mid_wb_e"
+      ],
+      "road": "russo_frontage"
+    },
+    {
+      "id": "b_rd_russo_front_sb_n",
+      "x": 3443,
+      "y": 1450,
+      "lane": "southbound",
+      "links": [
+        "b_rd_russo_front_sb_s"
+      ],
+      "road": "russo_frontage"
+    },
+    {
+      "id": "b_rd_russo_front_sb_s",
+      "x": 3443,
+      "y": 1980,
+      "lane": "southbound",
+      "links": [
+        "b_rd_bottom_eb_main"
+      ],
+      "road": "russo_frontage"
+    }
+  ],
+  "intersections_world": {
+    "b_int_top_main": {
+      "box": {
+        "x": 2958,
+        "y": 60,
+        "w": 220,
+        "h": 160
+      }
+    },
+    "b_int_center": {
+      "box": {
+        "x": 2958,
+        "y": 980,
+        "w": 250,
+        "h": 210
+      }
+    },
+    "b_int_bottom_main": {
+      "box": {
+        "x": 2958,
+        "y": 1790,
+        "w": 240,
+        "h": 180
+      }
+    }
+  },
+  "traffic_spawns": [
+    {
+      "key": "generic_civilian_sedan",
+      "start": "b_rd_mid_eb_w",
+      "police": false,
+      "maxSpeed": 66
+    },
+    {
+      "key": "raven_hook_taxi_cab",
+      "start": "b_rd_top_wb_e",
+      "police": false,
+      "maxSpeed": 64
+    },
+    {
+      "key": "beat_up_pickup_truck",
+      "start": "b_rd_bottom_eb_w",
+      "police": false,
+      "maxSpeed": 58
+    },
+    {
+      "key": "unmarked_detective_sedan",
+      "start": "b_rd_main_sb_top",
+      "police": true,
+      "maxSpeed": 70
+    },
+    {
+      "key": "los_reyes_lowrider",
+      "start": "b_rd_russo_front_nb_s",
+      "police": false,
+      "maxSpeed": 62
+    },
+    {
+      "key": "raven_hook_utility_service_truck",
+      "start": "b_rd_mid_wb_e",
+      "police": false,
+      "maxSpeed": 54
+    }
+  ],
+  "sidewalk_rule": "Civilians use sidewalk nodes only; they enter road only through nodes marked crosswalk:true.",
+  "sidewalk_nodes_local": [
+    {
+      "id": "b_sw_ul_nw",
+      "x": 110,
+      "y": 180,
+      "links": [
+        "b_sw_ul_top",
+        "b_sw_ul_left"
+      ]
+    },
+    {
+      "id": "b_sw_ul_top",
+      "x": 620,
+      "y": 180,
+      "links": [
+        "b_sw_ul_nw",
+        "b_sw_ul_ne",
+        "b_sw_chens_front"
+      ]
+    },
+    {
+      "id": "b_sw_ul_ne",
+      "x": 875,
+      "y": 180,
+      "links": [
+        "b_sw_ul_top",
+        "b_sw_ul_right"
+      ]
+    },
+    {
+      "id": "b_sw_ul_right",
+      "x": 875,
+      "y": 640,
+      "links": [
+        "b_sw_ul_ne",
+        "b_sw_ul_se",
+        "b_cross_mid_w"
+      ]
+    },
+    {
+      "id": "b_sw_ul_se",
+      "x": 820,
+      "y": 910,
+      "links": [
+        "b_sw_ul_right",
+        "b_sw_kims_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_ul_left",
+      "x": 100,
+      "y": 620,
+      "links": [
+        "b_sw_ul_nw",
+        "b_sw_kims_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_kims_front_w",
+      "x": 170,
+      "y": 875,
+      "links": [
+        "b_sw_ul_left",
+        "b_sw_kims_front_c"
+      ]
+    },
+    {
+      "id": "b_sw_kims_front_c",
+      "x": 420,
+      "y": 875,
+      "links": [
+        "b_sw_kims_front_w",
+        "b_sw_kims_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_kims_front_e",
+      "x": 750,
+      "y": 875,
+      "links": [
+        "b_sw_kims_front_c",
+        "b_sw_ul_se"
+      ]
+    },
+    {
+      "id": "b_sw_chens_front",
+      "x": 520,
+      "y": 445,
+      "links": [
+        "b_sw_ul_top",
+        "b_sw_lucky_front"
+      ]
+    },
+    {
+      "id": "b_sw_lucky_front",
+      "x": 645,
+      "y": 445,
+      "links": [
+        "b_sw_chens_front",
+        "b_sw_eastmarket_front"
+      ]
+    },
+    {
+      "id": "b_sw_eastmarket_front",
+      "x": 770,
+      "y": 445,
+      "links": [
+        "b_sw_lucky_front",
+        "b_sw_ul_right"
+      ]
+    },
+    {
+      "id": "b_sw_ur_nw",
+      "x": 1215,
+      "y": 180,
+      "links": [
+        "b_sw_ur_top",
+        "b_sw_diner_back"
+      ]
+    },
+    {
+      "id": "b_sw_ur_top",
+      "x": 1670,
+      "y": 180,
+      "links": [
+        "b_sw_ur_nw",
+        "b_sw_ur_ne",
+        "b_sw_top_store_front"
+      ]
+    },
+    {
+      "id": "b_sw_ur_ne",
+      "x": 1960,
+      "y": 180,
+      "links": [
+        "b_sw_ur_top",
+        "b_sw_ur_right"
+      ]
+    },
+    {
+      "id": "b_sw_ur_right",
+      "x": 1960,
+      "y": 650,
+      "links": [
+        "b_sw_ur_ne",
+        "b_sw_ur_se"
+      ]
+    },
+    {
+      "id": "b_sw_ur_se",
+      "x": 1860,
+      "y": 875,
+      "links": [
+        "b_sw_ur_right",
+        "b_sw_diner_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_diner_front_e",
+      "x": 1675,
+      "y": 880,
+      "links": [
+        "b_sw_ur_se",
+        "b_sw_diner_front_c"
+      ]
+    },
+    {
+      "id": "b_sw_diner_front_c",
+      "x": 1515,
+      "y": 880,
+      "links": [
+        "b_sw_diner_front_e",
+        "b_sw_diner_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_diner_front_w",
+      "x": 1315,
+      "y": 880,
+      "links": [
+        "b_sw_diner_front_c",
+        "b_sw_diner_back",
+        "b_cross_mid_e"
+      ]
+    },
+    {
+      "id": "b_sw_diner_back",
+      "x": 1270,
+      "y": 520,
+      "links": [
+        "b_sw_ur_nw",
+        "b_sw_diner_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_top_store_front",
+      "x": 1755,
+      "y": 370,
+      "links": [
+        "b_sw_ur_top",
+        "b_sw_ur_right"
+      ]
+    },
+    {
+      "id": "b_sw_ll_nw",
+      "x": 115,
+      "y": 1240,
+      "links": [
+        "b_sw_ll_top",
+        "b_sw_ll_left"
+      ]
+    },
+    {
+      "id": "b_sw_ll_top",
+      "x": 590,
+      "y": 1240,
+      "links": [
+        "b_sw_ll_nw",
+        "b_sw_ll_ne"
+      ]
+    },
+    {
+      "id": "b_sw_ll_ne",
+      "x": 875,
+      "y": 1240,
+      "links": [
+        "b_sw_ll_top",
+        "b_sw_ll_right",
+        "b_cross_mid_w"
+      ]
+    },
+    {
+      "id": "b_sw_ll_right",
+      "x": 875,
+      "y": 1665,
+      "links": [
+        "b_sw_ll_ne",
+        "b_sw_ll_se"
+      ]
+    },
+    {
+      "id": "b_sw_ll_se",
+      "x": 810,
+      "y": 1810,
+      "links": [
+        "b_sw_ll_right",
+        "b_sw_pawn_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_ll_left",
+      "x": 110,
+      "y": 1600,
+      "links": [
+        "b_sw_ll_nw",
+        "b_sw_pawn_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_pawn_front_w",
+      "x": 170,
+      "y": 1780,
+      "links": [
+        "b_sw_ll_left",
+        "b_sw_pawn_front_c"
+      ]
+    },
+    {
+      "id": "b_sw_pawn_front_c",
+      "x": 420,
+      "y": 1780,
+      "links": [
+        "b_sw_pawn_front_w",
+        "b_sw_pawn_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_pawn_front_e",
+      "x": 760,
+      "y": 1780,
+      "links": [
+        "b_sw_pawn_front_c",
+        "b_sw_ll_se"
+      ]
+    },
+    {
+      "id": "b_sw_lr_nw",
+      "x": 1210,
+      "y": 1240,
+      "links": [
+        "b_sw_lr_top",
+        "b_sw_lr_left",
+        "b_cross_mid_e"
+      ]
+    },
+    {
+      "id": "b_sw_lr_top",
+      "x": 1590,
+      "y": 1240,
+      "links": [
+        "b_sw_lr_nw",
+        "b_sw_lr_ne",
+        "b_sw_service_shed"
+      ]
+    },
+    {
+      "id": "b_sw_lr_ne",
+      "x": 1960,
+      "y": 1240,
+      "links": [
+        "b_sw_lr_top",
+        "b_sw_lr_right"
+      ]
+    },
+    {
+      "id": "b_sw_lr_right",
+      "x": 1960,
+      "y": 1665,
+      "links": [
+        "b_sw_lr_ne",
+        "b_sw_lr_se"
+      ]
+    },
+    {
+      "id": "b_sw_lr_se",
+      "x": 1850,
+      "y": 1865,
+      "links": [
+        "b_sw_lr_right",
+        "b_sw_russo_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_lr_left",
+      "x": 1210,
+      "y": 1600,
+      "links": [
+        "b_sw_lr_nw",
+        "b_sw_russo_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_russo_front_w",
+      "x": 1260,
+      "y": 1790,
+      "links": [
+        "b_sw_lr_left",
+        "b_sw_russo_front_c"
+      ]
+    },
+    {
+      "id": "b_sw_russo_front_c",
+      "x": 1450,
+      "y": 1790,
+      "links": [
+        "b_sw_russo_front_w",
+        "b_sw_russo_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_russo_front_e",
+      "x": 1680,
+      "y": 1790,
+      "links": [
+        "b_sw_russo_front_c",
+        "b_sw_lr_se"
+      ]
+    },
+    {
+      "id": "b_sw_service_shed",
+      "x": 1810,
+      "y": 1190,
+      "links": [
+        "b_sw_lr_top",
+        "b_sw_lr_right"
+      ]
+    },
+    {
+      "id": "b_cross_mid_w",
+      "x": 945,
+      "y": 1048,
+      "crosswalk": true,
+      "links": [
+        "b_sw_ul_right",
+        "b_sw_ll_ne",
+        "b_cross_mid_c"
+      ]
+    },
+    {
+      "id": "b_cross_mid_c",
+      "x": 1040,
+      "y": 1048,
+      "crosswalk": true,
+      "links": [
+        "b_cross_mid_w",
+        "b_cross_mid_e"
+      ]
+    },
+    {
+      "id": "b_cross_mid_e",
+      "x": 1135,
+      "y": 1048,
+      "crosswalk": true,
+      "links": [
+        "b_cross_mid_c",
+        "b_sw_diner_front_w",
+        "b_sw_lr_nw"
+      ]
+    },
+    {
+      "id": "b_cross_top_w",
+      "x": 945,
+      "y": 170,
+      "crosswalk": true,
+      "links": [
+        "b_sw_ul_ne",
+        "b_cross_top_e"
+      ]
+    },
+    {
+      "id": "b_cross_top_e",
+      "x": 1135,
+      "y": 170,
+      "crosswalk": true,
+      "links": [
+        "b_cross_top_w",
+        "b_sw_ur_nw"
+      ]
+    },
+    {
+      "id": "b_cross_bottom_w",
+      "x": 945,
+      "y": 1825,
+      "crosswalk": true,
+      "links": [
+        "b_sw_ll_se",
+        "b_cross_bottom_e"
+      ]
+    },
+    {
+      "id": "b_cross_bottom_e",
+      "x": 1135,
+      "y": 1825,
+      "crosswalk": true,
+      "links": [
+        "b_cross_bottom_w",
+        "b_sw_lr_left"
+      ]
+    }
+  ],
+  "sidewalk_nodes_world": [
+    {
+      "id": "b_sw_ul_nw",
+      "x": 2158,
+      "y": 180,
+      "links": [
+        "b_sw_ul_top",
+        "b_sw_ul_left"
+      ]
+    },
+    {
+      "id": "b_sw_ul_top",
+      "x": 2668,
+      "y": 180,
+      "links": [
+        "b_sw_ul_nw",
+        "b_sw_ul_ne",
+        "b_sw_chens_front"
+      ]
+    },
+    {
+      "id": "b_sw_ul_ne",
+      "x": 2923,
+      "y": 180,
+      "links": [
+        "b_sw_ul_top",
+        "b_sw_ul_right"
+      ]
+    },
+    {
+      "id": "b_sw_ul_right",
+      "x": 2923,
+      "y": 640,
+      "links": [
+        "b_sw_ul_ne",
+        "b_sw_ul_se",
+        "b_cross_mid_w"
+      ]
+    },
+    {
+      "id": "b_sw_ul_se",
+      "x": 2868,
+      "y": 910,
+      "links": [
+        "b_sw_ul_right",
+        "b_sw_kims_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_ul_left",
+      "x": 2148,
+      "y": 620,
+      "links": [
+        "b_sw_ul_nw",
+        "b_sw_kims_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_kims_front_w",
+      "x": 2218,
+      "y": 875,
+      "links": [
+        "b_sw_ul_left",
+        "b_sw_kims_front_c"
+      ]
+    },
+    {
+      "id": "b_sw_kims_front_c",
+      "x": 2468,
+      "y": 875,
+      "links": [
+        "b_sw_kims_front_w",
+        "b_sw_kims_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_kims_front_e",
+      "x": 2798,
+      "y": 875,
+      "links": [
+        "b_sw_kims_front_c",
+        "b_sw_ul_se"
+      ]
+    },
+    {
+      "id": "b_sw_chens_front",
+      "x": 2568,
+      "y": 445,
+      "links": [
+        "b_sw_ul_top",
+        "b_sw_lucky_front"
+      ]
+    },
+    {
+      "id": "b_sw_lucky_front",
+      "x": 2693,
+      "y": 445,
+      "links": [
+        "b_sw_chens_front",
+        "b_sw_eastmarket_front"
+      ]
+    },
+    {
+      "id": "b_sw_eastmarket_front",
+      "x": 2818,
+      "y": 445,
+      "links": [
+        "b_sw_lucky_front",
+        "b_sw_ul_right"
+      ]
+    },
+    {
+      "id": "b_sw_ur_nw",
+      "x": 3263,
+      "y": 180,
+      "links": [
+        "b_sw_ur_top",
+        "b_sw_diner_back"
+      ]
+    },
+    {
+      "id": "b_sw_ur_top",
+      "x": 3718,
+      "y": 180,
+      "links": [
+        "b_sw_ur_nw",
+        "b_sw_ur_ne",
+        "b_sw_top_store_front"
+      ]
+    },
+    {
+      "id": "b_sw_ur_ne",
+      "x": 4008,
+      "y": 180,
+      "links": [
+        "b_sw_ur_top",
+        "b_sw_ur_right"
+      ]
+    },
+    {
+      "id": "b_sw_ur_right",
+      "x": 4008,
+      "y": 650,
+      "links": [
+        "b_sw_ur_ne",
+        "b_sw_ur_se"
+      ]
+    },
+    {
+      "id": "b_sw_ur_se",
+      "x": 3908,
+      "y": 875,
+      "links": [
+        "b_sw_ur_right",
+        "b_sw_diner_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_diner_front_e",
+      "x": 3723,
+      "y": 880,
+      "links": [
+        "b_sw_ur_se",
+        "b_sw_diner_front_c"
+      ]
+    },
+    {
+      "id": "b_sw_diner_front_c",
+      "x": 3563,
+      "y": 880,
+      "links": [
+        "b_sw_diner_front_e",
+        "b_sw_diner_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_diner_front_w",
+      "x": 3363,
+      "y": 880,
+      "links": [
+        "b_sw_diner_front_c",
+        "b_sw_diner_back",
+        "b_cross_mid_e"
+      ]
+    },
+    {
+      "id": "b_sw_diner_back",
+      "x": 3318,
+      "y": 520,
+      "links": [
+        "b_sw_ur_nw",
+        "b_sw_diner_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_top_store_front",
+      "x": 3803,
+      "y": 370,
+      "links": [
+        "b_sw_ur_top",
+        "b_sw_ur_right"
+      ]
+    },
+    {
+      "id": "b_sw_ll_nw",
+      "x": 2163,
+      "y": 1240,
+      "links": [
+        "b_sw_ll_top",
+        "b_sw_ll_left"
+      ]
+    },
+    {
+      "id": "b_sw_ll_top",
+      "x": 2638,
+      "y": 1240,
+      "links": [
+        "b_sw_ll_nw",
+        "b_sw_ll_ne"
+      ]
+    },
+    {
+      "id": "b_sw_ll_ne",
+      "x": 2923,
+      "y": 1240,
+      "links": [
+        "b_sw_ll_top",
+        "b_sw_ll_right",
+        "b_cross_mid_w"
+      ]
+    },
+    {
+      "id": "b_sw_ll_right",
+      "x": 2923,
+      "y": 1665,
+      "links": [
+        "b_sw_ll_ne",
+        "b_sw_ll_se"
+      ]
+    },
+    {
+      "id": "b_sw_ll_se",
+      "x": 2858,
+      "y": 1810,
+      "links": [
+        "b_sw_ll_right",
+        "b_sw_pawn_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_ll_left",
+      "x": 2158,
+      "y": 1600,
+      "links": [
+        "b_sw_ll_nw",
+        "b_sw_pawn_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_pawn_front_w",
+      "x": 2218,
+      "y": 1780,
+      "links": [
+        "b_sw_ll_left",
+        "b_sw_pawn_front_c"
+      ]
+    },
+    {
+      "id": "b_sw_pawn_front_c",
+      "x": 2468,
+      "y": 1780,
+      "links": [
+        "b_sw_pawn_front_w",
+        "b_sw_pawn_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_pawn_front_e",
+      "x": 2808,
+      "y": 1780,
+      "links": [
+        "b_sw_pawn_front_c",
+        "b_sw_ll_se"
+      ]
+    },
+    {
+      "id": "b_sw_lr_nw",
+      "x": 3258,
+      "y": 1240,
+      "links": [
+        "b_sw_lr_top",
+        "b_sw_lr_left",
+        "b_cross_mid_e"
+      ]
+    },
+    {
+      "id": "b_sw_lr_top",
+      "x": 3638,
+      "y": 1240,
+      "links": [
+        "b_sw_lr_nw",
+        "b_sw_lr_ne",
+        "b_sw_service_shed"
+      ]
+    },
+    {
+      "id": "b_sw_lr_ne",
+      "x": 4008,
+      "y": 1240,
+      "links": [
+        "b_sw_lr_top",
+        "b_sw_lr_right"
+      ]
+    },
+    {
+      "id": "b_sw_lr_right",
+      "x": 4008,
+      "y": 1665,
+      "links": [
+        "b_sw_lr_ne",
+        "b_sw_lr_se"
+      ]
+    },
+    {
+      "id": "b_sw_lr_se",
+      "x": 3898,
+      "y": 1865,
+      "links": [
+        "b_sw_lr_right",
+        "b_sw_russo_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_lr_left",
+      "x": 3258,
+      "y": 1600,
+      "links": [
+        "b_sw_lr_nw",
+        "b_sw_russo_front_w"
+      ]
+    },
+    {
+      "id": "b_sw_russo_front_w",
+      "x": 3308,
+      "y": 1790,
+      "links": [
+        "b_sw_lr_left",
+        "b_sw_russo_front_c"
+      ]
+    },
+    {
+      "id": "b_sw_russo_front_c",
+      "x": 3498,
+      "y": 1790,
+      "links": [
+        "b_sw_russo_front_w",
+        "b_sw_russo_front_e"
+      ]
+    },
+    {
+      "id": "b_sw_russo_front_e",
+      "x": 3728,
+      "y": 1790,
+      "links": [
+        "b_sw_russo_front_c",
+        "b_sw_lr_se"
+      ]
+    },
+    {
+      "id": "b_sw_service_shed",
+      "x": 3858,
+      "y": 1190,
+      "links": [
+        "b_sw_lr_top",
+        "b_sw_lr_right"
+      ]
+    },
+    {
+      "id": "b_cross_mid_w",
+      "x": 2993,
+      "y": 1048,
+      "crosswalk": true,
+      "links": [
+        "b_sw_ul_right",
+        "b_sw_ll_ne",
+        "b_cross_mid_c"
+      ]
+    },
+    {
+      "id": "b_cross_mid_c",
+      "x": 3088,
+      "y": 1048,
+      "crosswalk": true,
+      "links": [
+        "b_cross_mid_w",
+        "b_cross_mid_e"
+      ]
+    },
+    {
+      "id": "b_cross_mid_e",
+      "x": 3183,
+      "y": 1048,
+      "crosswalk": true,
+      "links": [
+        "b_cross_mid_c",
+        "b_sw_diner_front_w",
+        "b_sw_lr_nw"
+      ]
+    },
+    {
+      "id": "b_cross_top_w",
+      "x": 2993,
+      "y": 170,
+      "crosswalk": true,
+      "links": [
+        "b_sw_ul_ne",
+        "b_cross_top_e"
+      ]
+    },
+    {
+      "id": "b_cross_top_e",
+      "x": 3183,
+      "y": 170,
+      "crosswalk": true,
+      "links": [
+        "b_cross_top_w",
+        "b_sw_ur_nw"
+      ]
+    },
+    {
+      "id": "b_cross_bottom_w",
+      "x": 2993,
+      "y": 1825,
+      "crosswalk": true,
+      "links": [
+        "b_sw_ll_se",
+        "b_cross_bottom_e"
+      ]
+    },
+    {
+      "id": "b_cross_bottom_e",
+      "x": 3183,
+      "y": 1825,
+      "crosswalk": true,
+      "links": [
+        "b_cross_bottom_w",
+        "b_sw_lr_left"
+      ]
+    }
+  ]
+}
