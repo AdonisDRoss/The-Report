@@ -1,0 +1,48 @@
+name: Import Johnny Cop Jokes Pack
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-johnny-jokes:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find ZIP
+        run: |
+          ls -lah
+          ZIP_FILE="$(ls -1 *johnny*cop*jokes*.zip 2>/dev/null | head -n 1 || true)"
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERROR: Upload johnny_cop_jokes_1001_pack.zip to repo root."
+            exit 1
+          fi
+          echo "ZIP_FILE=$ZIP_FILE" >> "$GITHUB_ENV"
+          echo "Using ZIP: $ZIP_FILE"
+
+      - name: Unzip pack
+        run: unzip -o "$ZIP_FILE" -d johnny_jokes_import
+
+      - name: Copy dialogue files
+        run: |
+          mkdir -p assets/data/dialogue/johnny
+          cp johnny_jokes_import/johnny_cop_jokes_1001.json assets/data/dialogue/johnny/
+          cp johnny_jokes_import/johnny_cop_jokes_1001.txt assets/data/dialogue/johnny/
+          cp johnny_jokes_import/example_johnny_jokes_usage.js assets/data/dialogue/johnny/
+          mkdir -p docs/dialogue
+          cp johnny_jokes_import/README_JOHNNY_JOKES.md docs/dialogue/
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add assets/data/dialogue/johnny docs/dialogue
+          if git diff --cached --quiet; then
+            echo "No Johnny joke changes to commit."
+          else
+            git commit -m "Add Johnny Kim cop jokes"
+            git push
+          fi
