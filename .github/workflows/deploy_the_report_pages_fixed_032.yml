@@ -1,0 +1,70 @@
+name: Deploy The Report to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy static site
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Verify required game files
+        shell: bash
+        run: |
+          set -e
+
+          test -f index.html
+          echo "index.html found"
+
+          if grep -q "NEON_BACKROOM_AND_SCALE_FIX_HOTFIX_031\\|NEON_NIGHTS_WORKFLOW_HOTFIX_030\\|NeonNightsInteriorScene" index.html; then
+            echo "Neon Nights code found in index.html"
+          else
+            echo "WARNING: Neon Nights code was not found in index.html"
+          fi
+
+          if [ -d assets/characters/npcs/neon_nights ]; then
+            echo "Neon Nights sprite folder found"
+            find assets/characters/npcs/neon_nights -maxdepth 1 -type f | sort
+          else
+            echo "WARNING: assets/characters/npcs/neon_nights is missing"
+          fi
+
+          if [ -f assets/audio/music/red_curtain_heat.mp3 ]; then
+            echo "Red Curtain Heat music found"
+          else
+            echo "WARNING: assets/audio/music/red_curtain_heat.mp3 is missing"
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
