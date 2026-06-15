@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'kims-dialogue-hotfix-026';
+  const ASSET_REV = 'apartment-kims-flow-hotfix-027';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -12721,7 +12721,7 @@
         this.time.delayedCall(230, () => {
           this.scene.start('KimsCornerMarketScene', {
             fromApartment: true,
-            spawn: { x: 1045, y: 220 },
+            spawn: { x: 1060, y: 430 },
             message: 'Downstairs: Kim’s Corner Market.'
           });
         });
@@ -13174,7 +13174,7 @@
   // APARTMENT_INTERACTION_HOTFIX_025
   // Fixes bed blocking, dresser pickup, SEL equip menu, and automatic stair/door transitions.
   (function installApartmentInteractionHotfix025() {
-    const APT_DRESSER_ZONE_025 = { id:'dresser_gear', x:650, y:120, w:500, h:420, label:'Dresser: pick up pistol and detective outfit' };
+    const APT_DRESSER_ZONE_025 = { id:'dresser_gear', x:520, y:90, w:700, h:500, label:'Dresser: pick up pistol and detective outfit' };
     const APT_STAIRS_ZONE_025  = { id:'stairs_down', x:50, y:520, w:310, h:470, label:'Staircase: go downstairs to Kim’s Corner Market' };
     const APT_BED_ZONE_025     = { id:'bed', x:455, y:70, w:430, h:500, label:'Bed: sleep/save' };
 
@@ -13264,7 +13264,8 @@
       const s = ensureMalcolmMorningState022();
       s.hasDetectiveOutfit = true;
       s.hasPistol = true;
-      scene.setPrompt?.('Picked up pistol and detective clothes from the dresser. Press SEL, then A to equip.');
+      scene.setPrompt?.('Picked up pistol and detective clothes from the dresser. Press A to equip, or SEL to close.');
+      openEquipMenu025(scene);
     }
 
     function equipGear025(scene) {
@@ -13288,7 +13289,7 @@
       scene.time.delayedCall(190, () => {
         scene.scene.start('KimsCornerMarketScene', {
           fromApartment: true,
-          spawn: { x: 1060, y: 225 },
+          spawn: { x: 1060, y: 430 },
           message: 'Downstairs: Kim’s Corner Market.'
         });
       });
@@ -13747,6 +13748,114 @@
       this.closeDialogue?.();
       if (typeof oldKimsShutdown026 === 'function') return oldKimsShutdown026.call(this);
     };
+  })();
+
+
+
+  // APARTMENT_KIMS_FLOW_HOTFIX_027
+  // Fixes A-at-dresser pickup/equip flow and places Malcolm at the bottom of Kim's stairs,
+  // outside the immediate return-to-apartment transition zone.
+  (function installApartmentKimsFlowHotfix027() {
+    const APT_DRESSER_SAFE_ZONE_027 = { x:520, y:90, w:700, h:500 };
+    const APT_STAIRS_SAFE_ZONE_027  = { x:50, y:520, w:310, h:470 };
+    const KIMS_SAFE_BOTTOM_OF_STAIRS_027 = { x:1060, y:430 };
+
+    function pointInZone027(scene, z) {
+      const x = scene?.playerBody?.x || 0;
+      const y = scene?.playerBody?.y || 0;
+      return x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h;
+    }
+
+    function openEquipMenuSafe027(scene) {
+      const s = ensureMalcolmMorningState022();
+      s.hasDetectiveOutfit = true;
+      s.hasPistol = true;
+      if (typeof scene.handleSelectMenu === 'function' && !scene._equipMenuOpen025) {
+        scene.handleSelectMenu();
+      }
+      scene.setPrompt?.('Dresser gear picked up. Press A to equip detective outfit and pistol.');
+    }
+
+    function goDownstairsSafe027(scene) {
+      if (scene._transitioning027) return;
+      scene._transitioning027 = true;
+      scene._transitioning025 = true;
+      scene.cameras.main.fadeOut(180, 0, 0, 0);
+      scene.time.delayedCall(190, () => {
+        scene.scene.start('KimsCornerMarketScene', {
+          fromApartment: true,
+          spawn: { ...KIMS_SAFE_BOTTOM_OF_STAIRS_027 },
+          message: 'Downstairs: Kim’s Corner Market.'
+        });
+      });
+    }
+
+    if (typeof MalcolmApartmentScene !== 'undefined') {
+      const oldAptInteract027 = MalcolmApartmentScene.prototype.handleInteract;
+      MalcolmApartmentScene.prototype.handleInteract = function() {
+        if (this._equipMenuOpen025) {
+          const s = ensureMalcolmMorningState022();
+          if (s.hasDetectiveOutfit && s.hasPistol) {
+            s.outfitEquipped = true;
+            if (this._equipMenu025) {
+              this._equipMenu025.forEach(o => o?.destroy?.());
+              this._equipMenu025 = null;
+            }
+            this._equipMenuOpen025 = false;
+            this.updatePlayerSpriteAsset?.();
+            this.setPrompt?.('Equipped detective outfit and pistol. Step onto the staircase to go downstairs.');
+            return;
+          }
+        }
+
+        if (pointInZone027(this, APT_DRESSER_SAFE_ZONE_027)) {
+          openEquipMenuSafe027(this);
+          return;
+        }
+
+        if (pointInZone027(this, APT_STAIRS_SAFE_ZONE_027)) {
+          goDownstairsSafe027(this);
+          return;
+        }
+
+        return oldAptInteract027.call(this);
+      };
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldKimsCreate027 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldKimsCreate027.call(this);
+
+        if (this.entryData?.fromApartment) {
+          this._transitioning025 = false;
+          this._transitioning027 = false;
+          this._kimsEntryGrace027 = 850;
+          this.playerBody?.setPosition?.(KIMS_SAFE_BOTTOM_OF_STAIRS_027.x, KIMS_SAFE_BOTTOM_OF_STAIRS_027.y);
+          this.playerSprite?.setPosition?.(KIMS_SAFE_BOTTOM_OF_STAIRS_027.x, KIMS_SAFE_BOTTOM_OF_STAIRS_027.y);
+          this.setPrompt?.('Bottom of the stairs. Talk to Mr. Kim or Johnny, or walk to the front door.');
+        }
+
+        return result;
+      };
+
+      const oldKimsUpdate027 = KimsCornerMarketScene.prototype.update;
+      KimsCornerMarketScene.prototype.update = function(time, delta) {
+        if (this._kimsEntryGrace027 > 0) {
+          this._kimsEntryGrace027 -= delta || 16;
+
+          // Keep old automatic stair transition from firing while Malcolm has just arrived downstairs.
+          if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+          this.playerBody?.setPosition?.(KIMS_SAFE_BOTTOM_OF_STAIRS_027.x, KIMS_SAFE_BOTTOM_OF_STAIRS_027.y);
+          this.playerSprite?.setPosition?.(KIMS_SAFE_BOTTOM_OF_STAIRS_027.x, KIMS_SAFE_BOTTOM_OF_STAIRS_027.y);
+          this._lastA025 = !!this.mobile?.a;
+          this._lastDialogueA026 = !!this.mobile?.a;
+          return;
+        }
+
+        return oldKimsUpdate027.call(this, time, delta);
+      };
+    }
   })();
 
 
