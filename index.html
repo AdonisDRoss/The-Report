@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'apartment-kims-flow-hotfix-027';
+  const ASSET_REV = 'kims-ramos-hotfix-028';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -206,7 +206,7 @@
     case: { active: false, complete: false, suspectArrested: false, evidenceCollected: false, evidenceInTrunk: false, witnessStatement: false, reportFiled: false },
     ramos: {
       introduced: false,
-      onDuty: true,
+      onDuty: false,
       dismissed: false,
       inCar: false,
       smallTalkIndex: 0
@@ -13854,6 +13854,422 @@
         }
 
         return oldKimsUpdate027.call(this, time, delta);
+      };
+    }
+  })();
+
+
+
+  // KIMS_RAMOS_HOTFIX_028
+  // Adds real Mr. Kim / Johnny sprite sheets, 1001 generated quote/joke banks,
+  // parked car placement near Kim's, and delays Ramos companion status until Malcolm meets her inside RH police station.
+  (function installKimsRamosHotfix028() {
+    const MR_KIM_ASSET_028 = {
+      key: 'mr_kim_walk_4x8_192_028',
+      path: 'assets/characters/npcs/kims/mr_kim_walk_4x8_192.png',
+      frameWidth: 192,
+      frameHeight: 192,
+      baseScale: 0.45,
+      originY: 0.88
+    };
+
+    const JOHNNY_ASSET_028 = {
+      key: 'johnny_walk_4x8_192_028',
+      path: 'assets/characters/npcs/kims/johnny_walk_4x8_192.png',
+      frameWidth: 192,
+      frameHeight: 192,
+      baseScale: 0.39,
+      originY: 0.88
+    };
+
+    // Approximate placement from the marked X in the supplied mobile screenshot outside Kim's.
+    const KIMS_PARKED_CAR_028 = { x: 2825, y: 1198, heading: -Math.PI / 2 };
+    const KIMS_WORLD_SPAWN_028 = { x: 2675, y: 1214 };
+
+    function makeMrKimWisdom1001_028() {
+      const starts = [
+        'A quiet morning tells you who listens before trouble starts',
+        'A locked door is honest; an unlocked one wants a witness',
+        'Coffee teaches patience because it burns the impatient man',
+        'The street does not lie, it only waits for someone to read it',
+        'A receipt remembers what a mouth forgets',
+        'Rain makes every footprint tell the truth',
+        'A badge opens doors, but manners keep them open',
+        'A man who hurries past breakfast is already chasing yesterday',
+        'Small stores hear big secrets before city hall does',
+        'The quiet customer is sometimes louder than the drunk one',
+        'When the register is short, check the hands not the story',
+        'Good police work starts with noticing who stopped talking',
+        'Old neighborhoods forgive slowly and remember perfectly',
+        'The alley has no judge, but it keeps records',
+        'A clean counter still has fingerprints',
+        'Never trust a calm street after payday',
+        'A hard case is usually several small cases stacked wrong',
+        'The first lie is nervous; the second lie gets rehearsed',
+        'A city coughs before it bleeds',
+        'If the coffee is bitter, drink it anyway and learn something'
+      ];
+      const middles = [
+        'so look twice before you move once',
+        'so keep your notebook closer than your temper',
+        'so ask the second question',
+        'so watch the hands while the mouth works',
+        'so count what changed overnight',
+        'so do not mistake silence for peace',
+        'so listen to the clerk before the captain',
+        'so let the suspect finish talking',
+        'so check the back door and the ashtray',
+        'so never ignore a nervous joke',
+        'so remember who benefits from confusion',
+        'so make the facts carry their own weight',
+        'so keep your shoes dry and your eyes open',
+        'so mark the time before memory edits it',
+        'so look for the person avoiding the obvious',
+        'so measure fear before anger',
+        'so do not let rain wash away common sense'
+      ];
+      const ends = [
+        'Detective King',
+        'Malcolm',
+        'that is Raven Hook for you',
+        'that is how small trouble becomes murder',
+        'and that is why I open early',
+        'before the city starts charging interest',
+        'because morning is the only honest hour',
+        'because criminals hate careful people',
+        'before the phones start ringing',
+        'while the coffee is still fresh'
+      ];
+      const out = [];
+      for (let i = 0; i < 1001; i++) {
+        out.push(`Kim wisdom ${i + 1}: ${starts[i % starts.length]}, ${middles[Math.floor(i / starts.length) % middles.length]}, ${ends[Math.floor(i / (starts.length * middles.length)) % ends.length]}.`);
+      }
+      return out;
+    }
+
+    function makeJohnnyJokes1001_028() {
+      const setups = [
+        'Why did the detective bring an umbrella',
+        'Why did the stolen radio confess',
+        'Why did the donut file a police report',
+        'Why did the patrol car cross the street',
+        'Why did the witness stare at the cereal aisle',
+        'Why did the criminal hide in the freezer',
+        'Why did the payphone refuse to talk',
+        'Why did the flashlight get promoted',
+        'Why did the rain follow Detective King',
+        'Why did the sandwich need a lawyer',
+        'Why did the shoplifter bring exact change',
+        'Why did Mr. Kim count the gum twice',
+        'Why did the alley wear a trench coat',
+        'Why did the suspect buy coffee',
+        'Why did the case file go to school',
+        'Why did the badge take a nap',
+        'Why did the siren sing off-key',
+        'Why did the newspaper whisper',
+        'Why did the evidence bag blush',
+        'Why did the cereal box ask for protection'
+      ];
+      const punches = [
+        'because Raven Hook keeps raining clues',
+        'because it could not handle the static pressure',
+        'because somebody glazed over the facts',
+        'because the sidewalk had priors',
+        'because the flakes looked suspicious',
+        'because he wanted a cold case',
+        'because it was tired of being tapped',
+        'because it was bright under pressure',
+        'because even the clouds want answers',
+        'because it was framed with rye bread',
+        'because he wanted to make a clean getaway',
+        'because one pack was acting minty',
+        'because it was undercover',
+        'because he wanted grounds for appeal',
+        'because it needed to learn the hard facts',
+        'because the night shift was exhausting',
+        'because it only knew the blues',
+        'because it had a source at breakfast',
+        'because it got caught red-handed',
+        'because it was afraid of the cereal killer'
+      ];
+      const tags = ['Get it?', 'Mr. Kim hated that one.', 'That one is evidence.', 'I made that up myself.', 'Do detectives laugh on duty?', 'That one is going in my notebook.', 'Too much?', 'I can do better.', 'Probably.', 'I heard it on the corner.'];
+      const out = [];
+      for (let i = 0; i < 1001; i++) {
+        out.push(`Johnny joke ${i + 1}: ${setups[i % setups.length]}? ${punches[Math.floor(i / setups.length) % punches.length]}. ${tags[Math.floor(i / (setups.length * punches.length)) % tags.length]}`);
+      }
+      return out;
+    }
+
+    window.RH_MR_KIM_WISDOM_1001 = window.RH_MR_KIM_WISDOM_1001 || makeMrKimWisdom1001_028();
+    window.RH_JOHNNY_JOKES_1001 = window.RH_JOHNNY_JOKES_1001 || makeJohnnyJokes1001_028();
+
+    function kimCrimeStatsReport028() {
+      const day = Number(GAME.day || 1);
+      const calls = 24 + ((day * 7) % 31);
+      const theft = 3 + ((day * 5) % 8);
+      const cars = 1 + ((day * 3) % 6);
+      const disturbance = 6 + ((day * 11) % 14);
+      const caseNote = GAME.case?.active
+        ? (GAME.case.suspectArrested ? 'your active case already has a suspect detained' : 'your active case is still open')
+        : 'no active case has been logged yet this morning';
+      return `Crime stats report: ${calls} calls overnight, ${theft} theft complaints, ${cars} stolen-car reports, ${disturbance} disturbances; ${caseNote}.`;
+    }
+
+    function dialogueIndex028(offset = 0) {
+      const day = Number(GAME.day || 1);
+      const minute = Number(GAME._morningDialogueSeed028 || 0);
+      GAME._morningDialogueSeed028 = minute + 1;
+      return Math.abs((day * 37 + minute * 13 + offset) % 1001);
+    }
+
+    function activeKimLines028(npcId) {
+      if (npcId === 'mr_kim') {
+        const q = window.RH_MR_KIM_WISDOM_1001[dialogueIndex028(5)];
+        return [
+          'Morning, Malcolm. You heading out already?',
+          q,
+          kimCrimeStatsReport028(),
+          'Ramos is waiting at the station. Go meet her before you start patrol.'
+        ];
+      }
+      if (npcId === 'johnny') {
+        const j = window.RH_JOHNNY_JOKES_1001[dialogueIndex028(11)];
+        return [
+          'Detective King, you really carry a gun now?',
+          j,
+          'Mr. Kim says I ask too many questions.',
+          'You going to the station today?'
+        ];
+      }
+      return null;
+    }
+
+    function registerWorldOnly028(scene, obj) {
+      if (!scene || !obj) return obj;
+      scene.uiCamera?.ignore?.(obj);
+      return obj;
+    }
+
+    function registerUiCameraRefresh028(scene) {
+      if (!scene?.uiCamera || !scene.uiObjects) return;
+      const uiSet = new Set(scene.uiObjects || []);
+      scene.uiCamera.ignore(scene.children.list.filter(o => !uiSet.has(o)));
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldKimsPreload028 = KimsCornerMarketScene.prototype.preload;
+      KimsCornerMarketScene.prototype.preload = function() {
+        const result = oldKimsPreload028.call(this);
+        if (!this.textures.exists(MR_KIM_ASSET_028.key)) {
+          this.load.spritesheet(MR_KIM_ASSET_028.key, A(MR_KIM_ASSET_028.path), {
+            frameWidth: MR_KIM_ASSET_028.frameWidth,
+            frameHeight: MR_KIM_ASSET_028.frameHeight
+          });
+        }
+        if (!this.textures.exists(JOHNNY_ASSET_028.key)) {
+          this.load.spritesheet(JOHNNY_ASSET_028.key, A(JOHNNY_ASSET_028.path), {
+            frameWidth: JOHNNY_ASSET_028.frameWidth,
+            frameHeight: JOHNNY_ASSET_028.frameHeight
+          });
+        }
+        return result;
+      };
+
+      KimsCornerMarketScene.prototype.createShopNpc = function(cfg) {
+        if (!cfg || !this.add) return null;
+        if (!this.shopNpcs026) this.shopNpcs026 = [];
+
+        const asset = cfg.id === 'mr_kim' ? MR_KIM_ASSET_028 : cfg.id === 'johnny' ? JOHNNY_ASSET_028 : null;
+        const body = this.add.rectangle(cfg.x, cfg.y, 30, 46, 0x000000, 0.0).setDepth(28);
+        this.physics.add.existing(body);
+        body.body.setImmovable(true);
+        body.body.setAllowGravity(false);
+        body.body.moves = false;
+
+        let sprite;
+        if (asset && this.textures.exists(asset.key)) {
+          createFourByEightAnims022(this, asset.key);
+          sprite = this.add.sprite(cfg.x, cfg.y, asset.key, frameForFacing022('S', 0))
+            .setOrigin(0.5, asset.originY)
+            .setScale(asset.baseScale * 1.42)
+            .setDepth(29);
+        } else {
+          sprite = this.add.container(cfg.x, cfg.y).setDepth(29);
+          const shadow = this.add.ellipse(0, 22, 38, 14, 0x000000, 0.30);
+          const legs = this.add.rectangle(0, 16, 21, 26, 0x242a2d, 0.98).setStrokeStyle(1, 0x111111, 0.9);
+          const torso = this.add.rectangle(0, -8, 30, 42, cfg.color || 0x566273, 0.98).setStrokeStyle(2, 0x111111, 0.9);
+          const head = this.add.circle(0, -38, 13, cfg.skin || 0xc99162, 1).setStrokeStyle(2, 0x111111, 0.9);
+          const hair = this.add.rectangle(0, -48, 25, 7, 0x201611, 0.95);
+          sprite.add([shadow, legs, torso, head, hair]);
+          sprite.setScale(1.0);
+        }
+
+        const nameText = this.add.text(cfg.x, cfg.y - 76, cfg.name, {
+          fontFamily: 'Courier New',
+          fontSize: '17px',
+          color: '#f4d28a',
+          stroke: '#000000',
+          strokeThickness: 4
+        }).setOrigin(0.5).setDepth(40);
+
+        const npc = {
+          id: cfg.id,
+          name: cfg.name,
+          x: cfg.x,
+          y: cfg.y,
+          color: cfg.color || 0x566273,
+          skin: cfg.skin || 0xc99162,
+          portraitColor: cfg.portraitColor || cfg.color || 0x566273,
+          body,
+          sprite,
+          nameText,
+          baseScale: asset ? asset.baseScale : 0.74,
+          lines: activeKimLines028(cfg.id) || (Array.isArray(cfg.lines) ? cfg.lines.slice() : [])
+        };
+
+        this.shopNpcs026.push(npc);
+        if (!this.indoorNpcs) this.indoorNpcs = [];
+        this.indoorNpcs.push({ sprite, baseScale: npc.baseScale });
+        registerWorldOnly028(this, body);
+        registerWorldOnly028(this, sprite);
+        registerWorldOnly028(this, nameText);
+        return npc;
+      };
+
+      const oldOpenDialogue028 = KimsCornerMarketScene.prototype.openDialogueForNpc;
+      KimsCornerMarketScene.prototype.openDialogueForNpc = function(npcId) {
+        const npc = this.shopNpcs026?.find(n => n.id === npcId);
+        const lines = activeKimLines028(npcId);
+        if (npc && lines) npc.lines = lines;
+        return oldOpenDialogue028.call(this, npcId);
+      };
+    }
+
+    if (typeof GameScene !== 'undefined') {
+      const oldGameCreate028 = GameScene.prototype.create;
+      GameScene.prototype.create = function() {
+        if (!GAME.ramos?.introduced) {
+          GAME.ramos.onDuty = false;
+          GAME.ramos.dismissed = false;
+          GAME.ramos.inCar = false;
+        }
+        const result = oldGameCreate028.call(this);
+        if (!GAME.ramos?.introduced) this.setRamosVisible?.(false);
+        return result;
+      };
+
+      const oldApplyEntrySpawn028 = GameScene.prototype.applyEntrySpawn;
+      GameScene.prototype.applyEntrySpawn = function() {
+        const result = oldApplyEntrySpawn028.call(this);
+        const s = this.entryData?.spawn || {};
+        const msg = String(this.entryData?.message || '');
+        const fromKimsMorning = (Math.abs((s.x || 0) - KIMS_WORLD_SPAWN_028.x) < 260 && Math.abs((s.y || 0) - KIMS_WORLD_SPAWN_028.y) < 260)
+          || /police station|meet Ramos|Morning shift/i.test(msg);
+        if (fromKimsMorning && this.car) {
+          this.car.setPosition(KIMS_PARKED_CAR_028.x, KIMS_PARKED_CAR_028.y);
+          this.car.heading = KIMS_PARKED_CAR_028.heading;
+          this.car.vx = 0;
+          this.car.vy = 0;
+          this.car.rotationFrame = this.getVehicleFrame?.(this.car.heading) || 0;
+          this.car.body?.setVelocity(0, 0);
+          GAME.car.visualState.driverDoorOpen = false;
+          this.syncVehicleSprites?.();
+          this.message = 'Morning shift: your car is parked outside Kim’s. Go to the police station and meet Ramos.';
+          this.messageTimer = 3600;
+        }
+        return result;
+      };
+
+      const oldRamosIsOnDutyGame028 = GameScene.prototype.ramosIsOnDuty;
+      GameScene.prototype.ramosIsOnDuty = function() {
+        if (!GAME.ramos?.introduced) return false;
+        return oldRamosIsOnDutyGame028.call(this);
+      };
+    }
+
+    if (typeof PoliceStationScene !== 'undefined') {
+      function ramosMeetNear028(scene, range = 115) {
+        if (!scene?.ramosMeetBody028 || GAME.ramos?.introduced || scene.floorId !== 'floor1') return false;
+        return Phaser.Math.Distance.Between(scene.playerBody.x, scene.playerBody.y, scene.ramosMeetBody028.x, scene.ramosMeetBody028.y) <= range;
+      }
+
+      function destroyRamosMeet028(scene) {
+        for (const obj of [scene.ramosMeetBody028, scene.ramosMeetSprite028, scene.ramosMeetName028]) obj?.destroy?.();
+        scene.ramosMeetBody028 = null;
+        scene.ramosMeetSprite028 = null;
+        scene.ramosMeetName028 = null;
+      }
+
+      function createRamosMeetNpc028(scene) {
+        if (!scene || scene.floorId !== 'floor1' || GAME.ramos?.introduced || scene.ramosMeetBody028) return;
+        const x = 850;
+        const y = 660;
+        scene.ramosMeetBody028 = scene.add.rectangle(x, y, 28, 46, COLORS.purple, 0.0).setDepth(29);
+        scene.physics.add.existing(scene.ramosMeetBody028);
+        scene.ramosMeetBody028.body.setImmovable(true);
+        scene.ramosMeetBody028.body.moves = false;
+
+        if (scene.textures.exists(RAMOS_WALK_ASSET.key)) {
+          scene.createRamosAnims?.();
+          scene.ramosMeetSprite028 = scene.add.sprite(x, y, RAMOS_WALK_ASSET.key, scene.ramosFrame(RAMOS_WALK_ASSET, 'S'))
+            .setOrigin(0.5, RAMOS_WALK_ASSET.originY)
+            .setScale(RAMOS_WALK_ASSET.stationScale || RAMOS_WALK_ASSET.scale)
+            .setDepth(30);
+        } else {
+          scene.ramosMeetSprite028 = scene.add.rectangle(x, y, 30, 54, COLORS.purple, 1).setDepth(30);
+        }
+
+        scene.ramosMeetName028 = scene.add.text(x, y - 72, 'Detective Ramos', {
+          fontFamily: 'Courier New',
+          fontSize: '17px',
+          color: '#86e7ff',
+          stroke: '#000000',
+          strokeThickness: 4
+        }).setOrigin(0.5).setDepth(40);
+
+        scene.uiCamera?.ignore?.([scene.ramosMeetBody028, scene.ramosMeetSprite028, scene.ramosMeetName028].filter(Boolean));
+      }
+
+      const oldStationCreate028 = PoliceStationScene.prototype.create;
+      PoliceStationScene.prototype.create = function() {
+        if (!GAME.ramos?.introduced) {
+          GAME.ramos.onDuty = false;
+          GAME.ramos.dismissed = false;
+          GAME.ramos.inCar = false;
+        }
+        const result = oldStationCreate028.call(this);
+        if (!GAME.ramos?.introduced && this.floorId === 'floor1') {
+          this.setRamosVisible?.(false);
+          createRamosMeetNpc028(this);
+          this.promptText?.setText('Find Detective Ramos inside the station before patrol.');
+        }
+        return result;
+      };
+
+      const oldStationInteract028 = PoliceStationScene.prototype.handleInteract;
+      PoliceStationScene.prototype.handleInteract = function() {
+        if (ramosMeetNear028(this)) {
+          GAME.ramos.introduced = true;
+          GAME.ramos.onDuty = true;
+          GAME.ramos.dismissed = false;
+          GAME.ramos.inCar = false;
+          destroyRamosMeet028(this);
+          if (this.ramosBody) {
+            this.ramosBody.setPosition(this.playerBody.x - 62, this.playerBody.y + 18);
+            this.ramosFacing = 'S';
+            this.setRamosVisible?.(true);
+          }
+          this.promptText?.setText('Ramos: Detective King? Captain assigned me to ride with you. I’m your new partner.');
+          return;
+        }
+        return oldStationInteract028.call(this);
+      };
+
+      const oldStationUpdate028 = PoliceStationScene.prototype.update;
+      PoliceStationScene.prototype.update = function(time, delta) {
+        const result = oldStationUpdate028.call(this, time, delta);
+        if (ramosMeetNear028(this)) this.promptText?.setText('A/E: meet Detective Ramos');
+        return result;
       };
     }
   })();
