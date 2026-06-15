@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Indoor Fullscreen Scale Fix</title>
+  <title>The Report — Apartment Flow Fix</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'indoor-fullscreen-scale-023';
+  const ASSET_REV = 'apartment-flow-scale-fix-024';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -12675,15 +12675,16 @@
       this.addWallRect(1110, 60, 310, 230, 'kitchen');
       this.addWallRect(1220, 330, 110, 115, 'table');
       this.addWallRect(70, 40, 280, 190, 'closet clutter');
-      this.addWallRect(35, 580, 235, 380, 'stair rail');
+      this.addWallRect(35, 580, 34, 380, 'stair outer rail');
+      this.addWallRect(250, 615, 34, 340, 'stair inner rail');
 
-      this.addHotZone('closet', 74, 40, 300, 225, 'Closet: pick up pistol and detective outfit');
-      this.addHotZone('stairs_down', 255, 875, 190, 145, 'Stairs down to Kim’s Corner Market');
+      this.addHotZone('dresser_gear', 660, 180, 330, 265, 'Dresser: pick up pistol and detective outfit');
+      this.addHotZone('stairs_down', 64, 610, 210, 355, 'Staircase: go downstairs to Kim’s Corner Market');
       this.addHotZone('bed', 560, 245, 185, 165, 'Bed: start morning / save');
 
-      const spawn = this.entryData.fromKimsStairs ? { x: 365, y: 905 } : { x: 660, y: 430 };
+      const spawn = this.entryData.fromKimsStairs ? { x: 170, y: 705 } : { x: 642, y: 408 };
       this.createPlayerAt(spawn.x, spawn.y, !state.wokeUp && !this.entryData.fromKimsStairs);
-      this.createPrompt(!state.wokeUp ? 'Malcolm wakes up in his apartment.' : 'Apartment. Closet upper-left. Stairs lower-left.');
+      this.createPrompt(!state.wokeUp ? 'Malcolm wakes up on his bed.' : 'Apartment. Dresser has gear. Staircase goes downstairs.');
       launchGlobalMobileControls(this);
       this.setupUiCamera022();
       installPauseMenu(this);
@@ -12703,7 +12704,7 @@
       }
 
       const state = ensureMalcolmMorningState022();
-      if (z.id === 'closet') {
+      if (z.id === 'dresser_gear') {
         state.hasDetectiveOutfit = true;
         state.hasPistol = true;
         this.setPrompt('Picked up pistol and detective outfit. Press SEL to equip.');
@@ -12770,12 +12771,13 @@
       this.addWallRect(1095, 325, 130, 225, 'right wall rack');
       this.addWallRect(725, 120, 360, 85, 'drink coolers');
       this.addWallRect(188, 250, 440, 110, 'back cigarette/display wall');
-      this.addWallRect(975, 30, 190, 300, 'stairs rail/walls');
+      this.addWallRect(960, 30, 32, 300, 'stairs left rail');
+      this.addWallRect(1168, 30, 32, 300, 'stairs right rail');
       this.addWallRect(44, 300, 95, 420, 'left wall racks');
       this.addWallRect(82, 45, 285, 170, 'stock room boxes');
 
       this.addHotZone('front_door', 565, 1110, 150, 135, 'Front glass door: exit to street');
-      this.addHotZone('stairs_up', 985, 60, 205, 255, 'Back/right stairs: Malcolm’s apartment');
+      this.addHotZone('stairs_up', 995, 45, 170, 285, 'Staircase: go upstairs to Malcolm’s apartment');
 
       const spawn = this.entryData.spawn || (this.entryData.fromStreet ? { x: 630, y: 1080 } : { x: 1045, y: 250 });
       this.createPlayerAt(spawn.x, spawn.y, false);
@@ -12871,8 +12873,8 @@
   // Interior-only camera and player scale fix. Does not alter GameScene/world map camera.
   (function installIndoorFullscreenScalePatch023() {
     const INTERIOR_CAMERA_ZOOM_023 = 1.24;
-    const INTERIOR_PLAYER_SCALE_MULT_023 = 1.42;
-    const INTERIOR_SLEEP_SCALE_023 = 0.92;
+    const INTERIOR_PLAYER_SCALE_MULT_023 = 1.62;
+    const INTERIOR_SLEEP_SCALE_023 = 1.04;
 
     function hideWorldMapZoomPanel023() {
       const panel = document.getElementById('rhZoomInspectPanel');
@@ -12991,6 +12993,178 @@
       GameScene.prototype.create = function() {
         showWorldMapZoomPanel023();
         return oldGameCreate023.apply(this, arguments);
+      };
+    }
+  })();
+
+
+
+  // APARTMENT_FLOW_SCALE_FIX_PATCH_024
+  // Corrects apartment gameplay: bed wake placement, dresser gear pickup, equip menu,
+  // stair transitions, and slightly larger indoor character scale.
+  (function installApartmentFlowScaleFix024() {
+    const PATCH_024_PLAYER_SCALE_MULT = 1.62;
+    const PATCH_024_NPC_SCALE_MULT = 1.35;
+
+    function ensureIndoorScale024(scene) {
+      if (!scene) return;
+      if (scene.playerSprite) {
+        const state = ensureMalcolmMorningState022();
+        const useDetective = state.outfitEquipped && scene.textures.exists(PLAYER_ASSET.key);
+        const asset = useDetective ? PLAYER_ASSET : MALCOLM_SLEEP_WALK_ASSET_022;
+        scene.playerSprite.setScale((asset.scale || 0.78) * PATCH_024_PLAYER_SCALE_MULT);
+        scene.playerSprite.setOrigin(0.5, asset.originY || 0.82);
+      }
+      // Future-proof: scale indoor NPCs if a scene stores them in indoorNpcs/npcs arrays.
+      const npcs = []
+        .concat(scene.indoorNpcs || [])
+        .concat(scene.npcs || [])
+        .filter(Boolean);
+      for (const npc of npcs) {
+        if (npc.sprite?.setScale) npc.sprite.setScale((npc.baseScale || npc.sprite.scaleX || 0.7) * PATCH_024_NPC_SCALE_MULT);
+        else if (npc.setScale) npc.setScale((npc.baseScale || npc.scaleX || 0.7) * PATCH_024_NPC_SCALE_MULT);
+      }
+    }
+
+    function hideEquipMenu024(scene) {
+      scene._equipMenuOpen024 = false;
+      if (scene._equipMenuPanel024) {
+        scene._equipMenuPanel024.forEach(o => o?.destroy?.());
+        scene._equipMenuPanel024 = null;
+      }
+    }
+
+    function showEquipMenu024(scene) {
+      const state = ensureMalcolmMorningState022();
+      if (!state.hasDetectiveOutfit || !state.hasPistol) {
+        scene.setPrompt?.('Nothing to equip yet. Pick up your pistol and clothes from the dresser.');
+        return;
+      }
+
+      hideEquipMenu024(scene);
+      scene._equipMenuOpen024 = true;
+
+      const bg = scene.add.rectangle(VIEW_W / 2, VIEW_H / 2, 580, 210, 0x02060a, 0.92)
+        .setScrollFactor(0).setDepth(2600);
+      const title = makeText(scene, VIEW_W / 2, VIEW_H / 2 - 74, 'SELECT MENU', 20, '#86e7ff', true)
+        .setOrigin(0.5).setScrollFactor(0).setDepth(2601);
+      const body = makeText(
+        scene,
+        VIEW_W / 2,
+        VIEW_H / 2 - 20,
+        state.outfitEquipped
+          ? 'Detective outfit and pistol are already equipped.\nA = close'
+          : 'Detective outfit + service pistol\nA = equip\nSEL = close',
+        17,
+        '#f4d28a',
+        true
+      ).setOrigin(0.5).setScrollFactor(0).setDepth(2601);
+      const hint = makeText(scene, VIEW_W / 2, VIEW_H / 2 + 76, 'Gear comes from the dresser beside the bed.', 13, '#c9d4db', true)
+        .setOrigin(0.5).setScrollFactor(0).setDepth(2601);
+
+      scene._equipMenuPanel024 = [bg, title, body, hint];
+      scene.uiObjects?.push?.(...scene._equipMenuPanel024);
+      if (scene.uiCamera) {
+        scene.uiCamera.ignore(scene.children.list.filter(o => !scene.uiObjects.includes(o)));
+      }
+    }
+
+    function equipGear024(scene) {
+      const state = ensureMalcolmMorningState022();
+      if (!state.hasDetectiveOutfit || !state.hasPistol) {
+        scene.setPrompt?.('Dresser first. Your pistol and clothes are not picked up.');
+        return;
+      }
+      state.outfitEquipped = true;
+      hideEquipMenu024(scene);
+      scene.updatePlayerSpriteAsset?.();
+      ensureIndoorScale024(scene);
+      scene.setPrompt?.('Equipped detective outfit and pistol. Go to the staircase.');
+    }
+
+    if (typeof MorningInteriorBaseScene022 !== 'undefined') {
+      const oldHandleSelectMenu024 = MorningInteriorBaseScene022.prototype.handleSelectMenu;
+      MorningInteriorBaseScene022.prototype.handleSelectMenu = function() {
+        if (this._equipMenuOpen024) {
+          hideEquipMenu024(this);
+          this.setPrompt?.('Select menu closed.');
+          return;
+        }
+        showEquipMenu024(this);
+      };
+
+      const oldUpdatePlayerSpriteAsset024 = MorningInteriorBaseScene022.prototype.updatePlayerSpriteAsset;
+      MorningInteriorBaseScene022.prototype.updatePlayerSpriteAsset = function() {
+        const result = oldUpdatePlayerSpriteAsset024.call(this);
+        ensureIndoorScale024(this);
+        return result;
+      };
+
+      const oldCreatePlayerAt024 = MorningInteriorBaseScene022.prototype.createPlayerAt;
+      MorningInteriorBaseScene022.prototype.createPlayerAt = function(x, y, sleeping = false) {
+        const result = oldCreatePlayerAt024.call(this, x, y, sleeping);
+        ensureIndoorScale024(this);
+        if (sleeping && this.sleepSprite) {
+          // Put sleeping Malcolm actually on the bed instead of in front of it.
+          this.sleepSprite.setPosition(615, 255).setScale(1.08).setDepth(34);
+          this.playerBody?.setPosition?.(642, 408);
+        }
+        this.time?.delayedCall?.(940, () => {
+          // After wake animation, place him at the foot of the bed, not at the dresser.
+          if (this.scene?.key === 'MalcolmApartmentScene' && !this.entryData?.fromKimsStairs) {
+            this.playerBody?.setPosition?.(642, 408);
+            this.playerSprite?.setPosition?.(642, 408);
+          }
+          ensureIndoorScale024(this);
+        });
+        return result;
+      };
+    }
+
+    if (typeof MalcolmApartmentScene !== 'undefined') {
+      const oldAptHandleInteract024 = MalcolmApartmentScene.prototype.handleInteract;
+      MalcolmApartmentScene.prototype.handleInteract = function() {
+        if (this._equipMenuOpen024) {
+          equipGear024(this);
+          return;
+        }
+
+        const z = this.nearestZone?.();
+        if (z && z.id === 'dresser_gear') {
+          const state = ensureMalcolmMorningState022();
+          state.hasDetectiveOutfit = true;
+          state.hasPistol = true;
+          this.setPrompt?.('Picked up pistol and detective outfit from the dresser. Press SEL to open the equip menu.');
+          return;
+        }
+
+        return oldAptHandleInteract024.call(this);
+      };
+
+      const oldAptCreate024 = MalcolmApartmentScene.prototype.create;
+      MalcolmApartmentScene.prototype.create = function() {
+        const result = oldAptCreate024.call(this);
+        ensureIndoorScale024(this);
+        // Re-label zones if old text survived from cache/base build.
+        for (const z of this.zones || []) {
+          if (z.id === 'dresser_gear') z.label = 'Dresser: pick up pistol and detective outfit';
+          if (z.id === 'stairs_down') z.label = 'Staircase: go downstairs to Kim’s Corner Market';
+        }
+        return result;
+      };
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldKimsCreate024 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldKimsCreate024.call(this);
+        ensureIndoorScale024(this);
+        // Make downstairs stair/floor zone definitely go upstairs; front door goes world map.
+        for (const z of this.zones || []) {
+          if (z.id === 'stairs_up') z.label = 'Staircase: go upstairs to Malcolm’s apartment';
+          if (z.id === 'front_door') z.label = 'Front glass door: exit to street';
+        }
+        return result;
       };
     }
   })();
