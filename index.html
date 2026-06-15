@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Apartment Gear Transition Hotfix</title>
+  <title>The Report — Apartment Interaction Hotfix</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'apartment-gear-transition-hotfix-026';
+  const ASSET_REV = 'kims-dialogue-hotfix-026';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -13424,310 +13424,331 @@
   })();
 
 
+  // KIMS_NPC_DIALOGUE_HOTFIX_026
+  // Adds Mr. Kim and Johnny downstairs, with action-button NPC conversations
+  // and a custom parchment-style RPG dialogue panel.
+  (function installKimsNpcDialogueHotfix026() {
+    if (typeof KimsCornerMarketScene === 'undefined') return;
 
-  // APARTMENT_GEAR_TRANSITION_HOTFIX_026
-  // Makes dresser pickup/equip fail-safe and prevents stair transition loops.
-  (function installApartmentGearTransitionHotfix026() {
-    const APT_DRESSER_026 = { x:540, y:70, w:760, h:560 };
-    const APT_STAIRS_026  = { x:60, y:585, w:260, h:390 };
-    const APT_STAIRS_SAFE_SPAWN_026 = { x:390, y:720 };
-    const APT_WAKE_SPAWN_026 = { x:635, y:420 };
+    const SHOP_NPC_TALK_RADIUS_026 = 92;
 
-    const KIMS_STAIRS_026 = { x:950, y:35, w:260, h:325 };
-    const KIMS_STAIRS_BOTTOM_SPAWN_026 = { x:1060, y:430 };
-    const KIMS_FRONT_026 = { x:500, y:1055, w:280, h:195 };
-
-    function now026(scene) {
-      return scene?.time?.now || performance.now?.() || Date.now();
-    }
-
-    function hitRect026(scene, r) {
-      const x = scene?.playerBody?.x || 0;
-      const y = scene?.playerBody?.y || 0;
-      return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
-    }
-
-    function removeWallsByLabel026(scene, labels) {
-      if (!scene?.walls?.getChildren) return;
-      for (const o of [...scene.walls.getChildren()]) {
-        if (labels.includes(o._label)) {
-          scene.walls.remove(o, true, true);
-          o.destroy?.();
-        }
+    const SHOP_NPC_DATA_026 = [
+      {
+        id: 'mr_kim',
+        name: 'Mr. Kim',
+        x: 308,
+        y: 582,
+        color: 0x4a5f3a,
+        skin: 0xc68f5b,
+        portraitColor: 0x6f8f4f,
+        lines: [
+          'Morning, Malcolm. You heading out already?',
+          'Coffee’s fresh. Take some if you want it.',
+          'Try to keep Johnny from touching the lottery display.'
+        ]
+      },
+      {
+        id: 'johnny',
+        name: 'Johnny',
+        x: 448,
+        y: 900,
+        color: 0x315d8a,
+        skin: 0xd7a26a,
+        portraitColor: 0x3d6f9b,
+        lines: [
+          'Detective King, you really carry a gun now?',
+          'Mr. Kim says I ask too many questions.',
+          'You going to the station today?'
+        ]
       }
-    }
+    ];
 
-    function setIndoorScale026(scene) {
-      if (!scene?.playerSprite) return;
-      const state = ensureMalcolmMorningState022();
-      const detective = state.outfitEquipped && scene.textures.exists(PLAYER_ASSET.key);
-      const asset = detective ? PLAYER_ASSET : MALCOLM_SLEEP_WALK_ASSET_022;
-      scene.playerSprite.setScale((asset.scale || 0.78) * 1.78);
-      scene.playerSprite.setOrigin(0.5, asset.originY || 0.82);
-      if (scene.playerBody?.body) {
-        scene.playerBody.body.setSize(34, 46);
-        scene.playerBody.body.setOffset(-17, -38);
-      }
-    }
-
-    function clearMenu026(scene) {
-      scene._gearMenuOpen026 = false;
-      if (scene._gearMenuObjects026) {
-        scene._gearMenuObjects026.forEach(o => o?.destroy?.());
-        scene._gearMenuObjects026 = null;
-      }
-    }
-
-    function makeUi026(scene, obj) {
+    function kimsRegisterDialogueUi026(scene, obj) {
+      if (!scene || !obj) return obj;
       obj.setScrollFactor?.(0);
-      obj.setDepth?.(3100);
-      scene.uiObjects = scene.uiObjects || [];
-      scene.uiObjects.push(obj);
+      obj.setDepth?.(4300);
+      if (!scene.uiObjects) scene.uiObjects = [];
+      if (!scene.uiObjects.includes(obj)) scene.uiObjects.push(obj);
+      scene.cameras?.main?.ignore?.(obj);
+
+      // Existing UI camera was created before this patch UI, so let it see the new dialogue objects
+      // and keep it from drawing world objects created after setup.
+      if (scene.uiCamera) {
+        const uiSet = new Set(scene.uiObjects || []);
+        scene.uiCamera.ignore(scene.children.list.filter(o => !uiSet.has(o)));
+      }
       return obj;
     }
 
-    function openMenu026(scene) {
-      clearMenu026(scene);
-      const s = ensureMalcolmMorningState022();
-      scene._gearMenuOpen026 = true;
-
-      const bg = makeUi026(scene, scene.add.rectangle(VIEW_W/2, VIEW_H/2, 620, 250, 0x02060a, 0.96));
-      const title = makeUi026(scene, makeText(scene, VIEW_W/2, VIEW_H/2 - 92, 'SELECT MENU', 22, '#86e7ff', true).setOrigin(0.5));
-      const status = s.hasDetectiveOutfit && s.hasPistol
-        ? (s.outfitEquipped
-          ? 'Detective outfit and pistol are equipped.'
-          : 'Detective outfit + service pistol ready.')
-        : 'No gear yet. Stand at the dresser and press A.';
-      const body = makeUi026(scene, makeText(scene, VIEW_W/2, VIEW_H/2 - 28, status, 17, '#f4d28a', true).setOrigin(0.5));
-      const controls = makeUi026(scene, makeText(scene, VIEW_W/2, VIEW_H/2 + 54, 'A / X = equip    SEL / B = close', 15, '#d6e8ef', true).setOrigin(0.5));
-      const hint = makeUi026(scene, makeText(scene, VIEW_W/2, VIEW_H/2 + 91, 'Gear is in the dresser beside the bed.', 13, '#aab7bf', true).setOrigin(0.5));
-      scene._gearMenuObjects026 = [bg, title, body, controls, hint];
-
-      if (scene.uiCamera) {
-        const keep = new Set(scene.uiObjects || []);
-        scene.uiCamera.ignore(scene.children.list.filter(o => !keep.has(o)));
-      }
+    function kimsIgnoreNpcOnUiCamera026(scene, npc) {
+      if (!scene?.uiCamera || !npc) return;
+      const objs = [npc.body, npc.sprite, npc.nameText].filter(Boolean);
+      scene.uiCamera.ignore(objs);
     }
 
-    function pickupGear026(scene, showMenu = true) {
-      const s = ensureMalcolmMorningState022();
-      s.hasDetectiveOutfit = true;
-      s.hasPistol = true;
-      scene._gearPicked026 = true;
-      scene.setPrompt?.('Pistol and detective clothes picked up. Press SEL to equip, or press A again.');
-      if (showMenu) openMenu026(scene);
-    }
+    KimsCornerMarketScene.prototype.createShopNpc = function(cfg) {
+      if (!cfg || !this.add) return null;
+      if (!this.shopNpcs026) this.shopNpcs026 = [];
 
-    function equipGear026(scene) {
-      const s = ensureMalcolmMorningState022();
-      if (!s.hasDetectiveOutfit || !s.hasPistol) {
-        if (hitRect026(scene, APT_DRESSER_026)) pickupGear026(scene, false);
-        else {
-          scene.setPrompt?.('No gear yet. Use the dresser beside the bed.');
-          openMenu026(scene);
-          return;
+      const body = this.add.rectangle(cfg.x, cfg.y, 28, 44, 0x000000, 0.0).setDepth(28);
+      this.physics.add.existing(body);
+      body.body.setImmovable(true);
+      body.body.setAllowGravity(false);
+      body.body.moves = false;
+
+      const sprite = this.add.container(cfg.x, cfg.y).setDepth(29);
+      const shadow = this.add.ellipse(0, 22, 38, 14, 0x000000, 0.30);
+      const legs = this.add.rectangle(0, 16, 21, 26, 0x242a2d, 0.98).setStrokeStyle(1, 0x111111, 0.9);
+      const torso = this.add.rectangle(0, -8, 30, 42, cfg.color || 0x566273, 0.98).setStrokeStyle(2, 0x111111, 0.9);
+      const head = this.add.circle(0, -38, 13, cfg.skin || 0xc99162, 1).setStrokeStyle(2, 0x111111, 0.9);
+      const hair = this.add.rectangle(0, -48, 25, 7, 0x201611, 0.95);
+      sprite.add([shadow, legs, torso, head, hair]);
+      sprite.setScale(1.0);
+
+      const nameText = this.add.text(cfg.x, cfg.y - 72, cfg.name, {
+        fontFamily: 'Courier New',
+        fontSize: '17px',
+        color: '#f4d28a',
+        stroke: '#000000',
+        strokeThickness: 4
+      }).setOrigin(0.5).setDepth(40);
+
+      const npc = {
+        id: cfg.id,
+        name: cfg.name,
+        x: cfg.x,
+        y: cfg.y,
+        color: cfg.color || 0x566273,
+        skin: cfg.skin || 0xc99162,
+        portraitColor: cfg.portraitColor || cfg.color || 0x566273,
+        body,
+        sprite,
+        nameText,
+        baseScale: 0.74,
+        lines: Array.isArray(cfg.lines) ? cfg.lines.slice() : []
+      };
+
+      this.shopNpcs026.push(npc);
+
+      // Let the existing indoor scaling patch size the placeholder NPCs consistently.
+      if (!this.indoorNpcs) this.indoorNpcs = [];
+      this.indoorNpcs.push({ sprite, baseScale: npc.baseScale });
+
+      kimsIgnoreNpcOnUiCamera026(this, npc);
+      return npc;
+    };
+
+    KimsCornerMarketScene.prototype.getNearbyTalkNpc = function() {
+      if (!this.playerBody || !this.shopNpcs026?.length) return null;
+
+      let best = null;
+      let bestDist = Infinity;
+      for (const npc of this.shopNpcs026) {
+        const d = Phaser.Math.Distance.Between(this.playerBody.x, this.playerBody.y, npc.x, npc.y);
+        if (d <= SHOP_NPC_TALK_RADIUS_026 && d < bestDist) {
+          best = npc;
+          bestDist = d;
         }
       }
-      s.outfitEquipped = true;
-      clearMenu026(scene);
-      scene.updatePlayerSpriteAsset?.();
-      setIndoorScale026(scene);
-      scene.setPrompt?.('Equipped detective outfit and pistol. Go to the staircase when ready.');
-    }
+      return best;
+    };
 
-    function goDownstairs026(scene) {
-      if (scene._transitioning026) return;
-      if (now026(scene) < (scene._transitionGraceUntil026 || 0)) return;
-      scene._transitioning026 = true;
-      scene.cameras.main.fadeOut(180, 0,0,0);
-      scene.time.delayedCall(190, () => {
-        scene.scene.start('KimsCornerMarketScene', {
-          fromApartment: true,
-          spawn: KIMS_STAIRS_BOTTOM_SPAWN_026,
-          message: 'Downstairs: Kim’s Corner Market.'
-        });
-      });
-    }
+    KimsCornerMarketScene.prototype.openDialogueForNpc = function(npcId) {
+      const npc = this.shopNpcs026?.find(n => n.id === npcId);
+      if (!npc) return false;
 
-    function goUpstairs026(scene) {
-      if (scene._transitioning026) return;
-      if (now026(scene) < (scene._transitionGraceUntil026 || 0)) return;
-      scene._transitioning026 = true;
-      scene.cameras.main.fadeOut(180, 0,0,0);
-      scene.time.delayedCall(190, () => {
-        scene.scene.start('MalcolmApartmentScene', {
-          fromKimsStairs: true,
-          spawn: APT_STAIRS_SAFE_SPAWN_026
-        });
-      });
-    }
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+      if (this.playerSprite?.anims) this.playerSprite.anims.stop();
 
-    function goWorld026(scene) {
-      if (scene._transitioning026) return;
-      if (now026(scene) < (scene._transitionGraceUntil026 || 0)) return;
-      scene._transitioning026 = true;
-      const s = ensureMalcolmMorningState022();
-      const msg = s.outfitEquipped
-        ? 'Morning shift: go to the police station and meet Ramos.'
-        : 'You can leave, but your detective gear is upstairs.';
-      scene.cameras.main.fadeOut(180, 0,0,0);
-      scene.time.delayedCall(190, () => {
-        scene.scene.start('GameScene', {
-          fromStationExit: true,
-          spawn: { x: 2675, y: 1214 },
-          message: msg
-        });
-      });
-    }
-
-    if (typeof MalcolmApartmentScene !== 'undefined') {
-      const oldCreate026 = MalcolmApartmentScene.prototype.create;
-      MalcolmApartmentScene.prototype.create = function() {
-        const result = oldCreate026.call(this);
-        this._transitionGraceUntil026 = now026(this) + 1000;
-        this._transitioning026 = false;
-
-        // Remove the collision that was trapping Malcolm around bed/dresser.
-        removeWallsByLabel026(this, ['bed', 'closet clutter']);
-
-        // Rebuild functional zones.
-        this.zones = [];
-        this.addHotZone('dresser_gear', APT_DRESSER_026.x, APT_DRESSER_026.y, APT_DRESSER_026.w, APT_DRESSER_026.h, 'Dresser: pick up pistol and clothes');
-        this.addHotZone('stairs_down', APT_STAIRS_026.x, APT_STAIRS_026.y, APT_STAIRS_026.w, APT_STAIRS_026.h, 'Stairs: go downstairs');
-        this.addHotZone('bed', 430, 60, 490, 520, 'Bed');
-
-        if (this.entryData?.fromKimsStairs || this.entryData?.spawn) {
-          const sp = this.entryData?.spawn || APT_STAIRS_SAFE_SPAWN_026;
-          this.playerBody?.setPosition?.(sp.x, sp.y);
-          this.playerSprite?.setPosition?.(sp.x, sp.y);
-        } else {
-          this.playerBody?.setPosition?.(APT_WAKE_SPAWN_026.x, APT_WAKE_SPAWN_026.y);
-          this.playerSprite?.setPosition?.(APT_WAKE_SPAWN_026.x, APT_WAKE_SPAWN_026.y);
-        }
-
-        setIndoorScale026(this);
-        this.setPrompt?.('Stand at the dresser and press A for pistol/clothes. SEL opens equip menu.');
-        return result;
+      this.shopDialogue026 = {
+        npc,
+        index: 0,
+        open: true
       };
 
-      MalcolmApartmentScene.prototype.handleSelectMenu = function() {
-        if (this._gearMenuOpen026) clearMenu026(this);
-        else openMenu026(this);
-      };
+      this.buildDialogueUi();
+      this.updateDialogueUi();
+      return true;
+    };
 
-      MalcolmApartmentScene.prototype.handleInteract = function() {
-        if (this._gearMenuOpen026) {
-          equipGear026(this);
-          return;
-        }
-        if (hitRect026(this, APT_DRESSER_026)) {
-          const s = ensureMalcolmMorningState022();
-          if (!s.hasDetectiveOutfit || !s.hasPistol) pickupGear026(this, true);
-          else equipGear026(this);
-          return;
-        }
-        if (hitRect026(this, APT_STAIRS_026)) {
-          goDownstairs026(this);
-          return;
-        }
-        this.setPrompt?.('Move to the dresser for gear or the stairs to leave.');
-      };
+    KimsCornerMarketScene.prototype.advanceDialogue = function() {
+      if (!this.shopDialogue026?.open) return false;
 
-      const oldUpdate026 = MalcolmApartmentScene.prototype.update;
-      MalcolmApartmentScene.prototype.update = function(time, delta) {
-        const result = oldUpdate026.call(this, time, delta);
-        setIndoorScale026(this);
+      const dlg = this.shopDialogue026;
+      if (dlg.index < dlg.npc.lines.length - 1) {
+        dlg.index += 1;
+        this.updateDialogueUi();
+      } else {
+        this.closeDialogue();
+      }
+      return true;
+    };
 
-        // Direct mobile fail-safe: use the shared mobile state even if UI scene does not route actions.
+    KimsCornerMarketScene.prototype.closeDialogue = function() {
+      if (this.shopDialogueUi026) {
+        for (const obj of this.shopDialogueUi026) obj?.destroy?.();
+      }
+      this.shopDialogueUi026 = null;
+      this.shopDialogue026 = null;
+
+      const near = this.getNearbyTalkNpc?.();
+      if (near) this.setPrompt?.(`A: talk to ${near.name}`);
+      else this.setPrompt?.('Kim’s Corner Market. Front door exits to street. Back stairs go upstairs.');
+    };
+
+    KimsCornerMarketScene.prototype.buildDialogueUi = function() {
+      if (this.shopDialogueUi026) {
+        for (const obj of this.shopDialogueUi026) obj?.destroy?.();
+      }
+
+      const panelX = VIEW_W / 2;
+      const panelY = VIEW_H - 118;
+      const panelW = Math.min(840, VIEW_W - 70);
+      const panelH = 152;
+      const portraitX = panelX + panelW / 2 - 82;
+      const portraitY = panelY + 6;
+
+      const panel = this.add.rectangle(panelX, panelY, panelW, panelH, 0xe6d5b7, 0.98)
+        .setStrokeStyle(5, 0x2a2118, 1);
+      const inner = this.add.rectangle(panelX, panelY, panelW - 18, panelH - 18, 0xf1e3c8, 0.74)
+        .setStrokeStyle(1, 0x79644b, 0.85);
+      const tail = this.add.triangle(panelX - 255, panelY - panelH / 2 + 4, 0, 0, 40, 0, 18, -26, 0xe6d5b7, 0.98)
+        .setStrokeStyle(4, 0x2a2118, 1);
+
+      const portraitFrame = this.add.rectangle(portraitX, portraitY, 104, 112, 0xc7b28f, 1)
+        .setStrokeStyle(4, 0x2a2118, 1);
+      const portraitBg = this.add.rectangle(portraitX, portraitY, 88, 96, 0x9d8b70, 1)
+        .setStrokeStyle(1, 0x5a4937, 0.9);
+      const portraitHead = this.add.circle(portraitX, portraitY - 14, 26, 0xc99162, 1)
+        .setStrokeStyle(3, 0x2a2118, 1);
+      const portraitTorso = this.add.rectangle(portraitX, portraitY + 39, 54, 45, 0x566273, 1)
+        .setStrokeStyle(3, 0x2a2118, 1);
+      const portraitHair = this.add.rectangle(portraitX, portraitY - 42, 52, 14, 0x201611, 0.95);
+
+      const nameText = this.add.text(panelX - panelW / 2 + 34, panelY - panelH / 2 + 18, '', {
+        fontFamily: 'Courier New',
+        fontSize: '24px',
+        color: '#9d3f25',
+        stroke: '#f1e3c8',
+        strokeThickness: 2
+      }).setOrigin(0, 0);
+
+      const lineText = this.add.text(panelX - panelW / 2 + 34, panelY - panelH / 2 + 58, '', {
+        fontFamily: 'Courier New',
+        fontSize: '23px',
+        color: '#2a2118',
+        stroke: '#f7ecd6',
+        strokeThickness: 1,
+        wordWrap: { width: panelW - 190 }
+      }).setOrigin(0, 0);
+
+      const nextText = this.add.text(panelX + panelW / 2 - 155, panelY + panelH / 2 - 34, 'A ▶', {
+        fontFamily: 'Courier New',
+        fontSize: '18px',
+        color: '#2a2118',
+        stroke: '#f7ecd6',
+        strokeThickness: 2
+      }).setOrigin(0, 0);
+
+      this.shopDialogueUi026 = [
+        panel, inner, tail,
+        portraitFrame, portraitBg, portraitHead, portraitTorso, portraitHair,
+        nameText, lineText, nextText
+      ];
+
+      this.shopDialogueNameText026 = nameText;
+      this.shopDialogueLineText026 = lineText;
+      this.shopDialoguePortraitHead026 = portraitHead;
+      this.shopDialoguePortraitTorso026 = portraitTorso;
+      this.shopDialoguePortraitBg026 = portraitBg;
+
+      for (const obj of this.shopDialogueUi026) kimsRegisterDialogueUi026(this, obj);
+    };
+
+    KimsCornerMarketScene.prototype.updateDialogueUi = function() {
+      const dlg = this.shopDialogue026;
+      if (!dlg?.open || !dlg.npc) return;
+
+      const npc = dlg.npc;
+      const text = npc.lines[dlg.index] || '';
+
+      this.shopDialogueNameText026?.setText(npc.name);
+      this.shopDialogueLineText026?.setText(text);
+      this.shopDialoguePortraitHead026?.setFillStyle(npc.skin || 0xc99162, 1);
+      this.shopDialoguePortraitTorso026?.setFillStyle(npc.portraitColor || npc.color || 0x566273, 1);
+      this.shopDialoguePortraitBg026?.setFillStyle(npc.id === 'mr_kim' ? 0x7b6a54 : 0x6c7d8d, 1);
+      this.setPrompt?.(`A: continue ${npc.name}`);
+    };
+
+    const oldKimsCreate026 = KimsCornerMarketScene.prototype.create;
+    KimsCornerMarketScene.prototype.create = function() {
+      const result = oldKimsCreate026.call(this);
+
+      this.shopNpcs026 = [];
+      for (const cfg of SHOP_NPC_DATA_026) this.createShopNpc(cfg);
+
+      this.dialogueActionCooldown026 = 0;
+      this.setPrompt?.('Kim’s Corner Market. Talk to Mr. Kim or Johnny, or use the stairs/front door.');
+      return result;
+    };
+
+    const oldKimsInteract026 = KimsCornerMarketScene.prototype.handleInteract;
+    KimsCornerMarketScene.prototype.handleInteract = function() {
+      const now = this.time?.now || 0;
+      if (now < (this.dialogueActionCooldown026 || 0)) return;
+      this.dialogueActionCooldown026 = now + 170;
+
+      // Priority 1: advance open dialogue.
+      if (this.shopDialogue026?.open) {
+        this.advanceDialogue();
+        return;
+      }
+
+      // Priority 2: talk to nearby NPC before stairs/front door.
+      const nearNpc = this.getNearbyTalkNpc?.();
+      if (nearNpc) {
+        this.openDialogueForNpc(nearNpc.id);
+        return;
+      }
+
+      // Priority 3+: preserve existing stairs/front-door behavior.
+      return oldKimsInteract026.call(this);
+    };
+
+    const oldKimsUpdate026 = KimsCornerMarketScene.prototype.update;
+    KimsCornerMarketScene.prototype.update = function(time, delta) {
+      // Dialogue freezes Malcolm and prevents automatic stairs/front-door transitions.
+      if (this.shopDialogue026?.open) {
+        if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
+        if (this.playerSprite) {
+          this.updatePlayerSpriteAsset?.();
+          this.playerSprite.setPosition(this.playerBody.x, this.playerBody.y);
+          this.playerSprite.anims?.stop?.();
+          this.playerSprite.setFrame?.(frameForFacing022(this.facing || 'S', 0));
+        }
+
         const m = this.mobile || {};
-        if (m.sel && !this._lastSel026) this.handleSelectMenu();
-        if ((m.a || m.x) && !(this._lastA026 || this._lastX026)) this.handleInteract();
-        if (m.b && !this._lastB026 && this._gearMenuOpen026) clearMenu026(this);
-        this._lastSel026 = !!m.sel;
-        this._lastA026 = !!m.a;
-        this._lastX026 = !!m.x;
-        this._lastB026 = !!m.b;
+        if (m.a && !this._lastDialogueA026) this.handleInteract();
+        this._lastDialogueA026 = !!m.a;
+        this.updateDialogueUi();
+        return;
+      }
 
-        // Dresser prompt and fail-safe pickup: if player is on the dresser, A/SEL should always work.
-        if (hitRect026(this, APT_DRESSER_026)) {
-          const s = ensureMalcolmMorningState022();
-          if (!s.hasDetectiveOutfit || !s.hasPistol) {
-            this.setPrompt?.('Dresser: press A to pick up pistol and clothes.');
-          } else if (!s.outfitEquipped) {
-            this.setPrompt?.('Gear ready. Press SEL for menu or A to equip.');
-          }
-        }
+      const result = oldKimsUpdate026.call(this, time, delta);
 
-        // Stairs transition only after grace period so returning upstairs does not loop.
-        if (hitRect026(this, APT_STAIRS_026)) goDownstairs026(this);
-        return result;
-      };
-    }
+      const nearNpc = this.getNearbyTalkNpc?.();
+      if (nearNpc) this.setPrompt?.(`A: talk to ${nearNpc.name}`);
 
-    if (typeof KimsCornerMarketScene !== 'undefined') {
-      const oldKimsCreate026 = KimsCornerMarketScene.prototype.create;
-      KimsCornerMarketScene.prototype.create = function() {
-        const result = oldKimsCreate026.call(this);
-        this._transitionGraceUntil026 = now026(this) + 1100;
-        this._transitioning026 = false;
+      return result;
+    };
 
-        if (this.entryData?.fromApartment || this.entryData?.spawn) {
-          const sp = this.entryData?.spawn || KIMS_STAIRS_BOTTOM_SPAWN_026;
-          this.playerBody?.setPosition?.(sp.x, sp.y);
-          this.playerSprite?.setPosition?.(sp.x, sp.y);
-        }
-
-        this.zones = [];
-        this.addHotZone('stairs_up', KIMS_STAIRS_026.x, KIMS_STAIRS_026.y, KIMS_STAIRS_026.w, KIMS_STAIRS_026.h, 'Stairs: go upstairs');
-        this.addHotZone('front_door', KIMS_FRONT_026.x, KIMS_FRONT_026.y, KIMS_FRONT_026.w, KIMS_FRONT_026.h, 'Front glass door: exit to street');
-        setIndoorScale026(this);
-        this.setPrompt?.('Kim’s Corner. Walk up the stairs to return upstairs. Front door exits to street.');
-        return result;
-      };
-
-      KimsCornerMarketScene.prototype.handleInteract = function() {
-        if (hitRect026(this, KIMS_STAIRS_026)) { goUpstairs026(this); return; }
-        if (hitRect026(this, KIMS_FRONT_026)) { goWorld026(this); return; }
-        this.setPrompt?.('Use the front door or the stairs.');
-      };
-
-      const oldKimsUpdate026 = KimsCornerMarketScene.prototype.update;
-      KimsCornerMarketScene.prototype.update = function(time, delta) {
-        const result = oldKimsUpdate026.call(this, time, delta);
-        setIndoorScale026(this);
-        const m = this.mobile || {};
-        if ((m.a || m.x) && !(this._lastA026 || this._lastX026)) this.handleInteract();
-        this._lastA026 = !!m.a;
-        this._lastX026 = !!m.x;
-        if (hitRect026(this, KIMS_STAIRS_026)) goUpstairs026(this);
-        if (hitRect026(this, KIMS_FRONT_026)) goWorld026(this);
-        return result;
-      };
-    }
-
-    // Last word on mobile action routing. This overrides any earlier placeholder SEL behavior.
-    if (typeof MobileControlsScene !== 'undefined') {
-      MobileControlsScene.prototype.getTargetScene = function() {
-        for (const key of ['MalcolmApartmentScene','KimsCornerMarketScene','ElevatorRoomScene','PoliceStationScene','GameScene','InteriorScene','ReportScene']) {
-          const scene = this.scene.get(key);
-          if (scene?.scene?.isActive()) return scene;
-        }
-        return null;
-      };
-
-      const oldFire026 = MobileControlsScene.prototype.fireAction;
-      MobileControlsScene.prototype.fireAction = function(key) {
-        const target = this.getTargetScene?.();
-        if (target?.scene?.key === 'MalcolmApartmentScene' || target?.scene?.key === 'KimsCornerMarketScene') {
-          if (key === 'sel') { target.handleSelectMenu?.(); return; }
-          if (key === 'a' || key === 'x') { target.handleInteract?.(); return; }
-          if (key === 'b' && target._gearMenuOpen026) { clearMenu026(target); return; }
-          if (key === 'sta') { target.togglePauseMenu?.(); return; }
-        }
-        return oldFire026.call(this, key);
-      };
-    }
+    const oldKimsShutdown026 = KimsCornerMarketScene.prototype.shutdown;
+    KimsCornerMarketScene.prototype.shutdown = function() {
+      this.closeDialogue?.();
+      if (typeof oldKimsShutdown026 === 'function') return oldKimsShutdown026.call(this);
+    };
   })();
+
 
 
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
