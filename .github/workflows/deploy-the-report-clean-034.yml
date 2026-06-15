@@ -1,0 +1,72 @@
+name: Deploy The Report
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: the-report-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy The Report to GitHub Pages
+    runs-on: ubuntu-latest
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Verify required files
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test -f index.html
+          echo "index.html found"
+
+          if grep -q "NeonNightsInteriorScene\|NEON_BACKROOM_AND_SCALE_FIX_HOTFIX_031\|NEON_NIGHTS_WORKFLOW_HOTFIX_030" index.html; then
+            echo "Neon Nights code found"
+          else
+            echo "ERROR: Neon Nights code not found in index.html"
+            exit 1
+          fi
+
+          test -f assets/audio/music/red_curtain_heat.mp3
+          echo "Red Curtain Heat found"
+
+          test -d assets/characters/npcs/neon_nights
+          echo "Neon Nights sprite folder found"
+
+          sprite_count=$(find assets/characters/npcs/neon_nights -maxdepth 1 -type f -name '*.png' | wc -l)
+          echo "Neon sprite PNG count: ${sprite_count}"
+
+          if [ "${sprite_count}" -lt 20 ]; then
+            echo "ERROR: expected Neon sprite PNGs are missing"
+            exit 1
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+
+      - name: Deploy Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
