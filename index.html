@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Intersection Car Assist Fix</title>
+  <title>The Report — Malcolm Morning Start</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'intersection-car-assist-021';
+  const ASSET_REV = 'malcolm-morning-start-022';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -195,7 +195,7 @@
 
   // HARD START LOCK: first playable scene starts in Police Station Floor 1.
   // Exiting the station sets fromStationExit=true so the street map can load normally.
-  const START_IN_POLICE_STATION = true;
+  const START_IN_POLICE_STATION = false;
 
   const GAME = {
     day: 1, xp: 0, rank: 'Detective Trainee',
@@ -210,6 +210,13 @@
       dismissed: false,
       inCar: false,
       smallTalkIndex: 0
+    },
+    malcolm: {
+      morningStarted: false,
+      hasDetectiveOutfit: false,
+      hasPistol: false,
+      outfitEquipped: false,
+      wokeUp: false
     }
   };
 
@@ -1402,7 +1409,7 @@
 
       const start = () => {
         startTheme(this);
-        this.scene.start(START_IN_POLICE_STATION ? 'PoliceStationScene' : 'GameScene');
+        this.scene.start('MalcolmApartmentScene');
       };
 
       // Browser/iOS audio unlock: starts the theme on the same tap/key press that starts the game.
@@ -12325,7 +12332,541 @@
   })();
 
 
-  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
+
+  // MALCOLM_MORNING_START_PATCH_022
+  // Wakes Malcolm in his apartment, lets him collect outfit/pistol from closet,
+  // equips from SEL menu, then routes apartment -> Kim's -> street -> police station.
+  const MALCOLM_APARTMENT_BG_022 = {
+    key: 'malcolm_apartment_morning_bg_022',
+    path: 'assets/interiors/malcolm_apartment/malcolm_apartment_morning_1499x1049.png',
+    width: 1499,
+    height: 1049
+  };
+
+  const KIMS_CORNER_BG_022 = {
+    key: 'kims_corner_market_clean_bg_022',
+    path: 'assets/interiors/kims_corner_market/kims_corner_market_clean_1254x1254.png',
+    width: 1254,
+    height: 1254
+  };
+
+  const MALCOLM_SLEEP_WALK_ASSET_022 = {
+    key: 'malcolm_sleep_walk_4x8_96x96_022',
+    path: 'assets/characters/main_detective/malcolm_sleep_walk_4x8_96x96.png',
+    frameWidth: 96,
+    frameHeight: 96,
+    scale: 0.78,
+    originY: 0.82,
+    cols: 4
+  };
+
+  const MALCOLM_SLEEPING_BED_ASSET_022 = {
+    key: 'malcolm_sleeping_bed_4x1_192x128_022',
+    path: 'assets/characters/main_detective/malcolm_sleeping_bed_4x1_192x128.png',
+    frameWidth: 192,
+    frameHeight: 128,
+    scale: 0.72
+  };
+
+  function ensureMalcolmMorningState022() {
+    if (!GAME.malcolm) GAME.malcolm = {};
+    GAME.malcolm.morningStarted = !!GAME.malcolm.morningStarted;
+    GAME.malcolm.hasDetectiveOutfit = !!GAME.malcolm.hasDetectiveOutfit;
+    GAME.malcolm.hasPistol = !!GAME.malcolm.hasPistol;
+    GAME.malcolm.outfitEquipped = !!GAME.malcolm.outfitEquipped;
+    GAME.malcolm.wokeUp = !!GAME.malcolm.wokeUp;
+    return GAME.malcolm;
+  }
+
+  function frameRowForFacing022(facing) {
+    return ({ S:0, SW:1, W:2, NW:3, N:4, NE:5, E:6, SE:7 })[facing] || 0;
+  }
+
+  function frameForFacing022(facing, step = 0) {
+    return frameRowForFacing022(facing) * 4 + Phaser.Math.Clamp(step, 0, 3);
+  }
+
+  function animKey022(key, facing) {
+    return `${key}_${facing}_walk_022`;
+  }
+
+  function createFourByEightAnims022(scene, key) {
+    if (!scene.textures.exists(key)) return;
+    for (const facing of ['S','SW','W','NW','N','NE','E','SE']) {
+      const row = frameRowForFacing022(facing);
+      const anim = animKey022(key, facing);
+      if (!scene.anims.exists(anim)) {
+        scene.anims.create({
+          key: anim,
+          frames: [1,2,3,2].map(i => ({ key, frame: row * 4 + i })),
+          frameRate: 8,
+          repeat: -1
+        });
+      }
+    }
+  }
+
+  class MorningInteriorBaseScene022 extends Phaser.Scene {
+    setupMorningBase(opts) {
+      ensureMalcolmMorningState022();
+      this.mapW = opts.width;
+      this.mapH = opts.height;
+      this.sceneTitle = opts.title;
+      this.returnMessage = opts.message || '';
+      this.physics.world.setBounds(0, 0, this.mapW, this.mapH);
+      this.cameras.main.setBounds(0, 0, this.mapW, this.mapH);
+      this.cameras.main.setBackgroundColor('#05070b');
+
+      this.keys = this.input.keyboard.addKeys({
+        up:'W', down:'S', left:'A', right:'D',
+        arrowUp:'UP', arrowDown:'DOWN', arrowLeft:'LEFT', arrowRight:'RIGHT',
+        interact:'E', aKey:'A', tab:'TAB', select:'SHIFT', esc:'ESC'
+      });
+      this.mobile = MOBILE_INPUT_STATE;
+      this.facing = opts.facing || 'S';
+      this.stepTimer = 0;
+      this.stepIndex = 0;
+      this.interactCooldown = 0;
+
+      this.walls = this.physics.add.staticGroup();
+      this.zones = [];
+      this.uiObjects = [];
+
+      createFourByEightAnims022(this, MALCOLM_SLEEP_WALK_ASSET_022.key);
+      createFourByEightAnims022(this, PLAYER_ASSET.key);
+    }
+
+    addWallRect(x,y,w,h, label = 'wall') {
+      const r = this.add.rectangle(x + w/2, y + h/2, w, h, 0xff0000, 0.0).setOrigin(0.5);
+      r._label = label;
+      this.physics.add.existing(r, true);
+      this.walls.add(r);
+      return r;
+    }
+
+    addHotZone(id, x,y,w,h,label) {
+      const z = { id, x,y,w,h,label };
+      this.zones.push(z);
+      return z;
+    }
+
+    createPlayerAt(x, y, sleeping = false) {
+      this.playerBody = this.add.rectangle(x, y, 34, 44, 0x3d7dff, 0.0).setDepth(30);
+      this.physics.add.existing(this.playerBody);
+      this.playerBody.body.setCollideWorldBounds(true);
+      this.physics.add.collider(this.playerBody, this.walls);
+
+      const state = ensureMalcolmMorningState022();
+      const useDetective = state.outfitEquipped && this.textures.exists(PLAYER_ASSET.key);
+      const key = useDetective ? PLAYER_ASSET.key : MALCOLM_SLEEP_WALK_ASSET_022.key;
+      const asset = useDetective ? PLAYER_ASSET : MALCOLM_SLEEP_WALK_ASSET_022;
+
+      this.playerSprite = this.add.sprite(x, y, key, frameForFacing022(this.facing, 0))
+        .setOrigin(0.5, asset.originY || 0.82)
+        .setScale(asset.scale || 0.78)
+        .setDepth(31);
+
+      if (sleeping && this.textures.exists(MALCOLM_SLEEPING_BED_ASSET_022.key)) {
+        this.playerSprite.setVisible(false);
+        this.sleepSprite = this.add.sprite(x + 4, y - 34, MALCOLM_SLEEPING_BED_ASSET_022.key, 0)
+          .setScale(MALCOLM_SLEEPING_BED_ASSET_022.scale)
+          .setDepth(32);
+        this.tweens.add({ targets:this.sleepSprite, alpha:0.35, duration:420, yoyo:true, repeat:1 });
+        this.time.delayedCall(850, () => {
+          this.sleepSprite?.destroy();
+          this.playerSprite?.setVisible(true);
+          const s = ensureMalcolmMorningState022();
+          s.wokeUp = true;
+          this.setPrompt('Malcolm wakes up. Go to the closet in the upper-left and press A.');
+        });
+      }
+
+      this.cameras.main.startFollow(this.playerBody, true, 0.12, 0.12);
+      this.cameras.main.setDeadzone(42, 32);
+      this.cameras.main.setZoom(getManualCameraZoom(0.70));
+    }
+
+    updatePlayerSpriteAsset() {
+      if (!this.playerSprite) return;
+      const state = ensureMalcolmMorningState022();
+      const useDetective = state.outfitEquipped && this.textures.exists(PLAYER_ASSET.key);
+      const key = useDetective ? PLAYER_ASSET.key : MALCOLM_SLEEP_WALK_ASSET_022.key;
+      const asset = useDetective ? PLAYER_ASSET : MALCOLM_SLEEP_WALK_ASSET_022;
+      if (this.playerSprite.texture.key !== key) {
+        this.playerSprite.setTexture(key, frameForFacing022(this.facing, 0));
+      }
+      this.playerSprite.setOrigin(0.5, asset.originY || 0.82).setScale(asset.scale || 0.78);
+    }
+
+    createPrompt(text) {
+      this.promptBg = this.add.rectangle(VIEW_W/2, VIEW_H - 36, 830, 46, 0x02060a, 0.78)
+        .setScrollFactor(0).setDepth(2000);
+      this.promptText = makeText(this, VIEW_W/2, VIEW_H - 46, text, 15, '#f4d28a', true)
+        .setOrigin(0.5).setDepth(2001);
+      this.infoText = makeText(this, 18, 18, `${this.sceneTitle} | A: interact | SEL: equip menu`, 14, '#86e7ff', true)
+        .setDepth(2001);
+      this.registerUi(this.promptBg);
+      this.registerUi(this.promptText);
+      this.registerUi(this.infoText);
+    }
+
+    registerUi(obj) {
+      if (!obj) return obj;
+      this.uiObjects.push(obj);
+      obj.setScrollFactor?.(0);
+      obj.setDepth?.(Math.max(obj.depth || 0, 2000));
+      this.cameras.main.ignore(obj);
+      return obj;
+    }
+
+    setPrompt(msg) {
+      if (this.promptText) this.promptText.setText(msg);
+    }
+
+    setupUiCamera022() {
+      if (this.uiCamera) return;
+      this.uiCamera = this.cameras.add(0, 0, VIEW_W, VIEW_H).setScroll(0,0).setZoom(1).setName(`${this.scene.key}_UICamera`);
+      this.uiCamera.roundPixels = true;
+      const set = new Set(this.uiObjects || []);
+      this.uiCamera.ignore(this.children.list.filter(o => !set.has(o)));
+    }
+
+    inputDir022() {
+      const m = this.mobile || {};
+      const kbL = this.keys.left.isDown || this.keys.arrowLeft.isDown;
+      const kbR = this.keys.right.isDown || this.keys.arrowRight.isDown;
+      const kbU = this.keys.up.isDown || this.keys.arrowUp.isDown;
+      const kbD = this.keys.down.isDown || this.keys.arrowDown.isDown;
+
+      if (m.useStick && (Math.abs(m.analogX) > 0.15 || Math.abs(m.analogY) > 0.15)) {
+        return {
+          left: m.analogX < -0.25 || kbL,
+          right: m.analogX > 0.25 || kbR,
+          up: m.analogY < -0.25 || kbU,
+          down: m.analogY > 0.25 || kbD,
+          ax: m.analogX,
+          ay: m.analogY
+        };
+      }
+      return { left:kbL || m.left, right:kbR || m.right, up:kbU || m.up, down:kbD || m.down, ax:0, ay:0 };
+    }
+
+    zoneContainsPlayer(z) {
+      const x = this.playerBody?.x || 0, y = this.playerBody?.y || 0;
+      return x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h;
+    }
+
+    nearestZone() {
+      return this.zones.find(z => this.zoneContainsPlayer(z)) || null;
+    }
+
+    updateFacingFromDir(d) {
+      if (d.up && d.left) this.facing = 'NW';
+      else if (d.up && d.right) this.facing = 'NE';
+      else if (d.down && d.left) this.facing = 'SW';
+      else if (d.down && d.right) this.facing = 'SE';
+      else if (d.up) this.facing = 'N';
+      else if (d.down) this.facing = 'S';
+      else if (d.left) this.facing = 'W';
+      else if (d.right) this.facing = 'E';
+    }
+
+    update(time, delta) {
+      const dt = Math.min(delta / 1000, 0.05);
+      if (this.interactCooldown > 0) this.interactCooldown -= delta;
+
+      const d = this.inputDir022();
+      let vx = d.ax || 0;
+      let vy = d.ay || 0;
+
+      if (!vx && !vy) {
+        vx = (d.right ? 1 : 0) - (d.left ? 1 : 0);
+        vy = (d.down ? 1 : 0) - (d.up ? 1 : 0);
+      }
+
+      const moving = Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05;
+      if (moving) {
+        const len = Math.hypot(vx, vy) || 1;
+        vx /= len; vy /= len;
+        this.updateFacingFromDir(d);
+        this.playerBody.body.setVelocity(vx * 165, vy * 165);
+        this.stepTimer += delta;
+        if (this.stepTimer > 115) {
+          this.stepTimer = 0;
+          this.stepIndex = this.stepIndex >= 3 ? 1 : this.stepIndex + 1;
+        }
+      } else {
+        this.playerBody.body.setVelocity(0, 0);
+        this.stepIndex = 0;
+      }
+
+      this.updatePlayerSpriteAsset();
+      const key = this.playerSprite.texture.key;
+      if (moving && this.anims.exists(animKey022(key, this.facing))) {
+        this.playerSprite.anims.play(animKey022(key, this.facing), true);
+      } else {
+        this.playerSprite.anims.stop();
+        this.playerSprite.setFrame(frameForFacing022(this.facing, 0));
+      }
+      this.playerSprite.setPosition(this.playerBody.x, this.playerBody.y);
+
+      const zone = this.nearestZone();
+      if (zone) this.setPrompt(`${zone.label} — press A`);
+      else if (!GAME.malcolm?.outfitEquipped && GAME.malcolm?.hasDetectiveOutfit) this.setPrompt('SEL: equip detective outfit and pistol.');
+    }
+
+    handleSelectMenu() {
+      const state = ensureMalcolmMorningState022();
+      if (!state.hasDetectiveOutfit || !state.hasPistol) {
+        this.setPrompt('Select menu: closet gear not picked up yet.');
+        return;
+      }
+      state.outfitEquipped = true;
+      this.updatePlayerSpriteAsset();
+      this.setPrompt('Equipped detective outfit and pistol. Head downstairs.');
+    }
+
+    handleInteract() {}
+  }
+
+  class MalcolmApartmentScene extends MorningInteriorBaseScene022 {
+    constructor() { super('MalcolmApartmentScene'); }
+    init(data) { this.entryData = data || {}; }
+
+    preload() {
+      if (!this.cache.audio.exists(THEME_ASSET.key)) this.load.audio(THEME_ASSET.key, A(THEME_ASSET.path));
+      this.load.image(MALCOLM_APARTMENT_BG_022.key, A(MALCOLM_APARTMENT_BG_022.path));
+      this.load.spritesheet(MALCOLM_SLEEP_WALK_ASSET_022.key, A(MALCOLM_SLEEP_WALK_ASSET_022.path), {
+        frameWidth: MALCOLM_SLEEP_WALK_ASSET_022.frameWidth,
+        frameHeight: MALCOLM_SLEEP_WALK_ASSET_022.frameHeight
+      });
+      this.load.spritesheet(MALCOLM_SLEEPING_BED_ASSET_022.key, A(MALCOLM_SLEEPING_BED_ASSET_022.path), {
+        frameWidth: MALCOLM_SLEEPING_BED_ASSET_022.frameWidth,
+        frameHeight: MALCOLM_SLEEPING_BED_ASSET_022.frameHeight
+      });
+      this.load.spritesheet(PLAYER_ASSET.key, A(PLAYER_ASSET.path), {
+        frameWidth: PLAYER_ASSET.frameWidth,
+        frameHeight: PLAYER_ASSET.frameHeight
+      });
+    }
+
+    create() {
+      const state = ensureMalcolmMorningState022();
+      state.morningStarted = true;
+
+      this.setupMorningBase({
+        width: MALCOLM_APARTMENT_BG_022.width,
+        height: MALCOLM_APARTMENT_BG_022.height,
+        title: "Malcolm's Apartment",
+        facing: 'S'
+      });
+
+      this.add.image(0, 0, MALCOLM_APARTMENT_BG_022.key).setOrigin(0,0).setDepth(0);
+
+      // Collision: exterior/walls, furniture, desk, bed, couch, kitchen, stair rail.
+      this.addWallRect(0, 0, 1499, 32, 'north wall');
+      this.addWallRect(0, 0, 45, 1049, 'west wall');
+      this.addWallRect(1454, 0, 45, 1049, 'east wall');
+      this.addWallRect(0, 1010, 1499, 39, 'south wall');
+      this.addWallRect(535, 60, 235, 340, 'bed');
+      this.addWallRect(470, 520, 330, 160, 'couch');
+      this.addWallRect(520, 710, 240, 95, 'coffee table');
+      this.addWallRect(925, 640, 235, 210, 'desk');
+      this.addWallRect(1110, 60, 310, 230, 'kitchen');
+      this.addWallRect(1220, 330, 110, 115, 'table');
+      this.addWallRect(70, 40, 280, 190, 'closet clutter');
+      this.addWallRect(35, 580, 235, 380, 'stair rail');
+
+      this.addHotZone('closet', 74, 40, 300, 225, 'Closet: pick up pistol and detective outfit');
+      this.addHotZone('stairs_down', 255, 875, 190, 145, 'Stairs down to Kim’s Corner Market');
+      this.addHotZone('bed', 560, 245, 185, 165, 'Bed: start morning / save');
+
+      const spawn = this.entryData.fromKimsStairs ? { x: 365, y: 905 } : { x: 660, y: 430 };
+      this.createPlayerAt(spawn.x, spawn.y, !state.wokeUp && !this.entryData.fromKimsStairs);
+      this.createPrompt(!state.wokeUp ? 'Malcolm wakes up in his apartment.' : 'Apartment. Closet upper-left. Stairs lower-left.');
+      launchGlobalMobileControls(this);
+      this.setupUiCamera022();
+      installPauseMenu(this);
+      this.time.delayedCall(150, () => startTheme(this));
+
+      this.input.keyboard.on('keydown-E', () => this.handleInteract());
+      this.input.keyboard.on('keydown-A', () => this.handleInteract());
+      this.input.keyboard.on('keydown-TAB', () => this.handleSelectMenu());
+      this.input.keyboard.on('keydown-SHIFT', () => this.handleSelectMenu());
+    }
+
+    handleInteract() {
+      const z = this.nearestZone();
+      if (!z) {
+        this.setPrompt('Nothing to use here.');
+        return;
+      }
+
+      const state = ensureMalcolmMorningState022();
+      if (z.id === 'closet') {
+        state.hasDetectiveOutfit = true;
+        state.hasPistol = true;
+        this.setPrompt('Picked up pistol and detective outfit. Press SEL to equip.');
+        return;
+      }
+
+      if (z.id === 'bed') {
+        this.setPrompt('Bed saved. Morning shift begins.');
+        return;
+      }
+
+      if (z.id === 'stairs_down') {
+        this.cameras.main.fadeOut(220, 0, 0, 0);
+        this.time.delayedCall(230, () => {
+          this.scene.start('KimsCornerMarketScene', {
+            fromApartment: true,
+            spawn: { x: 1045, y: 220 },
+            message: 'Downstairs: Kim’s Corner Market.'
+          });
+        });
+      }
+    }
+  }
+
+  class KimsCornerMarketScene extends MorningInteriorBaseScene022 {
+    constructor() { super('KimsCornerMarketScene'); }
+    init(data) { this.entryData = data || {}; }
+
+    preload() {
+      if (!this.cache.audio.exists(THEME_ASSET.key)) this.load.audio(THEME_ASSET.key, A(THEME_ASSET.path));
+      this.load.image(KIMS_CORNER_BG_022.key, A(KIMS_CORNER_BG_022.path));
+      this.load.spritesheet(MALCOLM_SLEEP_WALK_ASSET_022.key, A(MALCOLM_SLEEP_WALK_ASSET_022.path), {
+        frameWidth: MALCOLM_SLEEP_WALK_ASSET_022.frameWidth,
+        frameHeight: MALCOLM_SLEEP_WALK_ASSET_022.frameHeight
+      });
+      this.load.spritesheet(PLAYER_ASSET.key, A(PLAYER_ASSET.path), {
+        frameWidth: PLAYER_ASSET.frameWidth,
+        frameHeight: PLAYER_ASSET.frameHeight
+      });
+    }
+
+    create() {
+      ensureMalcolmMorningState022();
+      this.setupMorningBase({
+        width: KIMS_CORNER_BG_022.width,
+        height: KIMS_CORNER_BG_022.height,
+        title: "Kim’s Corner Market",
+        facing: this.entryData.fromStreet ? 'N' : 'S'
+      });
+
+      this.add.image(0, 0, KIMS_CORNER_BG_022.key).setOrigin(0,0).setDepth(0);
+
+      // Collision only: walls, shelves, counter, coolers/freezers, display racks, stairs rail/walls.
+      this.addWallRect(0, 0, 1254, 34, 'north wall');
+      this.addWallRect(0, 0, 36, 1254, 'west wall');
+      this.addWallRect(1218, 0, 36, 1254, 'east wall');
+      this.addWallRect(0, 1215, 1254, 39, 'south wall');
+      this.addWallRect(165, 630, 270, 115, 'front counter');
+      this.addWallRect(180, 318, 92, 420, 'left display racks');
+      this.addWallRect(715, 540, 95, 345, 'middle gondola');
+      this.addWallRect(515, 545, 88, 355, 'left-middle gondola');
+      this.addWallRect(888, 900, 260, 135, 'produce/freezer');
+      this.addWallRect(1080, 690, 135, 210, 'right freezer');
+      this.addWallRect(1095, 325, 130, 225, 'right wall rack');
+      this.addWallRect(725, 120, 360, 85, 'drink coolers');
+      this.addWallRect(188, 250, 440, 110, 'back cigarette/display wall');
+      this.addWallRect(975, 30, 190, 300, 'stairs rail/walls');
+      this.addWallRect(44, 300, 95, 420, 'left wall racks');
+      this.addWallRect(82, 45, 285, 170, 'stock room boxes');
+
+      this.addHotZone('front_door', 565, 1110, 150, 135, 'Front glass door: exit to street');
+      this.addHotZone('stairs_up', 985, 60, 205, 255, 'Back/right stairs: Malcolm’s apartment');
+
+      const spawn = this.entryData.spawn || (this.entryData.fromStreet ? { x: 630, y: 1080 } : { x: 1045, y: 250 });
+      this.createPlayerAt(spawn.x, spawn.y, false);
+      this.createPrompt(this.entryData.message || 'Kim’s Corner Market. Front door exits to street. Back stairs go upstairs.');
+      launchGlobalMobileControls(this);
+      this.setupUiCamera022();
+      installPauseMenu(this);
+      this.time.delayedCall(150, () => startTheme(this));
+
+      this.input.keyboard.on('keydown-E', () => this.handleInteract());
+      this.input.keyboard.on('keydown-A', () => this.handleInteract());
+      this.input.keyboard.on('keydown-TAB', () => this.handleSelectMenu());
+      this.input.keyboard.on('keydown-SHIFT', () => this.handleSelectMenu());
+    }
+
+    handleInteract() {
+      const z = this.nearestZone();
+      if (!z) {
+        this.setPrompt('Nothing to use here.');
+        return;
+      }
+
+      if (z.id === 'stairs_up') {
+        this.cameras.main.fadeOut(220, 0,0,0);
+        this.time.delayedCall(230, () => {
+          this.scene.start('MalcolmApartmentScene', { fromKimsStairs: true });
+        });
+        return;
+      }
+
+      if (z.id === 'front_door') {
+        const state = ensureMalcolmMorningState022();
+        const msg = state.outfitEquipped
+          ? 'Morning shift: go to the police station and meet Ramos.'
+          : 'You should equip your detective outfit from the closet before shift.';
+        this.cameras.main.fadeOut(220, 0,0,0);
+        this.time.delayedCall(230, () => {
+          this.scene.start('GameScene', {
+            fromStationExit: true,
+            spawn: { x: 2675, y: 1214 },
+            message: msg
+          });
+        });
+      }
+    }
+  }
+
+  // Route Kim's exterior door into the real Kim's interior instead of placeholder.
+  if (typeof GameScene !== 'undefined') {
+    const __morningOldEnterBuilding022 = GameScene.prototype.enterBuilding;
+    GameScene.prototype.enterBuilding = function(zone) {
+      const id = String(zone?.id || '');
+      const label = String(zone?.label || '');
+      if (/kims|kim|market_apartments|chunk_b_kims/i.test(id + ' ' + label)) {
+        if (this.player?.body) this.player.body.setVelocity(0, 0);
+        this.scene.start('KimsCornerMarketScene', {
+          fromStreet: true,
+          spawn: { x: 630, y: 1080 },
+          message: 'Entered Kim’s Corner Market.'
+        });
+        return;
+      }
+      return __morningOldEnterBuilding022.call(this, zone);
+    };
+  }
+
+  // Mobile controls must target the two new interior scenes.
+  if (typeof MobileControlsScene !== 'undefined') {
+    const __morningOldGetTarget022 = MobileControlsScene.prototype.getTargetScene;
+    MobileControlsScene.prototype.getTargetScene = function() {
+      for (const key of ['MalcolmApartmentScene', 'KimsCornerMarketScene', 'ElevatorRoomScene', 'PoliceStationScene', 'GameScene', 'InteriorScene', 'ReportScene']) {
+        const scene = this.scene.get(key);
+        if (scene?.scene?.isActive()) return scene;
+      }
+      return __morningOldGetTarget022 ? __morningOldGetTarget022.call(this) : null;
+    };
+
+    const __morningOldFireAction022 = MobileControlsScene.prototype.fireAction;
+    MobileControlsScene.prototype.fireAction = function(key) {
+      const target = this.getTargetScene?.();
+      if (target && (target.scene?.key === 'MalcolmApartmentScene' || target.scene?.key === 'KimsCornerMarketScene')) {
+        if (key === 'a' && typeof target.handleInteract === 'function') { target.handleInteract(); return; }
+        if (key === 'sel' && typeof target.handleSelectMenu === 'function') { target.handleSelectMenu(); return; }
+        if (key === 'sta') { target.togglePauseMenu?.(); return; }
+      }
+      return __morningOldFireAction022.call(this, key);
+    };
+  }
+
+
+  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
 </script>
 </body>
