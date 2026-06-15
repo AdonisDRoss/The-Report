@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Malcolm Morning Start</title>
+  <title>The Report — Indoor Fullscreen Scale Fix</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'malcolm-morning-start-022';
+  const ASSET_REV = 'indoor-fullscreen-scale-023';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -12864,6 +12864,136 @@
       return __morningOldFireAction022.call(this, key);
     };
   }
+
+
+
+  // INDOOR_FULLSCREEN_SCALE_PATCH_023
+  // Interior-only camera and player scale fix. Does not alter GameScene/world map camera.
+  (function installIndoorFullscreenScalePatch023() {
+    const INTERIOR_CAMERA_ZOOM_023 = 1.24;
+    const INTERIOR_PLAYER_SCALE_MULT_023 = 1.42;
+    const INTERIOR_SLEEP_SCALE_023 = 0.92;
+
+    function hideWorldMapZoomPanel023() {
+      const panel = document.getElementById('rhZoomInspectPanel');
+      if (panel) panel.style.display = 'none';
+    }
+
+    function showWorldMapZoomPanel023() {
+      const panel = document.getElementById('rhZoomInspectPanel');
+      if (panel) panel.style.display = '';
+    }
+
+    function applyInteriorCamera023(scene) {
+      if (!scene || !scene.cameras?.main) return;
+      const cam = scene.cameras.main;
+      cam.setZoom(INTERIOR_CAMERA_ZOOM_023);
+      cam.setBackgroundColor('#05070b');
+      cam.roundPixels = true;
+      if (scene.mapW && scene.mapH) cam.setBounds(0, 0, scene.mapW, scene.mapH);
+      if (scene.playerBody) {
+        cam.startFollow(scene.playerBody, true, 0.18, 0.18);
+        cam.setDeadzone(80, 54);
+        cam.centerOn(scene.playerBody.x, scene.playerBody.y);
+      }
+    }
+
+    function scaleInteriorPlayer023(scene) {
+      if (!scene?.playerSprite) return;
+      const state = ensureMalcolmMorningState022();
+      const useDetective = state.outfitEquipped && scene.textures.exists(PLAYER_ASSET.key);
+      const asset = useDetective ? PLAYER_ASSET : MALCOLM_SLEEP_WALK_ASSET_022;
+      const baseScale = asset.scale || 0.78;
+      scene.playerSprite.setScale(baseScale * INTERIOR_PLAYER_SCALE_MULT_023);
+      scene.playerSprite.setOrigin(0.5, asset.originY || 0.82);
+      if (scene.playerBody?.body) {
+        scene.playerBody.body.setSize(40, 54);
+        scene.playerBody.body.setOffset(-20, -45);
+      }
+    }
+
+    if (typeof MorningInteriorBaseScene022 !== 'undefined') {
+      const oldSetupMorningBase023 = MorningInteriorBaseScene022.prototype.setupMorningBase;
+      MorningInteriorBaseScene022.prototype.setupMorningBase = function(opts) {
+        const result = oldSetupMorningBase023.call(this, opts);
+        this._indoorFullscreenScalePatch023 = true;
+        hideWorldMapZoomPanel023();
+        return result;
+      };
+
+      const oldCreatePlayerAt023 = MorningInteriorBaseScene022.prototype.createPlayerAt;
+      MorningInteriorBaseScene022.prototype.createPlayerAt = function(x, y, sleeping = false) {
+        const result = oldCreatePlayerAt023.call(this, x, y, sleeping);
+
+        if (this.sleepSprite) {
+          this.sleepSprite.setScale(INTERIOR_SLEEP_SCALE_023);
+        }
+
+        scaleInteriorPlayer023(this);
+        applyInteriorCamera023(this);
+
+        this.time?.delayedCall?.(80, () => {
+          scaleInteriorPlayer023(this);
+          applyInteriorCamera023(this);
+        });
+
+        this.time?.delayedCall?.(900, () => {
+          // after wake animation swaps from sleeping body to standing sprite
+          scaleInteriorPlayer023(this);
+          applyInteriorCamera023(this);
+        });
+
+        return result;
+      };
+
+      const oldUpdatePlayerSpriteAsset023 = MorningInteriorBaseScene022.prototype.updatePlayerSpriteAsset;
+      MorningInteriorBaseScene022.prototype.updatePlayerSpriteAsset = function() {
+        const result = oldUpdatePlayerSpriteAsset023.call(this);
+        scaleInteriorPlayer023(this);
+        return result;
+      };
+
+      const oldInteriorUpdate023 = MorningInteriorBaseScene022.prototype.update;
+      MorningInteriorBaseScene022.prototype.update = function(time, delta) {
+        const result = oldInteriorUpdate023.call(this, time, delta);
+        // Keep interiors full-screen even if the outdoor zoom slider is changed.
+        if ((time || 0) % 1000 < 35) applyInteriorCamera023(this);
+        return result;
+      };
+    }
+
+    if (typeof MalcolmApartmentScene !== 'undefined') {
+      const oldAptCreate023 = MalcolmApartmentScene.prototype.create;
+      MalcolmApartmentScene.prototype.create = function() {
+        const result = oldAptCreate023.call(this);
+        hideWorldMapZoomPanel023();
+        applyInteriorCamera023(this);
+        scaleInteriorPlayer023(this);
+        this.time?.delayedCall?.(120, () => { applyInteriorCamera023(this); scaleInteriorPlayer023(this); });
+        return result;
+      };
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldKimsCreate023 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldKimsCreate023.call(this);
+        hideWorldMapZoomPanel023();
+        applyInteriorCamera023(this);
+        scaleInteriorPlayer023(this);
+        this.time?.delayedCall?.(120, () => { applyInteriorCamera023(this); scaleInteriorPlayer023(this); });
+        return result;
+      };
+    }
+
+    if (typeof GameScene !== 'undefined') {
+      const oldGameCreate023 = GameScene.prototype.create;
+      GameScene.prototype.create = function() {
+        showWorldMapZoomPanel023();
+        return oldGameCreate023.apply(this, arguments);
+      };
+    }
+  })();
 
 
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
