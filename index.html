@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Apartment Interaction Hotfix</title>
+  <title>The Report — Apartment Gear Transition Hotfix</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'apartment-interaction-hotfix-025';
+  const ASSET_REV = 'apartment-gear-transition-hotfix-026';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -13419,6 +13419,312 @@
         if (zoneHit025(this, KIMS_STAIRS_ZONE_025)) goUpstairs025(this);
         if (zoneHit025(this, KIMS_FRONT_ZONE_025)) goWorld025(this);
         return result;
+      };
+    }
+  })();
+
+
+
+  // APARTMENT_GEAR_TRANSITION_HOTFIX_026
+  // Makes dresser pickup/equip fail-safe and prevents stair transition loops.
+  (function installApartmentGearTransitionHotfix026() {
+    const APT_DRESSER_026 = { x:540, y:70, w:760, h:560 };
+    const APT_STAIRS_026  = { x:60, y:585, w:260, h:390 };
+    const APT_STAIRS_SAFE_SPAWN_026 = { x:390, y:720 };
+    const APT_WAKE_SPAWN_026 = { x:635, y:420 };
+
+    const KIMS_STAIRS_026 = { x:950, y:35, w:260, h:325 };
+    const KIMS_STAIRS_BOTTOM_SPAWN_026 = { x:1060, y:430 };
+    const KIMS_FRONT_026 = { x:500, y:1055, w:280, h:195 };
+
+    function now026(scene) {
+      return scene?.time?.now || performance.now?.() || Date.now();
+    }
+
+    function hitRect026(scene, r) {
+      const x = scene?.playerBody?.x || 0;
+      const y = scene?.playerBody?.y || 0;
+      return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+    }
+
+    function removeWallsByLabel026(scene, labels) {
+      if (!scene?.walls?.getChildren) return;
+      for (const o of [...scene.walls.getChildren()]) {
+        if (labels.includes(o._label)) {
+          scene.walls.remove(o, true, true);
+          o.destroy?.();
+        }
+      }
+    }
+
+    function setIndoorScale026(scene) {
+      if (!scene?.playerSprite) return;
+      const state = ensureMalcolmMorningState022();
+      const detective = state.outfitEquipped && scene.textures.exists(PLAYER_ASSET.key);
+      const asset = detective ? PLAYER_ASSET : MALCOLM_SLEEP_WALK_ASSET_022;
+      scene.playerSprite.setScale((asset.scale || 0.78) * 1.78);
+      scene.playerSprite.setOrigin(0.5, asset.originY || 0.82);
+      if (scene.playerBody?.body) {
+        scene.playerBody.body.setSize(34, 46);
+        scene.playerBody.body.setOffset(-17, -38);
+      }
+    }
+
+    function clearMenu026(scene) {
+      scene._gearMenuOpen026 = false;
+      if (scene._gearMenuObjects026) {
+        scene._gearMenuObjects026.forEach(o => o?.destroy?.());
+        scene._gearMenuObjects026 = null;
+      }
+    }
+
+    function makeUi026(scene, obj) {
+      obj.setScrollFactor?.(0);
+      obj.setDepth?.(3100);
+      scene.uiObjects = scene.uiObjects || [];
+      scene.uiObjects.push(obj);
+      return obj;
+    }
+
+    function openMenu026(scene) {
+      clearMenu026(scene);
+      const s = ensureMalcolmMorningState022();
+      scene._gearMenuOpen026 = true;
+
+      const bg = makeUi026(scene, scene.add.rectangle(VIEW_W/2, VIEW_H/2, 620, 250, 0x02060a, 0.96));
+      const title = makeUi026(scene, makeText(scene, VIEW_W/2, VIEW_H/2 - 92, 'SELECT MENU', 22, '#86e7ff', true).setOrigin(0.5));
+      const status = s.hasDetectiveOutfit && s.hasPistol
+        ? (s.outfitEquipped
+          ? 'Detective outfit and pistol are equipped.'
+          : 'Detective outfit + service pistol ready.')
+        : 'No gear yet. Stand at the dresser and press A.';
+      const body = makeUi026(scene, makeText(scene, VIEW_W/2, VIEW_H/2 - 28, status, 17, '#f4d28a', true).setOrigin(0.5));
+      const controls = makeUi026(scene, makeText(scene, VIEW_W/2, VIEW_H/2 + 54, 'A / X = equip    SEL / B = close', 15, '#d6e8ef', true).setOrigin(0.5));
+      const hint = makeUi026(scene, makeText(scene, VIEW_W/2, VIEW_H/2 + 91, 'Gear is in the dresser beside the bed.', 13, '#aab7bf', true).setOrigin(0.5));
+      scene._gearMenuObjects026 = [bg, title, body, controls, hint];
+
+      if (scene.uiCamera) {
+        const keep = new Set(scene.uiObjects || []);
+        scene.uiCamera.ignore(scene.children.list.filter(o => !keep.has(o)));
+      }
+    }
+
+    function pickupGear026(scene, showMenu = true) {
+      const s = ensureMalcolmMorningState022();
+      s.hasDetectiveOutfit = true;
+      s.hasPistol = true;
+      scene._gearPicked026 = true;
+      scene.setPrompt?.('Pistol and detective clothes picked up. Press SEL to equip, or press A again.');
+      if (showMenu) openMenu026(scene);
+    }
+
+    function equipGear026(scene) {
+      const s = ensureMalcolmMorningState022();
+      if (!s.hasDetectiveOutfit || !s.hasPistol) {
+        if (hitRect026(scene, APT_DRESSER_026)) pickupGear026(scene, false);
+        else {
+          scene.setPrompt?.('No gear yet. Use the dresser beside the bed.');
+          openMenu026(scene);
+          return;
+        }
+      }
+      s.outfitEquipped = true;
+      clearMenu026(scene);
+      scene.updatePlayerSpriteAsset?.();
+      setIndoorScale026(scene);
+      scene.setPrompt?.('Equipped detective outfit and pistol. Go to the staircase when ready.');
+    }
+
+    function goDownstairs026(scene) {
+      if (scene._transitioning026) return;
+      if (now026(scene) < (scene._transitionGraceUntil026 || 0)) return;
+      scene._transitioning026 = true;
+      scene.cameras.main.fadeOut(180, 0,0,0);
+      scene.time.delayedCall(190, () => {
+        scene.scene.start('KimsCornerMarketScene', {
+          fromApartment: true,
+          spawn: KIMS_STAIRS_BOTTOM_SPAWN_026,
+          message: 'Downstairs: Kim’s Corner Market.'
+        });
+      });
+    }
+
+    function goUpstairs026(scene) {
+      if (scene._transitioning026) return;
+      if (now026(scene) < (scene._transitionGraceUntil026 || 0)) return;
+      scene._transitioning026 = true;
+      scene.cameras.main.fadeOut(180, 0,0,0);
+      scene.time.delayedCall(190, () => {
+        scene.scene.start('MalcolmApartmentScene', {
+          fromKimsStairs: true,
+          spawn: APT_STAIRS_SAFE_SPAWN_026
+        });
+      });
+    }
+
+    function goWorld026(scene) {
+      if (scene._transitioning026) return;
+      if (now026(scene) < (scene._transitionGraceUntil026 || 0)) return;
+      scene._transitioning026 = true;
+      const s = ensureMalcolmMorningState022();
+      const msg = s.outfitEquipped
+        ? 'Morning shift: go to the police station and meet Ramos.'
+        : 'You can leave, but your detective gear is upstairs.';
+      scene.cameras.main.fadeOut(180, 0,0,0);
+      scene.time.delayedCall(190, () => {
+        scene.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: { x: 2675, y: 1214 },
+          message: msg
+        });
+      });
+    }
+
+    if (typeof MalcolmApartmentScene !== 'undefined') {
+      const oldCreate026 = MalcolmApartmentScene.prototype.create;
+      MalcolmApartmentScene.prototype.create = function() {
+        const result = oldCreate026.call(this);
+        this._transitionGraceUntil026 = now026(this) + 1000;
+        this._transitioning026 = false;
+
+        // Remove the collision that was trapping Malcolm around bed/dresser.
+        removeWallsByLabel026(this, ['bed', 'closet clutter']);
+
+        // Rebuild functional zones.
+        this.zones = [];
+        this.addHotZone('dresser_gear', APT_DRESSER_026.x, APT_DRESSER_026.y, APT_DRESSER_026.w, APT_DRESSER_026.h, 'Dresser: pick up pistol and clothes');
+        this.addHotZone('stairs_down', APT_STAIRS_026.x, APT_STAIRS_026.y, APT_STAIRS_026.w, APT_STAIRS_026.h, 'Stairs: go downstairs');
+        this.addHotZone('bed', 430, 60, 490, 520, 'Bed');
+
+        if (this.entryData?.fromKimsStairs || this.entryData?.spawn) {
+          const sp = this.entryData?.spawn || APT_STAIRS_SAFE_SPAWN_026;
+          this.playerBody?.setPosition?.(sp.x, sp.y);
+          this.playerSprite?.setPosition?.(sp.x, sp.y);
+        } else {
+          this.playerBody?.setPosition?.(APT_WAKE_SPAWN_026.x, APT_WAKE_SPAWN_026.y);
+          this.playerSprite?.setPosition?.(APT_WAKE_SPAWN_026.x, APT_WAKE_SPAWN_026.y);
+        }
+
+        setIndoorScale026(this);
+        this.setPrompt?.('Stand at the dresser and press A for pistol/clothes. SEL opens equip menu.');
+        return result;
+      };
+
+      MalcolmApartmentScene.prototype.handleSelectMenu = function() {
+        if (this._gearMenuOpen026) clearMenu026(this);
+        else openMenu026(this);
+      };
+
+      MalcolmApartmentScene.prototype.handleInteract = function() {
+        if (this._gearMenuOpen026) {
+          equipGear026(this);
+          return;
+        }
+        if (hitRect026(this, APT_DRESSER_026)) {
+          const s = ensureMalcolmMorningState022();
+          if (!s.hasDetectiveOutfit || !s.hasPistol) pickupGear026(this, true);
+          else equipGear026(this);
+          return;
+        }
+        if (hitRect026(this, APT_STAIRS_026)) {
+          goDownstairs026(this);
+          return;
+        }
+        this.setPrompt?.('Move to the dresser for gear or the stairs to leave.');
+      };
+
+      const oldUpdate026 = MalcolmApartmentScene.prototype.update;
+      MalcolmApartmentScene.prototype.update = function(time, delta) {
+        const result = oldUpdate026.call(this, time, delta);
+        setIndoorScale026(this);
+
+        // Direct mobile fail-safe: use the shared mobile state even if UI scene does not route actions.
+        const m = this.mobile || {};
+        if (m.sel && !this._lastSel026) this.handleSelectMenu();
+        if ((m.a || m.x) && !(this._lastA026 || this._lastX026)) this.handleInteract();
+        if (m.b && !this._lastB026 && this._gearMenuOpen026) clearMenu026(this);
+        this._lastSel026 = !!m.sel;
+        this._lastA026 = !!m.a;
+        this._lastX026 = !!m.x;
+        this._lastB026 = !!m.b;
+
+        // Dresser prompt and fail-safe pickup: if player is on the dresser, A/SEL should always work.
+        if (hitRect026(this, APT_DRESSER_026)) {
+          const s = ensureMalcolmMorningState022();
+          if (!s.hasDetectiveOutfit || !s.hasPistol) {
+            this.setPrompt?.('Dresser: press A to pick up pistol and clothes.');
+          } else if (!s.outfitEquipped) {
+            this.setPrompt?.('Gear ready. Press SEL for menu or A to equip.');
+          }
+        }
+
+        // Stairs transition only after grace period so returning upstairs does not loop.
+        if (hitRect026(this, APT_STAIRS_026)) goDownstairs026(this);
+        return result;
+      };
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldKimsCreate026 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldKimsCreate026.call(this);
+        this._transitionGraceUntil026 = now026(this) + 1100;
+        this._transitioning026 = false;
+
+        if (this.entryData?.fromApartment || this.entryData?.spawn) {
+          const sp = this.entryData?.spawn || KIMS_STAIRS_BOTTOM_SPAWN_026;
+          this.playerBody?.setPosition?.(sp.x, sp.y);
+          this.playerSprite?.setPosition?.(sp.x, sp.y);
+        }
+
+        this.zones = [];
+        this.addHotZone('stairs_up', KIMS_STAIRS_026.x, KIMS_STAIRS_026.y, KIMS_STAIRS_026.w, KIMS_STAIRS_026.h, 'Stairs: go upstairs');
+        this.addHotZone('front_door', KIMS_FRONT_026.x, KIMS_FRONT_026.y, KIMS_FRONT_026.w, KIMS_FRONT_026.h, 'Front glass door: exit to street');
+        setIndoorScale026(this);
+        this.setPrompt?.('Kim’s Corner. Walk up the stairs to return upstairs. Front door exits to street.');
+        return result;
+      };
+
+      KimsCornerMarketScene.prototype.handleInteract = function() {
+        if (hitRect026(this, KIMS_STAIRS_026)) { goUpstairs026(this); return; }
+        if (hitRect026(this, KIMS_FRONT_026)) { goWorld026(this); return; }
+        this.setPrompt?.('Use the front door or the stairs.');
+      };
+
+      const oldKimsUpdate026 = KimsCornerMarketScene.prototype.update;
+      KimsCornerMarketScene.prototype.update = function(time, delta) {
+        const result = oldKimsUpdate026.call(this, time, delta);
+        setIndoorScale026(this);
+        const m = this.mobile || {};
+        if ((m.a || m.x) && !(this._lastA026 || this._lastX026)) this.handleInteract();
+        this._lastA026 = !!m.a;
+        this._lastX026 = !!m.x;
+        if (hitRect026(this, KIMS_STAIRS_026)) goUpstairs026(this);
+        if (hitRect026(this, KIMS_FRONT_026)) goWorld026(this);
+        return result;
+      };
+    }
+
+    // Last word on mobile action routing. This overrides any earlier placeholder SEL behavior.
+    if (typeof MobileControlsScene !== 'undefined') {
+      MobileControlsScene.prototype.getTargetScene = function() {
+        for (const key of ['MalcolmApartmentScene','KimsCornerMarketScene','ElevatorRoomScene','PoliceStationScene','GameScene','InteriorScene','ReportScene']) {
+          const scene = this.scene.get(key);
+          if (scene?.scene?.isActive()) return scene;
+        }
+        return null;
+      };
+
+      const oldFire026 = MobileControlsScene.prototype.fireAction;
+      MobileControlsScene.prototype.fireAction = function(key) {
+        const target = this.getTargetScene?.();
+        if (target?.scene?.key === 'MalcolmApartmentScene' || target?.scene?.key === 'KimsCornerMarketScene') {
+          if (key === 'sel') { target.handleSelectMenu?.(); return; }
+          if (key === 'a' || key === 'x') { target.handleInteract?.(); return; }
+          if (key === 'b' && target._gearMenuOpen026) { clearMenu026(target); return; }
+          if (key === 'sta') { target.togglePauseMenu?.(); return; }
+        }
+        return oldFire026.call(this, key);
       };
     }
   })();
