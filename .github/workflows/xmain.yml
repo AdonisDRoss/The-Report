@@ -1,44 +1,77 @@
-name: Import Chunk B Correct Nodes
+mkdir -p .github/workflows
+
+cat > .github/workflows/deploy.yml <<'YAML'
+name: Deploy The Report to GitHub Pages
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
 
 jobs:
-  import-chunk-b-nodes:
+  deploy:
+    name: Deploy static site
     runs-on: ubuntu-latest
 
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
 
-      - name: Check ZIP
+      - name: Verify required game files
+        shell: bash
         run: |
-          ls -lah
-          test -f the_report_chunk_b_nodes_correct_side.zip
-
-      - name: Unzip patch
-        run: |
-          unzip -o the_report_chunk_b_nodes_correct_side.zip
-
-      - name: Verify files
-        run: |
+          set -e
           test -f index.html
-          test -f assets/city/chunks/east_market/raven_hook_chunk_b_east_market_2048.png
-          test -f config/pathing/chunk_b_east_market_nodes.json
-          grep -q "CHUNK_B_NODES_CORRECT_SIDE_PATCH_010" index.html
-          grep -q "installChunkBNodesCorrectSidePatch010" index.html
+          echo "index.html found"
 
-      - name: Commit nodes
-        run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git add index.html assets/city/chunks/east_market config/pathing docs/map/east_market README_CHUNK_B_NODES_CORRECT_SIDE.md
-
-          if git diff --cached --quiet; then
-            echo "No node changes to commit."
+          if grep -q "NEON_BACKROOM_AND_SCALE_FIX_HOTFIX_031\|NEON_NIGHTS_WORKFLOW_HOTFIX_030\|NeonNightsInteriorScene" index.html; then
+            echo "Neon Nights code found in index.html"
           else
-            git commit -m "Fix Chunk B vehicle and pedestrian nodes"
-            git push
+            echo "WARNING: Neon Nights code was not found in index.html"
           fi
+
+          if [ -d assets/characters/npcs/neon_nights ]; then
+            echo "Neon Nights sprite folder found"
+            find assets/characters/npcs/neon_nights -maxdepth 1 -type f | sort
+          else
+            echo "WARNING: assets/characters/npcs/neon_nights is missing"
+          fi
+
+          if [ -f assets/audio/music/red_curtain_heat.mp3 ]; then
+            echo "Red Curtain Heat music found"
+          else
+            echo "WARNING: assets/audio/music/red_curtain_heat.mp3 is missing"
+          fi
+
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+YAML
+
+git add .github/workflows/deploy.yml
+git commit -m "Fix GitHub Pages deploy workflow"
+git push origin main
