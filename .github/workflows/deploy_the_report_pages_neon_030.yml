@@ -1,3 +1,6 @@
+mkdir -p .github/workflows
+
+cat > .github/workflows/deploy.yml <<'YAML'
 name: Deploy The Report to GitHub Pages
 
 on:
@@ -17,13 +20,44 @@ concurrency:
 
 jobs:
   deploy:
+    name: Deploy static site
+    runs-on: ubuntu-latest
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Verify required game files
+        shell: bash
+        run: |
+          set -e
+          test -f index.html
+          echo "index.html found"
+
+          if grep -q "NEON_BACKROOM_AND_SCALE_FIX_HOTFIX_031\|NEON_NIGHTS_WORKFLOW_HOTFIX_030\|NeonNightsInteriorScene" index.html; then
+            echo "Neon Nights code found in index.html"
+          else
+            echo "WARNING: Neon Nights code was not found in index.html"
+          fi
+
+          if [ -d assets/characters/npcs/neon_nights ]; then
+            echo "Neon Nights sprite folder found"
+            find assets/characters/npcs/neon_nights -maxdepth 1 -type f | sort
+          else
+            echo "WARNING: assets/characters/npcs/neon_nights is missing"
+          fi
+
+          if [ -f assets/audio/music/red_curtain_heat.mp3 ]; then
+            echo "Red Curtain Heat music found"
+          else
+            echo "WARNING: assets/audio/music/red_curtain_heat.mp3 is missing"
+          fi
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
@@ -36,3 +70,8 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+YAML
+
+git add .github/workflows/deploy.yml
+git commit -m "Fix GitHub Pages deploy workflow"
+git push origin main
