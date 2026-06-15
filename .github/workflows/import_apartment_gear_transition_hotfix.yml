@@ -1,0 +1,46 @@
+name: Import Apartment Gear Transition Hotfix
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import-apartment-gear-transition-hotfix:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find ZIP
+        run: |
+          ls -lah
+          ZIP_FILE="$(ls -1 *apartment*gear*transition*hotfix*.zip 2>/dev/null | head -n 1 || true)"
+          if [ -z "$ZIP_FILE" ]; then
+            echo "ERROR: Upload the_report_apartment_gear_transition_hotfix.zip to repo root."
+            exit 1
+          fi
+          echo "ZIP_FILE=$ZIP_FILE" >> "$GITHUB_ENV"
+          echo "Using ZIP: $ZIP_FILE"
+
+      - name: Unzip patch
+        run: unzip -o "$ZIP_FILE"
+
+      - name: Verify patch
+        run: |
+          test -f index.html
+          grep -q "APARTMENT_GEAR_TRANSITION_HOTFIX_026" index.html
+          grep -q "apartment-gear-transition-hotfix-026" index.html
+
+      - name: Commit patch
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add index.html README_APARTMENT_GEAR_TRANSITION_HOTFIX.md
+          if git diff --cached --quiet; then
+            echo "No apartment gear transition changes to commit."
+          else
+            git commit -m "Fix apartment gear pickup and stairs"
+            git push
+          fi
