@@ -1,0 +1,4012 @@
+{
+  "character": "Johnny Kim",
+  "age": 10,
+  "description": "Mr. Kim's grandson; playful kid NPC with corny cop jokes.",
+  "count": 1001,
+  "quotes": [
+    {
+      "id": 1,
+      "text": "Why did the cop bring a ladder to breakfast? Because the donuts were on the top shelf."
+    },
+    {
+      "id": 2,
+      "text": "Why did the police car go to school? To improve its siren-writing."
+    },
+    {
+      "id": 3,
+      "text": "What is a police officer\u2019s favorite kind of homework? Case studies."
+    },
+    {
+      "id": 4,
+      "text": "Why did the cop stare at the orange juice? It said concentrate."
+    },
+    {
+      "id": 5,
+      "text": "Why do cops make good gardeners? They are great at keeping things under control."
+    },
+    {
+      "id": 6,
+      "text": "What do you call a sleepy police officer? An off-yawn-cer."
+    },
+    {
+      "id": 7,
+      "text": "Why did the cop sit on the clock? He wanted to be on time and on the beat."
+    },
+    {
+      "id": 8,
+      "text": "What is a police dog\u2019s favorite class? Barkeology."
+    },
+    {
+      "id": 9,
+      "text": "Why did the cop bring string to work? To tie up loose ends."
+    },
+    {
+      "id": 10,
+      "text": "What did the rookie say to the pencil? Help me draw up the case."
+    },
+    {
+      "id": 11,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 12,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 13,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 14,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 15,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 16,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 17,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 18,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 19,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 20,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 21,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 22,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 23,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 24,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 25,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 26,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 27,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 28,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 29,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 30,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 31,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 32,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 33,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 34,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 35,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 36,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 37,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 38,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 39,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 40,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 41,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 42,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 43,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 44,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 45,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 46,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 47,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 48,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 49,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 50,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 51,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 52,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 53,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 54,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 55,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 56,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 57,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 58,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 59,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 60,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 61,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 62,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 63,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 64,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 65,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 66,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 67,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 68,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 69,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 70,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 71,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 72,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 73,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 74,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 75,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 76,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 77,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 78,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 79,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 80,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 81,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 82,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 83,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 84,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 85,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 86,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 87,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 88,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 89,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 90,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 91,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 92,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 93,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 94,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 95,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 96,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 97,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 98,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 99,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 100,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 101,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 102,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 103,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 104,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 105,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 106,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 107,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 108,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 109,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 110,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 111,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 112,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 113,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 114,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 115,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 116,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 117,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 118,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 119,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 120,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 121,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 122,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 123,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 124,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 125,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 126,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 127,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 128,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 129,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 130,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 131,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 132,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 133,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 134,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 135,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 136,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 137,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 138,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 139,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 140,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 141,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 142,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 143,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 144,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 145,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 146,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 147,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 148,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 149,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 150,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 151,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 152,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 153,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 154,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 155,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 156,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 157,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 158,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 159,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 160,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 161,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 162,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 163,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 164,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 165,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 166,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 167,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 168,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 169,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 170,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 171,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 172,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 173,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 174,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 175,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 176,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 177,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 178,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 179,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 180,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 181,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 182,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 183,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 184,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 185,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 186,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 187,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 188,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 189,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 190,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 191,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 192,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 193,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 194,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 195,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 196,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 197,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 198,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 199,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 200,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 201,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 202,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 203,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 204,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 205,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 206,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 207,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 208,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 209,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 210,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 211,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 212,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 213,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 214,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 215,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 216,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 217,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 218,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 219,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 220,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 221,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 222,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 223,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 224,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 225,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 226,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 227,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 228,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 229,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 230,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 231,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 232,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 233,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 234,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 235,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 236,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 237,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 238,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 239,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 240,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 241,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 242,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 243,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 244,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 245,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 246,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 247,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 248,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 249,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 250,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 251,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 252,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 253,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 254,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 255,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 256,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 257,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 258,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 259,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 260,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 261,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 262,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 263,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 264,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 265,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 266,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 267,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 268,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 269,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 270,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 271,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 272,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 273,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 274,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 275,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 276,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 277,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 278,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 279,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 280,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 281,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 282,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 283,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 284,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 285,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 286,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 287,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 288,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 289,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 290,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 291,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 292,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 293,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 294,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 295,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 296,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 297,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 298,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 299,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 300,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 301,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 302,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 303,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 304,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 305,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 306,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 307,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 308,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 309,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 310,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 311,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 312,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 313,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 314,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 315,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 316,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 317,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 318,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 319,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 320,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 321,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 322,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 323,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 324,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 325,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 326,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 327,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 328,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 329,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 330,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 331,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 332,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 333,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 334,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 335,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 336,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 337,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 338,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 339,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 340,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 341,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 342,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 343,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 344,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 345,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 346,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 347,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 348,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 349,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 350,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 351,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 352,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 353,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 354,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 355,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 356,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 357,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 358,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 359,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 360,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 361,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 362,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 363,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 364,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 365,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 366,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 367,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 368,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 369,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 370,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 371,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 372,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 373,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 374,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 375,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 376,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 377,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 378,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 379,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 380,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 381,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 382,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 383,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 384,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 385,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 386,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 387,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 388,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 389,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 390,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 391,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 392,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 393,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 394,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 395,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 396,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 397,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 398,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 399,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 400,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 401,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 402,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 403,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 404,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 405,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 406,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 407,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 408,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 409,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 410,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 411,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 412,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 413,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 414,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 415,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 416,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 417,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 418,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 419,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 420,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 421,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 422,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 423,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 424,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 425,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 426,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 427,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 428,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 429,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 430,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 431,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 432,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 433,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 434,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 435,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 436,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 437,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 438,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 439,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 440,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 441,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 442,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 443,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 444,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 445,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 446,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 447,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 448,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 449,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 450,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 451,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 452,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 453,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 454,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 455,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 456,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 457,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 458,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 459,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 460,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 461,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 462,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 463,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 464,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 465,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 466,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 467,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 468,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 469,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 470,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 471,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 472,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 473,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 474,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 475,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 476,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 477,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 478,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 479,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 480,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 481,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 482,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 483,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 484,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 485,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 486,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 487,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 488,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 489,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 490,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 491,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 492,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 493,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 494,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 495,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 496,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 497,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 498,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 499,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 500,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 501,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 502,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 503,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 504,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 505,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 506,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 507,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 508,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 509,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 510,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 511,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 512,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 513,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 514,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 515,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 516,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 517,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 518,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 519,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 520,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 521,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 522,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 523,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 524,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 525,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 526,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 527,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 528,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 529,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 530,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 531,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 532,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 533,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 534,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 535,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 536,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 537,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 538,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 539,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 540,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 541,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 542,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 543,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 544,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 545,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 546,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 547,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 548,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 549,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 550,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 551,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 552,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 553,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 554,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 555,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 556,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 557,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 558,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 559,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 560,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 561,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 562,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 563,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 564,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 565,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 566,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 567,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 568,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 569,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 570,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 571,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 572,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 573,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 574,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 575,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 576,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 577,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 578,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 579,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 580,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 581,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 582,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 583,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 584,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 585,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 586,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 587,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 588,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 589,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 590,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 591,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 592,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 593,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 594,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 595,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 596,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 597,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 598,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 599,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 600,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 601,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 602,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 603,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 604,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 605,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 606,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 607,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 608,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 609,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 610,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 611,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 612,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 613,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 614,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 615,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 616,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 617,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 618,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 619,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 620,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 621,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 622,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 623,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 624,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 625,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 626,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 627,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 628,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 629,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 630,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 631,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 632,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 633,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 634,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 635,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 636,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 637,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 638,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 639,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 640,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 641,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 642,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 643,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 644,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 645,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 646,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 647,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 648,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 649,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 650,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 651,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 652,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 653,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 654,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 655,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 656,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 657,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 658,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 659,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 660,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 661,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 662,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 663,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 664,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 665,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 666,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 667,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 668,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 669,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 670,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 671,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 672,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 673,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 674,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 675,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 676,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 677,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 678,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 679,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 680,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 681,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 682,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 683,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 684,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 685,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 686,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 687,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 688,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 689,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 690,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 691,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 692,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 693,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 694,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 695,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 696,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 697,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 698,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 699,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 700,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 701,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 702,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 703,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 704,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 705,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 706,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 707,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 708,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 709,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 710,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 711,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 712,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 713,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 714,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 715,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 716,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 717,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 718,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 719,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 720,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 721,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 722,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 723,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 724,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 725,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 726,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 727,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 728,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 729,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 730,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 731,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 732,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 733,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 734,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 735,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 736,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 737,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 738,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 739,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 740,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 741,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 742,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 743,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 744,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 745,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 746,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 747,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 748,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 749,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 750,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 751,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 752,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 753,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 754,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 755,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 756,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 757,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 758,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 759,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 760,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 761,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 762,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 763,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 764,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 765,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 766,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 767,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 768,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 769,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 770,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 771,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 772,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 773,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 774,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 775,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 776,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 777,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 778,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 779,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 780,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 781,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 782,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 783,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 784,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 785,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 786,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 787,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 788,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 789,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 790,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 791,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 792,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 793,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 794,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 795,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 796,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 797,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 798,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 799,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 800,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 801,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 802,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 803,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 804,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 805,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 806,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 807,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 808,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 809,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 810,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 811,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 812,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 813,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 814,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 815,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 816,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 817,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 818,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 819,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 820,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 821,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 822,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 823,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 824,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 825,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 826,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 827,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 828,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 829,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 830,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 831,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 832,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 833,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 834,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 835,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 836,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 837,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 838,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 839,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 840,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 841,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 842,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 843,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 844,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 845,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 846,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 847,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 848,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 849,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 850,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 851,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 852,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 853,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 854,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 855,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 856,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 857,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 858,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 859,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 860,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 861,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 862,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 863,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 864,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 865,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 866,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 867,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 868,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 869,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 870,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 871,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 872,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 873,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 874,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 875,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 876,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 877,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 878,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 879,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 880,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 881,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 882,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 883,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 884,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 885,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 886,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 887,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 888,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 889,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 890,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 891,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 892,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 893,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 894,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 895,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 896,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 897,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 898,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 899,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 900,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 901,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 902,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 903,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 904,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 905,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 906,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 907,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 908,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 909,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 910,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 911,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 912,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 913,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 914,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 915,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 916,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 917,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 918,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 919,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 920,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 921,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 922,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 923,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 924,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 925,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 926,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 927,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 928,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 929,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 930,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 931,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 932,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 933,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 934,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 935,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 936,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 937,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 938,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 939,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 940,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 941,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 942,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 943,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 944,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 945,
+      "text": "Why did the flashlight borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 946,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 947,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 948,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 949,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 950,
+      "text": "Why did the stop sign bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 951,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 952,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 953,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 954,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 955,
+      "text": "Why did the whistle take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 956,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 957,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 958,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 959,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 960,
+      "text": "Why did the police dog polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 961,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 962,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 963,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 964,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 965,
+      "text": "Why did the clipboard borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 966,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 967,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 968,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 969,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 970,
+      "text": "Why did the police car bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 971,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 972,
+      "text": "How do cops make a notebook laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 973,
+      "text": "Why was the raincoat scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 974,
+      "text": "What happens when a cop meets a city bus? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 975,
+      "text": "Why did the flashlight take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 976,
+      "text": "What did the cop say to the patrol hat? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 977,
+      "text": "How do cops make a road map laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 978,
+      "text": "Why was the streetlamp scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 979,
+      "text": "What happens when a cop meets a donut shop? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 980,
+      "text": "Why did the stop sign polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 981,
+      "text": "What did the cop say to the evidence box? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 982,
+      "text": "How do cops make a handcuffs laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 983,
+      "text": "Why was the sirens scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 984,
+      "text": "What happens when a cop meets a squad car? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 985,
+      "text": "Why did the whistle borrow a broom? to sweep the streets of trouble."
+    },
+    {
+      "id": 986,
+      "text": "What did the cop say to the dispatcher? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 987,
+      "text": "How do cops make a fire hydrant laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 988,
+      "text": "Why was the radio scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 989,
+      "text": "What happens when a cop meets a walkie-talkie? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 990,
+      "text": "Why did the police dog bring a ladder? because it heard crime was on another level."
+    },
+    {
+      "id": 991,
+      "text": "What did the cop say to the park bench? \"Freeze, then smile for the report.\""
+    },
+    {
+      "id": 992,
+      "text": "How do cops make a traffic cone laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 993,
+      "text": "Why was the crosswalk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 994,
+      "text": "What happens when a cop meets a coffee cup? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 995,
+      "text": "Why did the clipboard take the stairs? because the elevator was under arrest."
+    },
+    {
+      "id": 996,
+      "text": "What did the cop say to the badge? \"Be honest, where were you last lunchtime?.\""
+    },
+    {
+      "id": 997,
+      "text": "How do cops make a parking meter laugh? They radio dispatch until even the parking meter giggles."
+    },
+    {
+      "id": 998,
+      "text": "Why was the station desk scared of the cop? Because the officer turned on the siren and looked serious about snack violations."
+    },
+    {
+      "id": 999,
+      "text": "What happens when a cop meets a fingerprint kit? the patrol car idles dramatically, then the report ends with a grin."
+    },
+    {
+      "id": 1000,
+      "text": "Why did the police car polish its badge? so it could shine under pressure."
+    },
+    {
+      "id": 1001,
+      "text": "What did the cop say to the ticket book? \"Freeze, then smile for the report.\""
+    }
+  ]
+}
