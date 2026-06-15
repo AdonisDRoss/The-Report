@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>The Report — Apartment Flow Fix</title>
+  <title>The Report — Apartment Interaction Hotfix</title>
   <style>
     html, body {
       margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'apartment-flow-scale-fix-024';
+  const ASSET_REV = 'apartment-interaction-hotfix-025';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -12873,7 +12873,7 @@
   // Interior-only camera and player scale fix. Does not alter GameScene/world map camera.
   (function installIndoorFullscreenScalePatch023() {
     const INTERIOR_CAMERA_ZOOM_023 = 1.24;
-    const INTERIOR_PLAYER_SCALE_MULT_023 = 1.62;
+    const INTERIOR_PLAYER_SCALE_MULT_023 = 1.72;
     const INTERIOR_SLEEP_SCALE_023 = 1.04;
 
     function hideWorldMapZoomPanel023() {
@@ -13003,7 +13003,7 @@
   // Corrects apartment gameplay: bed wake placement, dresser gear pickup, equip menu,
   // stair transitions, and slightly larger indoor character scale.
   (function installApartmentFlowScaleFix024() {
-    const PATCH_024_PLAYER_SCALE_MULT = 1.62;
+    const PATCH_024_PLAYER_SCALE_MULT = 1.72;
     const PATCH_024_NPC_SCALE_MULT = 1.35;
 
     function ensureIndoorScale024(scene) {
@@ -13164,6 +13164,260 @@
           if (z.id === 'stairs_up') z.label = 'Staircase: go upstairs to Malcolm’s apartment';
           if (z.id === 'front_door') z.label = 'Front glass door: exit to street';
         }
+        return result;
+      };
+    }
+  })();
+
+
+
+  // APARTMENT_INTERACTION_HOTFIX_025
+  // Fixes bed blocking, dresser pickup, SEL equip menu, and automatic stair/door transitions.
+  (function installApartmentInteractionHotfix025() {
+    const APT_DRESSER_ZONE_025 = { id:'dresser_gear', x:650, y:120, w:500, h:420, label:'Dresser: pick up pistol and detective outfit' };
+    const APT_STAIRS_ZONE_025  = { id:'stairs_down', x:50, y:520, w:310, h:470, label:'Staircase: go downstairs to Kim’s Corner Market' };
+    const APT_BED_ZONE_025     = { id:'bed', x:455, y:70, w:430, h:500, label:'Bed: sleep/save' };
+
+    const KIMS_STAIRS_ZONE_025 = { id:'stairs_up', x:935, y:25, w:285, h:360, label:'Staircase: go upstairs to Malcolm’s apartment' };
+    const KIMS_FRONT_ZONE_025  = { id:'front_door', x:500, y:1040, w:280, h:210, label:'Front glass door: exit to street' };
+
+    const INDOOR_PLAYER_SCALE_025 = 1.72;
+    const INDOOR_NPC_SCALE_025 = 1.42;
+
+    function zoneHit025(scene, z) {
+      const x = scene?.playerBody?.x || 0;
+      const y = scene?.playerBody?.y || 0;
+      return x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h;
+    }
+
+    function removeBlockingLabels025(scene, labels) {
+      if (!scene?.walls?.getChildren) return;
+      for (const obj of [...scene.walls.getChildren()]) {
+        if (labels.includes(obj._label)) {
+          scene.walls.remove(obj, true, true);
+          obj.destroy?.();
+        }
+      }
+    }
+
+    function replaceZones025(scene, zones) {
+      scene.zones = [];
+      for (const z of zones) scene.addHotZone(z.id, z.x, z.y, z.w, z.h, z.label);
+    }
+
+    function scaleIndoorActors025(scene) {
+      if (!scene?.playerSprite) return;
+      const state = ensureMalcolmMorningState022();
+      const useDetective = state.outfitEquipped && scene.textures.exists(PLAYER_ASSET.key);
+      const asset = useDetective ? PLAYER_ASSET : MALCOLM_SLEEP_WALK_ASSET_022;
+      scene.playerSprite.setScale((asset.scale || 0.78) * INDOOR_PLAYER_SCALE_025);
+      scene.playerSprite.setOrigin(0.5, asset.originY || 0.82);
+      if (scene.playerBody?.body) {
+        scene.playerBody.body.setSize(34, 46);
+        scene.playerBody.body.setOffset(-17, -38);
+      }
+
+      const list = []
+        .concat(scene.indoorNpcs || [])
+        .concat(scene.npcs || [])
+        .filter(Boolean);
+      for (const n of list) {
+        const sprite = n.sprite || n;
+        if (sprite?.setScale) sprite.setScale((n.baseScale || sprite.scaleX || 0.7) * INDOOR_NPC_SCALE_025);
+      }
+    }
+
+    function clearEquipMenu025(scene) {
+      scene._equipMenuOpen025 = false;
+      if (scene._equipMenu025) {
+        scene._equipMenu025.forEach(o => o?.destroy?.());
+        scene._equipMenu025 = null;
+      }
+    }
+
+    function openEquipMenu025(scene) {
+      clearEquipMenu025(scene);
+      scene._equipMenuOpen025 = true;
+      const state = ensureMalcolmMorningState022();
+      const canEquip = state.hasDetectiveOutfit && state.hasPistol;
+
+      const bg = scene.add.rectangle(VIEW_W/2, VIEW_H/2, 610, 240, 0x02060a, 0.94).setScrollFactor(0).setDepth(3000);
+      const title = makeText(scene, VIEW_W/2, VIEW_H/2 - 86, 'SELECT MENU', 22, '#86e7ff', true).setOrigin(0.5).setScrollFactor(0).setDepth(3001);
+      const body = makeText(
+        scene,
+        VIEW_W/2,
+        VIEW_H/2 - 24,
+        canEquip
+          ? (state.outfitEquipped ? 'Detective outfit + pistol equipped.\nA = close menu' : 'Detective outfit + service pistol\nA = equip now\nSEL = close')
+          : 'No gear yet.\nGo to the dresser beside the bed and press A.',
+        17,
+        '#f4d28a',
+        true
+      ).setOrigin(0.5).setScrollFactor(0).setDepth(3001);
+      const foot = makeText(scene, VIEW_W/2, VIEW_H/2 + 82, 'Dresser gear unlocks your detective outfit and pistol.', 13, '#c9d4db', true).setOrigin(0.5).setScrollFactor(0).setDepth(3001);
+      scene._equipMenu025 = [bg, title, body, foot];
+      scene.uiObjects?.push?.(...scene._equipMenu025);
+      if (scene.uiCamera) scene.uiCamera.ignore(scene.children.list.filter(o => !(scene.uiObjects || []).includes(o)));
+    }
+
+    function pickupGear025(scene) {
+      const s = ensureMalcolmMorningState022();
+      s.hasDetectiveOutfit = true;
+      s.hasPistol = true;
+      scene.setPrompt?.('Picked up pistol and detective clothes from the dresser. Press SEL, then A to equip.');
+    }
+
+    function equipGear025(scene) {
+      const s = ensureMalcolmMorningState022();
+      if (!s.hasDetectiveOutfit || !s.hasPistol) {
+        scene.setPrompt?.('No gear yet. Press A at the dresser beside the bed.');
+        openEquipMenu025(scene);
+        return;
+      }
+      s.outfitEquipped = true;
+      clearEquipMenu025(scene);
+      scene.updatePlayerSpriteAsset?.();
+      scaleIndoorActors025(scene);
+      scene.setPrompt?.('Equipped detective outfit and pistol. Step onto the staircase to go downstairs.');
+    }
+
+    function goDownstairs025(scene) {
+      if (scene._transitioning025) return;
+      scene._transitioning025 = true;
+      scene.cameras.main.fadeOut(180, 0,0,0);
+      scene.time.delayedCall(190, () => {
+        scene.scene.start('KimsCornerMarketScene', {
+          fromApartment: true,
+          spawn: { x: 1060, y: 225 },
+          message: 'Downstairs: Kim’s Corner Market.'
+        });
+      });
+    }
+
+    function goUpstairs025(scene) {
+      if (scene._transitioning025) return;
+      scene._transitioning025 = true;
+      scene.cameras.main.fadeOut(180, 0,0,0);
+      scene.time.delayedCall(190, () => {
+        scene.scene.start('MalcolmApartmentScene', { fromKimsStairs: true });
+      });
+    }
+
+    function goWorld025(scene) {
+      if (scene._transitioning025) return;
+      scene._transitioning025 = true;
+      const state = ensureMalcolmMorningState022();
+      const msg = state.outfitEquipped
+        ? 'Morning shift: go to the police station and meet Ramos.'
+        : 'You can leave, but your pistol and detective clothes are upstairs.';
+      scene.cameras.main.fadeOut(180, 0,0,0);
+      scene.time.delayedCall(190, () => {
+        scene.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: { x: 2675, y: 1214 },
+          message: msg
+        });
+      });
+    }
+
+    if (typeof MalcolmApartmentScene !== 'undefined') {
+      const oldCreate025 = MalcolmApartmentScene.prototype.create;
+      MalcolmApartmentScene.prototype.create = function() {
+        const result = oldCreate025.call(this);
+
+        // Bed and old clutter collision was trapping Malcolm between bed/dresser. Remove it.
+        removeBlockingLabels025(this, ['bed', 'closet clutter']);
+
+        // Use broad, forgiving zones instead of the old closet zone.
+        replaceZones025(this, [APT_DRESSER_ZONE_025, APT_STAIRS_ZONE_025, APT_BED_ZONE_025]);
+
+        if (this.entryData?.fromKimsStairs) {
+          this.playerBody?.setPosition?.(178, 690);
+          this.playerSprite?.setPosition?.(178, 690);
+        } else {
+          // wake at/near the bed, not stuck in front of furniture
+          this.playerBody?.setPosition?.(635, 420);
+          this.playerSprite?.setPosition?.(635, 420);
+        }
+
+        scaleIndoorActors025(this);
+        this.setPrompt?.('Apartment. Press A at the dresser for pistol/clothes. SEL opens equip menu. Step on stairs to go down.');
+        return result;
+      };
+
+      const oldInteract025 = MalcolmApartmentScene.prototype.handleInteract;
+      MalcolmApartmentScene.prototype.handleInteract = function() {
+        if (this._equipMenuOpen025) {
+          equipGear025(this);
+          return;
+        }
+        if (zoneHit025(this, APT_DRESSER_ZONE_025)) {
+          pickupGear025(this);
+          return;
+        }
+        if (zoneHit025(this, APT_STAIRS_ZONE_025)) {
+          goDownstairs025(this);
+          return;
+        }
+        if (zoneHit025(this, APT_BED_ZONE_025)) {
+          this.setPrompt?.('Bed saved. Morning shift is active.');
+          return;
+        }
+        return oldInteract025.call(this);
+      };
+
+      const oldSelect025 = MalcolmApartmentScene.prototype.handleSelectMenu;
+      MalcolmApartmentScene.prototype.handleSelectMenu = function() {
+        if (this._equipMenuOpen025) clearEquipMenu025(this);
+        else openEquipMenu025(this);
+      };
+
+      const oldUpdate025 = MalcolmApartmentScene.prototype.update;
+      MalcolmApartmentScene.prototype.update = function(time, delta) {
+        const result = oldUpdate025.call(this, time, delta);
+        scaleIndoorActors025(this);
+
+        // Mobile buttons: edge-detect here so SEL/A work even if older MobileControls fireAction is overridden.
+        const m = this.mobile || {};
+        if (m.sel && !this._lastSel025) this.handleSelectMenu();
+        if (m.a && !this._lastA025) this.handleInteract();
+        this._lastSel025 = !!m.sel;
+        this._lastA025 = !!m.a;
+
+        if (zoneHit025(this, APT_STAIRS_ZONE_025)) goDownstairs025(this);
+
+        return result;
+      };
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldKimsCreate025 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldKimsCreate025.call(this);
+        // Keep old shelf/wall collision, but use reliable transition zones.
+        this.zones = (this.zones || []).filter(z => z.id !== 'stairs_up' && z.id !== 'front_door');
+        this.addHotZone(KIMS_STAIRS_ZONE_025.id, KIMS_STAIRS_ZONE_025.x, KIMS_STAIRS_ZONE_025.y, KIMS_STAIRS_ZONE_025.w, KIMS_STAIRS_ZONE_025.h, KIMS_STAIRS_ZONE_025.label);
+        this.addHotZone(KIMS_FRONT_ZONE_025.id, KIMS_FRONT_ZONE_025.x, KIMS_FRONT_ZONE_025.y, KIMS_FRONT_ZONE_025.w, KIMS_FRONT_ZONE_025.h, KIMS_FRONT_ZONE_025.label);
+        scaleIndoorActors025(this);
+        return result;
+      };
+
+      const oldKimsInteract025 = KimsCornerMarketScene.prototype.handleInteract;
+      KimsCornerMarketScene.prototype.handleInteract = function() {
+        if (zoneHit025(this, KIMS_STAIRS_ZONE_025)) { goUpstairs025(this); return; }
+        if (zoneHit025(this, KIMS_FRONT_ZONE_025)) { goWorld025(this); return; }
+        return oldKimsInteract025.call(this);
+      };
+
+      const oldKimsUpdate025 = KimsCornerMarketScene.prototype.update;
+      KimsCornerMarketScene.prototype.update = function(time, delta) {
+        const result = oldKimsUpdate025.call(this, time, delta);
+        scaleIndoorActors025(this);
+        const m = this.mobile || {};
+        if (m.a && !this._lastA025) this.handleInteract();
+        this._lastA025 = !!m.a;
+        if (zoneHit025(this, KIMS_STAIRS_ZONE_025)) goUpstairs025(this);
+        if (zoneHit025(this, KIMS_FRONT_ZONE_025)) goWorld025(this);
         return result;
       };
     }
