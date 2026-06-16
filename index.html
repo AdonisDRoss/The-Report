@@ -16365,6 +16365,298 @@
   })();
 
 
+
+  // NEON_CANVAS_PEOPLE_MALCOLM_HOTFIX_043
+  // Adds actual Neon front/back canvas images, fixes Honey's sheet, scales Neon NPCs closer to Malcolm,
+  // makes Neon transitions reusable, and rebuilds Malcolm direction animations with 4-column frames.
+  (function installNeonCanvasPeopleMalcolmHotfix043() {
+    const HOTFIX_ID_043 = 'NEON_CANVAS_PEOPLE_MALCOLM_HOTFIX_043';
+    if (window[HOTFIX_ID_043]) return;
+    window[HOTFIX_ID_043] = true;
+
+    const FRONT_CANVAS_043 = { key:'neon_front_room_canvas_043', path:'assets/interiors/neon_nights/neon_nights_front_room_canvas.png' };
+    const BACK_CANVAS_043 = { key:'neon_back_room_canvas_043', path:'assets/interiors/neon_nights/neon_nights_back_room_canvas.png' };
+
+    if (typeof NEON_NIGHTS_ASSETS_030 !== 'undefined' && NEON_NIGHTS_ASSETS_030.scale) {
+      // Match Malcolm's indoor visual height better.
+      NEON_NIGHTS_ASSETS_030.scale.walk = 1.32;
+      NEON_NIGHTS_ASSETS_030.scale.bartender = 1.34;
+      NEON_NIGHTS_ASSETS_030.scale.bouncer = 1.42;
+      NEON_NIGHTS_ASSETS_030.scale.sitting = 1.05;
+      NEON_NIGHTS_ASSETS_030.scale.dance = 0.72;
+    }
+
+    function actor043(scene) { return scene?.inCar ? scene?.car : (scene?.player || scene?.playerBody || null); }
+    function actorRect043(scene) {
+      const a = actor043(scene);
+      if (!a) return null;
+      if (typeof a.getBounds === 'function') return a.getBounds();
+      const x = Number(a.x) || 0, y = Number(a.y) || 0;
+      return new Phaser.Geom.Rectangle(x - 28, y - 36, 56, 72);
+    }
+    function inRect043(scene, r) {
+      const a = actor043(scene), b = actorRect043(scene);
+      if (!a || !b) return false;
+      const rr = new Phaser.Geom.Rectangle(r.x, r.y, r.w, r.h);
+      return Phaser.Geom.Rectangle.Overlaps(rr, b) || Phaser.Geom.Rectangle.Contains(rr, a.x, a.y);
+    }
+    function rect043(x,y,w,h,id='chunk_d_neon_nights_door') { return { id, x, y, w, h, type:'door', label:'Neon Nights' }; }
+
+    // Covers the current screenshot spot and older Red Gull/Chunk D placements. Large on purpose until the final map is locked.
+    const NEON_WORLD_ZONES_043 = [
+      rect043(1840, 1180, 1900, 1940, 'neon_nights_current_picture_spot_043'),
+      rect043(2040, 1840, 980, 1040, 'neon_nights_front_block_043'),
+      rect043(2145, 2140, 760, 680, 'chunk_d_neon_nights_door'),
+      rect043(2200, 2300, 650, 520, 'chunk_d_neon_nights_front_043'),
+      rect043(2520, 1450, 1100, 950, 'chunk_d_neon_nights_wide_043')
+    ];
+
+    function activeNeonWorldZone043(scene) {
+      for (const z of NEON_WORLD_ZONES_043) if (inRect043(scene, z)) return z;
+      if (Array.isArray(INTERACTION_ZONES)) {
+        for (const z of INTERACTION_ZONES) {
+          const s = `${z?.id || ''} ${z?.label || ''}`;
+          if (/neon[_\s-]*nights/i.test(s) && inRect043(scene, z)) return z;
+        }
+      }
+      return null;
+    }
+    function installWorldZones043() {
+      if (!Array.isArray(INTERACTION_ZONES)) return;
+      for (const z of NEON_WORLD_ZONES_043) {
+        const old = INTERACTION_ZONES.find(e => e.id === z.id);
+        if (old) Object.assign(old, z);
+        else INTERACTION_ZONES.push({ ...z });
+      }
+    }
+    function stop043(scene) {
+      for (const o of [scene?.player, scene?.playerBody, scene?.car]) {
+        try { o?.body?.setVelocity?.(0,0); } catch (_) {}
+        try { if (o) { o.vx = 0; o.vy = 0; } } catch (_) {}
+      }
+    }
+    function enterNeon043(scene, zone) {
+      if (!scene || scene.scene?.key !== 'GameScene') return false;
+      const now = scene.time?.now || Date.now();
+      if ((scene._neonLock043 || 0) > now) return true;
+      scene._neonLock043 = now + 450;
+      const a = actor043(scene) || { x: 2328, y: 2518 };
+      const ret = { x: Math.round(Number(a.x) || 2328), y: Math.round((Number(a.y) || 2518) + 66) };
+      stop043(scene);
+      scene.message = 'Entering Neon Nights.';
+      scene.messageTimer = 900;
+      scene.scene.start('NeonNightsInteriorScene', {
+        fromWorld:true,
+        returnSpawn:ret,
+        spawn:{ x:800, y:858, facing:'N' },
+        message:'Entered Neon Nights.'
+      });
+      return true;
+    }
+
+    function addOrReplaceHotspot043(scene, h) {
+      if (!scene) return;
+      if (!Array.isArray(scene.hotspots)) scene.hotspots = [];
+      const old = scene.hotspots.find(z => z.id === h.id);
+      if (old) Object.assign(old, h); else scene.hotspots.push({ ...h });
+    }
+    function inHot043(scene, id) {
+      const h = (scene?.hotspots || []).find(z => z.id === id);
+      const p = scene?.playerBody || scene?.player;
+      if (!h || !p) return false;
+      const b = typeof p.getBounds === 'function' ? p.getBounds() : new Phaser.Geom.Rectangle(p.x-18,p.y-24,36,48);
+      const r = new Phaser.Geom.Rectangle(h.x,h.y,h.w,h.h);
+      return Phaser.Geom.Rectangle.Overlaps(r,b) || Phaser.Geom.Rectangle.Contains(r,p.x,p.y);
+    }
+    function anyHot043(scene, ids) { return ids.some(id => inHot043(scene, id)); }
+    function exitNeon043(scene) {
+      if (!scene || scene.scene?.key !== 'NeonNightsInteriorScene') return false;
+      const now = scene.time?.now || Date.now();
+      if ((scene._neonLock043 || 0) > now) return true;
+      scene._neonLock043 = now + 450;
+      const ret = scene.returnSpawn || scene.dataIn?.returnSpawn || { x:2328, y:2600 };
+      try { scene.shutdownClubAudio?.(); } catch (_) {}
+      stop043(scene);
+      scene.scene.start('GameScene', { fromStationExit:true, spawn:ret, message:'Exited Neon Nights.' });
+      return true;
+    }
+    function enterBack043(scene) {
+      if (!scene || scene.scene?.key !== 'NeonNightsInteriorScene') return false;
+      const now = scene.time?.now || Date.now();
+      if ((scene._backLock043 || 0) > now) return true;
+      scene._backLock043 = now + 450;
+      stop043(scene);
+      scene.scene.start('NeonNightsBackRoomScene', {
+        returnSpawn: scene.returnSpawn || scene.dataIn?.returnSpawn || { x:2328, y:2600 },
+        spawn:{ x:150, y:720, facing:'E' },
+        mainRoomSpawn:{ x:1120, y:185, facing:'S' },
+        message:'Into the back room.'
+      });
+      return true;
+    }
+    function returnMain043(scene) {
+      if (!scene || scene.scene?.key !== 'NeonNightsBackRoomScene') return false;
+      const now = scene.time?.now || Date.now();
+      if ((scene._backLock043 || 0) > now) return true;
+      scene._backLock043 = now + 450;
+      stop043(scene);
+      scene.scene.start('NeonNightsInteriorScene', {
+        returnSpawn: scene.dataIn?.returnSpawn || { x:2328, y:2600 },
+        spawn: scene.mainRoomSpawn || { x:1120, y:185, facing:'S' },
+        message:'Back in Neon Nights.'
+      });
+      return true;
+    }
+
+    // Malcolm sheet uses 4 columns; rebuild Neon Malcolm anims correctly and mirror right from left frames.
+    const DIRS_043 = [['south','S',0],['southwest','SW',1],['west','W',2],['northwest','NW',3],['north','N',4],['northeast','NE',3],['east','E',2],['southeast','SE',1]];
+    const RIGHT_043 = new Set(['E','NE','SE']);
+    const FACE_TO_NAME_043 = { S:'south', SW:'southwest', W:'west', NW:'northwest', N:'north', NE:'northeast', E:'east', SE:'southeast' };
+    const FACE_TO_ROW_043 = { S:0, SW:1, W:2, NW:3, N:4, NE:3, E:2, SE:1 };
+    function rebuildMalcolmAnims043(scene, prefix) {
+      if (!scene?.textures?.exists?.(PLAYER_ASSET.key)) return;
+      const cols = Number(PLAYER_ASSET.cols || 4);
+      for (const [name,dir,row] of DIRS_043) {
+        const key = `${prefix}_malcolm_walk_${name}`;
+        try { if (scene.anims.exists(key)) scene.anims.remove(key); } catch (_) {}
+        scene.anims.create({ key, frames:scene.anims.generateFrameNumbers(PLAYER_ASSET.key,{ start:row*cols, end:row*cols+cols-1 }), frameRate:8, repeat:-1 });
+      }
+    }
+    function applyMalcolmFacing043(scene, prefix) {
+      const s = scene?.playerSprite;
+      if (!s) return;
+      const f = scene.playerFacing || scene.facing || 'S';
+      s.setFlipX?.(RIGHT_043.has(f));
+      const cols = Number(PLAYER_ASSET.cols || 4);
+      const row = FACE_TO_ROW_043[f] ?? 0;
+      const v = (scene.playerBody || scene.player)?.body?.velocity || {x:0,y:0};
+      const moving = Math.abs(v.x || 0) > 1 || Math.abs(v.y || 0) > 1;
+      if (!moving) {
+        s.anims?.stop?.();
+        s.setFrame?.(row * cols);
+      }
+    }
+    function patchNeonScene043(SceneClass, prefix, canvas) {
+      if (typeof SceneClass === 'undefined' || !SceneClass?.prototype) return;
+      const proto = SceneClass.prototype;
+      const oldPreload = proto.preload;
+      proto.preload = function() {
+        const r = oldPreload ? oldPreload.call(this) : undefined;
+        if (!this.textures.exists(canvas.key)) this.load.image(canvas.key, A(canvas.path));
+        return r;
+      };
+      proto.createPlayerAnims = function() { rebuildMalcolmAnims043(this, prefix); };
+      proto.frameForFacing = function() {
+        const cols = Number(PLAYER_ASSET.cols || 4);
+        return (FACE_TO_ROW_043[this.playerFacing || 'S'] ?? 0) * cols;
+      };
+      proto.animForFacing = function() {
+        const n = FACE_TO_NAME_043[this.playerFacing || 'S'] || 'south';
+        return `${prefix}_malcolm_walk_${n}`;
+      };
+      const oldCreate = proto.create;
+      proto.create = function() {
+        const r = oldCreate ? oldCreate.apply(this, arguments) : undefined;
+        if (this.textures.exists(canvas.key)) {
+          const img = this.add.image((this.mapW || 1600)/2, (this.mapH || 1000)/2, canvas.key)
+            .setDepth(1)
+            .setDisplaySize(this.mapW || 1600, this.mapH || 1000)
+            .setName(canvas.key);
+          // Put the painted canvas above the procedural floor but below characters and UI.
+          this.neonCanvas043 = img;
+        }
+        rebuildMalcolmAnims043(this, prefix);
+        applyMalcolmFacing043(this, prefix);
+        return r;
+      };
+      const oldUpdateVisual = proto.updatePlayerVisual;
+      if (oldUpdateVisual) proto.updatePlayerVisual = function(moving=false) {
+        const r = oldUpdateVisual.call(this, moving);
+        applyMalcolmFacing043(this, prefix);
+        return r;
+      };
+    }
+
+    installWorldZones043();
+
+    if (typeof GameScene !== 'undefined') {
+      const oldCreate = GameScene.prototype.create;
+      GameScene.prototype.create = function() { const r = oldCreate ? oldCreate.apply(this, arguments) : undefined; installWorldZones043(); this._neonLock043 = 0; return r; };
+      const oldClosest = GameScene.prototype.updateClosestZone;
+      GameScene.prototype.updateClosestZone = function() { const r = oldClosest ? oldClosest.call(this) : undefined; const z = activeNeonWorldZone043(this); if (z) this.closestZone = z; return r; };
+      const oldInteract = GameScene.prototype.handleInteract;
+      GameScene.prototype.handleInteract = function() { const z = activeNeonWorldZone043(this); if (z) return enterNeon043(this, z); return oldInteract ? oldInteract.call(this) : undefined; };
+      const oldCar = GameScene.prototype.handleCarOrArrest;
+      GameScene.prototype.handleCarOrArrest = function() { const z = activeNeonWorldZone043(this); if (z) return enterNeon043(this, z); return oldCar ? oldCar.call(this) : undefined; };
+      const oldEnter = GameScene.prototype.enterBuilding;
+      GameScene.prototype.enterBuilding = function(zone) { const s = `${zone?.id || ''} ${zone?.label || ''}`; if (/neon[_\s-]*nights/i.test(s)) return enterNeon043(this, zone); return oldEnter ? oldEnter.call(this, zone) : undefined; };
+    }
+
+    patchNeonScene043(typeof NeonNightsInteriorScene !== 'undefined' ? NeonNightsInteriorScene : undefined, 'neon', FRONT_CANVAS_043);
+    patchNeonScene043(typeof NeonNightsBackRoomScene !== 'undefined' ? NeonNightsBackRoomScene : undefined, 'neon_backroom', BACK_CANVAS_043);
+
+    if (typeof NeonNightsInteriorScene !== 'undefined') {
+      const oldCreate = NeonNightsInteriorScene.prototype.create;
+      NeonNightsInteriorScene.prototype.create = function() {
+        const r = oldCreate ? oldCreate.apply(this, arguments) : undefined;
+        addOrReplaceHotspot043(this, { id:'exit', x:620, y:760, w:360, h:235, label:'Front door: exit to Red Gull Strip' });
+        addOrReplaceHotspot043(this, { id:'backroom_door', x:1035, y:55, w:230, h:210, label:'Back hall: Neon back room' });
+        addOrReplaceHotspot043(this, { id:'employees_backroom_043', x:1310, y:700, w:190, h:250, label:'Employees only: back room' });
+        return r;
+      };
+      NeonNightsInteriorScene.prototype.exitToStreet = function() { return exitNeon043(this); };
+      NeonNightsInteriorScene.prototype.enterBackRoom = function() { return enterBack043(this); };
+      const oldHandle = NeonNightsInteriorScene.prototype.handleInteract;
+      NeonNightsInteriorScene.prototype.handleInteract = function() {
+        if (anyHot043(this, ['exit'])) return exitNeon043(this);
+        if (anyHot043(this, ['backroom_door','employees_backroom_043'])) return enterBack043(this);
+        return oldHandle ? oldHandle.call(this) : undefined;
+      };
+    }
+
+    if (typeof NeonNightsBackRoomScene !== 'undefined') {
+      const oldCreate = NeonNightsBackRoomScene.prototype.create;
+      NeonNightsBackRoomScene.prototype.create = function() {
+        const r = oldCreate ? oldCreate.apply(this, arguments) : undefined;
+        addOrReplaceHotspot043(this, { id:'return_main', x:40, y:575, w:260, h:300, label:'Return to main club room' });
+        addOrReplaceHotspot043(this, { id:'return_main_upper_043', x:45, y:45, w:220, h:220, label:'Return to main club room' });
+        return r;
+      };
+      NeonNightsBackRoomScene.prototype.returnToMainRoom = function() { return returnMain043(this); };
+      const oldHandle = NeonNightsBackRoomScene.prototype.handleInteract;
+      NeonNightsBackRoomScene.prototype.handleInteract = function() {
+        if (anyHot043(this, ['return_main','return_main_upper_043'])) return returnMain043(this);
+        return oldHandle ? oldHandle.call(this) : undefined;
+      };
+    }
+
+    if (typeof MobileControlsScene !== 'undefined') {
+      const oldGet = MobileControlsScene.prototype.getTargetScene;
+      MobileControlsScene.prototype.getTargetScene = function() {
+        for (const key of ['NeonNightsBackRoomScene','NeonNightsInteriorScene','GameScene']) {
+          const s = this.scene.get(key);
+          if (s?.scene?.isActive()) return s;
+        }
+        return oldGet ? oldGet.call(this) : null;
+      };
+      const oldFire = MobileControlsScene.prototype.fireAction;
+      MobileControlsScene.prototype.fireAction = function(key) {
+        const target = this.getTargetScene?.();
+        if (target?.scene?.key === 'GameScene' && (key === 'a' || key === 'b')) { const z = activeNeonWorldZone043(target); if (z) { enterNeon043(target, z); return; } }
+        if (target?.scene?.key === 'NeonNightsInteriorScene') {
+          if (key === 'a') { target.handleInteract?.(); return; }
+          if (key === 'b') { if (anyHot043(target, ['backroom_door','employees_backroom_043'])) enterBack043(target); else exitNeon043(target); return; }
+          if (key === 'sta') { target.togglePauseMenu?.(); return; }
+        }
+        if (target?.scene?.key === 'NeonNightsBackRoomScene') {
+          if (key === 'a' || key === 'b') { returnMain043(target); return; }
+          if (key === 'sta') { target.togglePauseMenu?.(); return; }
+        }
+        return oldFire ? oldFire.call(this, key) : undefined;
+      };
+    }
+  })();
+
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, NeonNightsInteriorScene, NeonNightsBackRoomScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
 </script>
