@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'neon-entry-kims-text-hotfix-039';
+  const ASSET_REV = 'kims-aisles-door-hotfix-040';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -15608,6 +15608,167 @@
           return;
         }
         return oldFire039 ? oldFire039.call(this, key) : undefined;
+      };
+    }
+  })();
+
+
+
+  // KIMS_AISLES_DOOR_JOHNNY_SIZE_HOTFIX_040
+  // Opens Kim's market aisles, makes Johnny 10-year-old sized, and hard-fixes the lower/front door street transition.
+  (function installKimsAislesDoorJohnnySizeHotfix040() {
+    const HOTFIX_ID_040 = 'KIMS_AISLES_DOOR_JOHNNY_SIZE_HOTFIX_040';
+    if (window[HOTFIX_ID_040]) return;
+    window[HOTFIX_ID_040] = true;
+
+    const KIMS_FRONT_EXIT_040 = {
+      id: 'front_door_040',
+      x: 380,
+      y: 955,
+      w: 560,
+      h: 299,
+      label: 'Front door: exit to street/world map — press A or B'
+    };
+    const KIMS_WORLD_SPAWN_040 = { x: 2675, y: 1214 };
+    const KIMS_CAR_SPAWN_040 = { x: 2795, y: 1210, heading: 0 };
+
+    const REMOVE_AISLE_BLOCKERS_040 = new Set([
+      'left display racks',
+      'middle gondola',
+      'left-middle gondola',
+      'right wall rack',
+      'produce/freezer',
+      'right freezer',
+      'drink coolers',
+      'back cigarette/display wall',
+      'left wall racks',
+      'stock room boxes'
+    ]);
+
+    function isKims040(scene) {
+      return scene?.scene?.key === 'KimsCornerMarketScene';
+    }
+
+    function pt040(scene) {
+      return { x: Number(scene?.playerBody?.x || 0), y: Number(scene?.playerBody?.y || 0) };
+    }
+
+    function inRect040(scene, r = KIMS_FRONT_EXIT_040) {
+      const p = pt040(scene);
+      return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
+    }
+
+    function removeWallByLabels040(scene) {
+      if (!scene?.walls?.getChildren) return;
+      for (const obj of [...scene.walls.getChildren()]) {
+        if (REMOVE_AISLE_BLOCKERS_040.has(obj?._label)) {
+          scene.walls.remove(obj, true, true);
+          obj.destroy?.();
+        }
+      }
+    }
+
+    function resizeJohnny040(scene) {
+      for (const npc of scene?.kimsNpcs038 || []) {
+        if (!/johnny/i.test(npc.name || npc.id || '')) continue;
+        npc.sprite?.setScale?.(0.50);
+        npc.sprite?.setOrigin?.(0.5, 0.84);
+        npc.nameText?.setPosition?.(npc.x, npc.y - 74);
+        if (npc.body) {
+          npc.body.setDisplaySize?.(28, 42);
+          if (npc.body.body) {
+            npc.body.body.setSize?.(28, 42);
+            npc.body.body.setOffset?.(-14, -36);
+          }
+        }
+      }
+    }
+
+    function forceFrontDoorZone040(scene) {
+      if (!scene) return;
+      scene.zones = (scene.zones || []).filter(z => !/^front_door/.test(String(z.id || '')));
+      scene.addHotZone?.(KIMS_FRONT_EXIT_040.id, KIMS_FRONT_EXIT_040.x, KIMS_FRONT_EXIT_040.y, KIMS_FRONT_EXIT_040.w, KIMS_FRONT_EXIT_040.h, KIMS_FRONT_EXIT_040.label);
+    }
+
+    function transitionWorld040(scene) {
+      if (!scene || scene._kimsWorldTransitioning040) return true;
+      scene._kimsWorldTransitioning040 = true;
+      scene.playerBody?.body?.setVelocity?.(0, 0);
+      const state = typeof ensureMalcolmMorningState022 === 'function' ? ensureMalcolmMorningState022() : (GAME.malcolm || {});
+      const msg = state.outfitEquipped
+        ? 'Morning shift: go to the police station and meet Ramos.'
+        : 'You can leave, but your pistol and detective clothes are upstairs.';
+      scene.cameras?.main?.fadeOut?.(150, 0, 0, 0);
+      scene.time?.delayedCall?.(165, () => {
+        scene.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: KIMS_WORLD_SPAWN_040,
+          carSpawn: KIMS_CAR_SPAWN_040,
+          message: msg
+        });
+      });
+      return true;
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldCreate040 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldCreate040 ? oldCreate040.apply(this, arguments) : undefined;
+        removeWallByLabels040(this);
+        resizeJohnny040(this);
+        forceFrontDoorZone040(this);
+        this._frontDoorGrace040 = this.entryData?.fromStreet ? 800 : 250;
+        this.input?.keyboard?.on?.('keydown-B', () => {
+          if (inRect040(this)) transitionWorld040(this);
+        });
+        return result;
+      };
+
+      const oldHandleInteract040 = KimsCornerMarketScene.prototype.handleInteract;
+      KimsCornerMarketScene.prototype.handleInteract = function() {
+        if (inRect040(this)) return transitionWorld040(this);
+        return oldHandleInteract040 ? oldHandleInteract040.call(this) : undefined;
+      };
+
+      const oldUpdate040 = KimsCornerMarketScene.prototype.update;
+      KimsCornerMarketScene.prototype.update = function(time, delta) {
+        const m = this.mobile || MOBILE_INPUT_STATE || {};
+        const aNow = !!m.a;
+        const bNow = !!m.b;
+        const result = oldUpdate040 ? oldUpdate040.call(this, time, delta) : undefined;
+
+        removeWallByLabels040(this);
+        resizeJohnny040(this);
+        this._frontDoorGrace040 = Math.max(0, (this._frontDoorGrace040 || 0) - (delta || 16));
+
+        if (inRect040(this)) {
+          this.setPrompt?.('Front door: exit to street/world map — press A or B.');
+          if (this._frontDoorGrace040 <= 0 && ((aNow && !this._lastA040) || (bNow && !this._lastB040))) {
+            transitionWorld040(this);
+          }
+        }
+
+        this._lastA040 = aNow;
+        this._lastB040 = bNow;
+        return result;
+      };
+    }
+
+    if (typeof MobileControlsScene !== 'undefined') {
+      const oldFire040 = MobileControlsScene.prototype.fireAction;
+      MobileControlsScene.prototype.fireAction = function(key) {
+        const target = this.getTargetScene?.();
+        if (isKims040(target) && (key === 'a' || key === 'b')) {
+          if (inRect040(target)) {
+            transitionWorld040(target);
+            return;
+          }
+          if (key === 'a') {
+            target.handleInteract?.();
+            return;
+          }
+        }
+        return oldFire040 ? oldFire040.call(this, key) : undefined;
       };
     }
   })();
