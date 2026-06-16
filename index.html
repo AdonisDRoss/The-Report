@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'small-walk-triggers-kims-talk-fullscreen-048';
+  const ASSET_REV = 'neon-seated-frame-dancer-height-050';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -17351,6 +17351,118 @@ const NEON_CONVOS_048 = [
       };
     }
   })();
+
+  // NEON_SEATED_FRAME_AND_DANCER_HEIGHT_FIX_050
+  // Forces Honey/seated NPCs to one cropped frame and restores stage dancers to Malcolm-height.
+  (function installNeonSeatedFrameAndDancerHeightFix050() {
+    const HOTFIX_ID_050 = 'NEON_SEATED_FRAME_AND_DANCER_HEIGHT_FIX_050';
+    if (window[HOTFIX_ID_050]) return;
+    window[HOTFIX_ID_050] = true;
+
+    const DANCE_SCALE_050 = 0.68;
+    const SEATED_SCALE_050 = 1.04;
+
+    if (typeof NEON_NIGHTS_ASSETS_030 !== 'undefined' && NEON_NIGHTS_ASSETS_030?.scale) {
+      NEON_NIGHTS_ASSETS_030.scale.dance = DANCE_SCALE_050;
+      NEON_NIGHTS_ASSETS_030.scale.sitting = SEATED_SCALE_050;
+    }
+
+    function cropFirstFrameTexture050(scene, srcKey, outKey, fw = 128, fh = 128) {
+      if (!scene || !srcKey || !outKey) return false;
+      if (scene.textures.exists(outKey)) return true;
+      if (!scene.textures.exists(srcKey)) return false;
+
+      const tex = scene.textures.get(srcKey);
+      const sourceImage = tex?.getSourceImage?.();
+      if (!sourceImage) return false;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = fw;
+      canvas.height = fh;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return false;
+
+      ctx.clearRect(0, 0, fw, fh);
+      // First cell only. This prevents Phaser from rendering the whole 4x2 seated sheet as one image.
+      ctx.drawImage(sourceImage, 0, 0, fw, fh, 0, 0, fw, fh);
+
+      scene.textures.addCanvas(outKey, canvas);
+      return scene.textures.exists(outKey);
+    }
+
+    function replaceSeatedNpc050(scene, npcName, srcKey, x, y, scale = SEATED_SCALE_050) {
+      if (!scene?.npcs?.length) return;
+
+      const idx = scene.npcs.findIndex(n => String(n?.neonName || '') === npcName);
+      if (idx < 0) return;
+
+      const oldNpc = scene.npcs[idx];
+      const nx = Number.isFinite(x) ? x : Number(oldNpc.x || oldNpc.body?.x || 0);
+      const ny = Number.isFinite(y) ? y : Number(oldNpc.y || oldNpc.body?.y || 0);
+      const depth = Number(oldNpc.depth || ny);
+      const outKey = `${srcKey}_frame0_050`;
+
+      oldNpc.destroy?.();
+
+      let obj;
+      if (cropFirstFrameTexture050(scene, srcKey, outKey, 128, 128)) {
+        obj = scene.add.image(nx, ny, outKey)
+          .setOrigin(0.5, 0.86)
+          .setScale(scale)
+          .setDepth(depth);
+      } else if (scene.textures.exists(srcKey)) {
+        obj = scene.add.sprite(nx, ny, srcKey, 0)
+          .setOrigin(0.5, 0.86)
+          .setScale(scale)
+          .setDepth(depth);
+        obj.setCrop?.(0, 0, 128, 128);
+      } else {
+        obj = scene.add.rectangle(nx, ny, 34, 60, 0x888888, 0.9).setDepth(depth);
+      }
+
+      obj.neonName = npcName;
+      obj.neonDialogueIndex = oldNpc.neonDialogueIndex || 0;
+      scene.npcs[idx] = obj;
+    }
+
+    function fixSeatedNpcs050(scene) {
+      replaceSeatedNpc050(scene, 'Honey Vale', 'neon_honey_sit', 220, 423, 1.08);
+      replaceSeatedNpc050(scene, 'Paulie Sarto', 'neon_paulie_sit', 220, 572, 1.02);
+      replaceSeatedNpc050(scene, 'Vince “Switch” Calder', 'neon_vince_sit', 220, 722, 1.02);
+      replaceSeatedNpc050(scene, 'Nolan “Nole” Pike', 'neon_nole_sit', 1332, 160, 1.02);
+    }
+
+    function enforceDancerScale050(scene) {
+      if (typeof NEON_NIGHTS_ASSETS_030 !== 'undefined' && NEON_NIGHTS_ASSETS_030?.scale) {
+        NEON_NIGHTS_ASSETS_030.scale.dance = DANCE_SCALE_050;
+      }
+      for (const dancer of scene?.dancerRoster || []) {
+        if (dancer?.sprite?.texture?.key === dancer.dance) dancer.sprite.setScale(DANCE_SCALE_050);
+      }
+      if (scene?.currentStageDancer?.sprite?.texture?.key === scene.currentStageDancer.dance) {
+        scene.currentStageDancer.sprite.setScale(DANCE_SCALE_050);
+      }
+    }
+
+    if (typeof NeonNightsInteriorScene !== 'undefined') {
+      const oldCreate050 = NeonNightsInteriorScene.prototype.create;
+      NeonNightsInteriorScene.prototype.create = function() {
+        const result = oldCreate050 ? oldCreate050.apply(this, arguments) : undefined;
+        fixSeatedNpcs050(this);
+        enforceDancerScale050(this);
+        return result;
+      };
+
+      const oldUpdate050 = NeonNightsInteriorScene.prototype.update;
+      NeonNightsInteriorScene.prototype.update = function(time, delta) {
+        const result = oldUpdate050 ? oldUpdate050.call(this, time, delta) : undefined;
+        enforceDancerScale050(this);
+        return result;
+      };
+    }
+  })();
+
+
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, NeonNightsInteriorScene, NeonNightsBackRoomScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
 </script>
