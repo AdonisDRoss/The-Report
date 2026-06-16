@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'apartment-stairs-hotfix-037';
+  const ASSET_REV = 'kims-front-door-hotfix-038';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -14984,6 +14984,360 @@
           if (key === 'a') { target.handleInteract?.(); return; }
         }
         return oldFire037 ? oldFire037.call(this, key) : undefined;
+      };
+    }
+  })();
+
+
+
+  // KIMS_NPCS_FRONT_DOOR_HOTFIX_038
+  // Restores Mr. Kim and Johnny in Kim's Corner Market and moves the world-map exit to the visible front door/right-side entry area.
+  (function installKimsNpcsFrontDoorHotfix038() {
+    const HOTFIX_ID_038 = 'KIMS_NPCS_FRONT_DOOR_HOTFIX_038';
+    if (window[HOTFIX_ID_038]) return;
+    window[HOTFIX_ID_038] = true;
+
+    const MR_KIM_ASSET_038 = {
+      key: 'kims_mr_kim_walk_038',
+      path: 'assets/characters/npcs/kims/mr_kim_walk_4x8_192.png',
+      fw: 192,
+      fh: 192,
+      scale: 0.66,
+      originY: 0.84
+    };
+
+    const JOHNNY_ASSET_038 = {
+      key: 'kims_johnny_walk_038',
+      path: 'assets/characters/npcs/kims/johnny_walk_4x8_192.png',
+      fw: 192,
+      fh: 192,
+      scale: 0.58,
+      originY: 0.84
+    };
+
+    const KIMS_NPCS_038 = [
+      {
+        id: 'mr_kim_038',
+        name: 'Mr. Kim',
+        asset: MR_KIM_ASSET_038,
+        x: 305,
+        y: 590,
+        fallbackColor: 0x4a5f3a,
+        skin: 0xc99162,
+        lines: [
+          'Morning, Malcolm. Coffee is fresh and the street already looks guilty.',
+          'You got your outfit and pistol? Do not start shift half-ready.',
+          'Ramos is waiting at the station. Try not to make her wait all morning.'
+        ]
+      },
+      {
+        id: 'johnny_038',
+        name: 'Johnny',
+        asset: JOHNNY_ASSET_038,
+        x: 450,
+        y: 900,
+        fallbackColor: 0x315d8a,
+        skin: 0xd7a26a,
+        lines: [
+          'Detective King, you going out on a real case today?',
+          'Mr. Kim said I cannot touch the register, even for detective reasons.',
+          'If you arrest a cereal killer, does that count as breakfast crime?'
+        ]
+      }
+    ];
+
+    // Visible right-side/front-door area from the Kim's screenshot. A or B exits here.
+    const KIMS_WORLD_EXIT_038 = {
+      x: 865,
+      y: 800,
+      w: 360,
+      h: 415,
+      label: 'Front door: exit to street/world map — press A or B'
+    };
+
+    const KIMS_WORLD_SPAWN_038 = { x: 2675, y: 1214 };
+    const KIMS_CAR_SPAWN_038 = { x: 2795, y: 1210, heading: 0 };
+
+    function isKims038(scene) {
+      return scene?.scene?.key === 'KimsCornerMarketScene';
+    }
+
+    function point038(scene) {
+      return { x: Number(scene?.playerBody?.x || 0), y: Number(scene?.playerBody?.y || 0) };
+    }
+
+    function inRect038(scene, r) {
+      const p = point038(scene);
+      return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
+    }
+
+    function registerWorldObject038(scene, obj) {
+      if (!scene || !obj) return obj;
+      scene.uiCamera?.ignore?.(obj);
+      return obj;
+    }
+
+    function registerUi038(scene, objs) {
+      if (!scene || !objs) return;
+      if (!scene.uiObjects) scene.uiObjects = [];
+      for (const obj of objs) {
+        if (!obj) continue;
+        obj.setScrollFactor?.(0);
+        obj.setDepth?.(4100);
+        if (!scene.uiObjects.includes(obj)) scene.uiObjects.push(obj);
+        scene.cameras?.main?.ignore?.(obj);
+      }
+      if (scene.uiCamera) {
+        const uiSet = new Set(scene.uiObjects || []);
+        scene.uiCamera.ignore(scene.children.list.filter(o => !uiSet.has(o)));
+      }
+    }
+
+    function makeNpcSprite038(scene, cfg) {
+      const asset = cfg.asset;
+      let sprite = null;
+      if (asset && scene.textures.exists(asset.key)) {
+        createFourByEightAnims022(scene, asset.key);
+        sprite = scene.add.sprite(cfg.x, cfg.y, asset.key, frameForFacing022('S', 0))
+          .setOrigin(0.5, asset.originY || 0.84)
+          .setScale(asset.scale || 0.62)
+          .setDepth(38);
+      } else {
+        sprite = scene.add.container(cfg.x, cfg.y).setDepth(38);
+        const shadow = scene.add.ellipse(0, 24, 44, 16, 0x000000, 0.30);
+        const legs = scene.add.rectangle(0, 18, 22, 30, 0x242a2d, 1).setStrokeStyle(1, 0x111111, 0.9);
+        const torso = scene.add.rectangle(0, -10, 34, 46, cfg.fallbackColor || 0x566273, 1).setStrokeStyle(2, 0x111111, 0.9);
+        const head = scene.add.circle(0, -44, 14, cfg.skin || 0xc99162, 1).setStrokeStyle(2, 0x111111, 0.9);
+        const hair = scene.add.rectangle(0, -54, 28, 8, 0x201611, 0.95);
+        sprite.add([shadow, legs, torso, head, hair]);
+      }
+      return sprite;
+    }
+
+    function createKimsNpc038(scene, cfg) {
+      if (!scene || !cfg) return null;
+      const body = scene.add.rectangle(cfg.x, cfg.y, 34, 46, 0x000000, 0).setDepth(37);
+      scene.physics.add.existing(body);
+      body.body.setImmovable(true);
+      body.body.setAllowGravity(false);
+      body.body.moves = false;
+      if (scene.playerBody) scene.physics.add.collider(scene.playerBody, body);
+
+      const sprite = makeNpcSprite038(scene, cfg);
+      const nameText = scene.add.text(cfg.x, cfg.y - 86, cfg.name, {
+        fontFamily: 'Courier New',
+        fontSize: '17px',
+        color: '#f4d28a',
+        stroke: '#000000',
+        strokeThickness: 4
+      }).setOrigin(0.5).setDepth(42);
+
+      registerWorldObject038(scene, body);
+      registerWorldObject038(scene, sprite);
+      registerWorldObject038(scene, nameText);
+
+      const npc = {
+        id: cfg.id,
+        name: cfg.name,
+        x: cfg.x,
+        y: cfg.y,
+        body,
+        sprite,
+        nameText,
+        lines: cfg.lines.slice()
+      };
+      scene.kimsNpcs038.push(npc);
+      return npc;
+    }
+
+    function nearestNpc038(scene, range = 96) {
+      if (!scene?.kimsNpcs038?.length || !scene.playerBody) return null;
+      let best = null;
+      let bestDist = Infinity;
+      for (const npc of scene.kimsNpcs038) {
+        const d = Phaser.Math.Distance.Between(scene.playerBody.x, scene.playerBody.y, npc.x, npc.y);
+        if (d <= range && d < bestDist) {
+          best = npc;
+          bestDist = d;
+        }
+      }
+      return best;
+    }
+
+    function closeDialogue038(scene) {
+      if (scene?._kimsDialogueUi038) {
+        for (const obj of scene._kimsDialogueUi038) obj?.destroy?.();
+      }
+      scene._kimsDialogueUi038 = null;
+      scene._kimsDialogue038 = null;
+    }
+
+    function buildDialogue038(scene) {
+      closeDialogue038(scene);
+      const panelX = VIEW_W / 2;
+      const panelY = VIEW_H - 116;
+      const panelW = Math.min(820, VIEW_W - 70);
+      const panelH = 146;
+      const panel = scene.add.rectangle(panelX, panelY, panelW, panelH, 0xe6d5b7, 0.98)
+        .setStrokeStyle(5, 0x2a2118, 1);
+      const inner = scene.add.rectangle(panelX, panelY, panelW - 18, panelH - 18, 0xf1e3c8, 0.78)
+        .setStrokeStyle(1, 0x79644b, 0.9);
+      const speaker = scene.add.text(panelX - panelW / 2 + 28, panelY - panelH / 2 + 18, '', {
+        fontFamily: 'Courier New',
+        fontSize: '24px',
+        color: '#9d3f25',
+        stroke: '#f1e3c8',
+        strokeThickness: 2
+      }).setOrigin(0, 0);
+      const line = scene.add.text(panelX - panelW / 2 + 28, panelY - panelH / 2 + 56, '', {
+        fontFamily: 'Courier New',
+        fontSize: '21px',
+        color: '#2a2118',
+        stroke: '#f7ecd6',
+        strokeThickness: 1,
+        wordWrap: { width: panelW - 56 }
+      }).setOrigin(0, 0);
+      const next = scene.add.text(panelX + panelW / 2 - 104, panelY + panelH / 2 - 30, 'A ▶', {
+        fontFamily: 'Courier New',
+        fontSize: '18px',
+        color: '#2a2118',
+        stroke: '#f7ecd6',
+        strokeThickness: 2
+      }).setOrigin(0, 0);
+      scene._kimsDialogueUi038 = [panel, inner, speaker, line, next];
+      scene._kimsDialogueSpeaker038 = speaker;
+      scene._kimsDialogueLine038 = line;
+      registerUi038(scene, scene._kimsDialogueUi038);
+    }
+
+    function openNpcDialogue038(scene, npc) {
+      if (!scene || !npc) return true;
+      scene.playerBody?.body?.setVelocity?.(0, 0);
+      scene.playerSprite?.anims?.stop?.();
+      scene._kimsDialogue038 = { npc, index: 0 };
+      buildDialogue038(scene);
+      updateDialogue038(scene);
+      return true;
+    }
+
+    function updateDialogue038(scene) {
+      const dlg = scene?._kimsDialogue038;
+      if (!dlg?.npc) return;
+      scene._kimsDialogueSpeaker038?.setText(dlg.npc.name);
+      scene._kimsDialogueLine038?.setText(dlg.npc.lines[dlg.index] || '');
+      scene.setPrompt?.(`A: continue ${dlg.npc.name}`);
+    }
+
+    function advanceDialogue038(scene) {
+      const dlg = scene?._kimsDialogue038;
+      if (!dlg?.npc) return false;
+      if (dlg.index < dlg.npc.lines.length - 1) {
+        dlg.index += 1;
+        updateDialogue038(scene);
+      } else {
+        closeDialogue038(scene);
+        scene.setPrompt?.('Kim’s Corner Market. Talk to Mr. Kim or Johnny. Front door exits to street.');
+      }
+      return true;
+    }
+
+    function transitionWorld038(scene) {
+      if (!scene || scene._worldTransitioning038) return true;
+      scene._worldTransitioning038 = true;
+      scene.playerBody?.body?.setVelocity?.(0, 0);
+      const state = ensureMalcolmMorningState022();
+      const msg = state.outfitEquipped
+        ? 'Morning shift: go to the police station and meet Ramos.'
+        : 'You can leave, but your pistol and detective clothes are upstairs.';
+      scene.cameras?.main?.fadeOut?.(170, 0, 0, 0);
+      scene.time?.delayedCall?.(185, () => {
+        scene.scene.start('GameScene', {
+          fromStationExit: true,
+          spawn: KIMS_WORLD_SPAWN_038,
+          carSpawn: KIMS_CAR_SPAWN_038,
+          message: msg
+        });
+      });
+      return true;
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldPreload038 = KimsCornerMarketScene.prototype.preload;
+      KimsCornerMarketScene.prototype.preload = function() {
+        const result = oldPreload038 ? oldPreload038.apply(this, arguments) : undefined;
+        for (const asset of [MR_KIM_ASSET_038, JOHNNY_ASSET_038]) {
+          if (!this.textures.exists(asset.key)) {
+            this.load.spritesheet(asset.key, A(asset.path), { frameWidth: asset.fw, frameHeight: asset.fh });
+          }
+        }
+        return result;
+      };
+
+      const oldCreate038 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldCreate038.apply(this, arguments);
+        closeDialogue038(this);
+        this.kimsNpcs038 = [];
+        for (const cfg of KIMS_NPCS_038) createKimsNpc038(this, cfg);
+
+        // Replace the old centered front-door zone with the right-side visible front-door/exit zone from the screenshot.
+        this.zones = (this.zones || []).filter(z => z.id !== 'front_door' && z.id !== 'front_door_038');
+        this.addHotZone?.('front_door_038', KIMS_WORLD_EXIT_038.x, KIMS_WORLD_EXIT_038.y, KIMS_WORLD_EXIT_038.w, KIMS_WORLD_EXIT_038.h, KIMS_WORLD_EXIT_038.label);
+        this._worldExitGrace038 = this.entryData?.fromStreet ? 1000 : 350;
+        this.setPrompt?.(this.entryData?.message || 'Kim’s Corner Market. Talk to Mr. Kim or Johnny. Front door exits to street.');
+        return result;
+      };
+
+      const oldInteract038 = KimsCornerMarketScene.prototype.handleInteract;
+      KimsCornerMarketScene.prototype.handleInteract = function() {
+        if (advanceDialogue038(this)) return true;
+        if (inRect038(this, KIMS_WORLD_EXIT_038)) return transitionWorld038(this);
+        const npc = nearestNpc038(this);
+        if (npc) return openNpcDialogue038(this, npc);
+        return oldInteract038 ? oldInteract038.call(this) : undefined;
+      };
+
+      const oldUpdate038 = KimsCornerMarketScene.prototype.update;
+      KimsCornerMarketScene.prototype.update = function(time, delta) {
+        const m = this.mobile || MOBILE_INPUT_STATE || {};
+        const savedB = !!m.b;
+        const result = oldUpdate038 ? oldUpdate038.call(this, time, delta) : undefined;
+        this._worldExitGrace038 = Math.max(0, (this._worldExitGrace038 || 0) - (delta || 16));
+
+        if (this._kimsDialogue038) {
+          this.playerBody?.body?.setVelocity?.(0, 0);
+        } else if (inRect038(this, KIMS_WORLD_EXIT_038)) {
+          this.setPrompt?.('Front door: exit to street/world map — press A or B.');
+          if (this._worldExitGrace038 <= 0 && savedB && !this._lastB038) transitionWorld038(this);
+        } else {
+          const npc = nearestNpc038(this);
+          if (npc) this.setPrompt?.(`A: talk to ${npc.name}`);
+        }
+
+        this._lastB038 = savedB;
+        return result;
+      };
+    }
+
+    if (typeof MobileControlsScene !== 'undefined') {
+      const oldFire038 = MobileControlsScene.prototype.fireAction;
+      MobileControlsScene.prototype.fireAction = function(key) {
+        const target = this.getTargetScene?.();
+        if (isKims038(target)) {
+          if ((key === 'a' || key === 'b') && inRect038(target, KIMS_WORLD_EXIT_038)) {
+            transitionWorld038(target);
+            return;
+          }
+          if (key === 'a') {
+            target.handleInteract?.();
+            return;
+          }
+          if (key === 'sta') {
+            target.togglePauseMenu?.();
+            return;
+          }
+        }
+        return oldFire038 ? oldFire038.call(this, key) : undefined;
       };
     }
   })();
