@@ -17278,6 +17278,79 @@ const NEON_CONVOS_048 = [
     }
   })();
 
+
+  // NEON_HONEY_AND_DANCER_VISUAL_FIX_049
+  // Fixes Honey seated rendering by forcing single-frame seated textures,
+  // and makes stage-dance sprites slightly smaller.
+  (function installNeonHoneyAndDancerVisualFix049() {
+    if (typeof NEON_NIGHTS_ASSETS_030 !== 'undefined' && NEON_NIGHTS_ASSETS_030?.scale) {
+      NEON_NIGHTS_ASSETS_030.scale.dance = 0.48;
+      NEON_NIGHTS_ASSETS_030.scale.sitting = 0.76;
+    }
+
+    function ensureStaticFrameTexture049(scene, srcKey, outKey) {
+      if (!scene || !srcKey || !outKey) return false;
+      if (scene.textures.exists(outKey)) return true;
+      const frame = scene.textures.getFrame(srcKey, 0) || scene.textures.getFrame(srcKey, '__BASE');
+      if (!frame) return false;
+      const rt = scene.make.renderTexture({ width: frame.width || frame.cutWidth || 128, height: frame.height || frame.cutHeight || 128, add: false });
+      rt.draw(srcKey, 0, (frame.width || frame.cutWidth || 128) / 2, (frame.height || frame.cutHeight || 128) / 2);
+      rt.saveTexture(outKey);
+      rt.destroy();
+      return scene.textures.exists(outKey);
+    }
+
+    function swapSeatedNpc049(scene, npcName, srcKey, x, y, scale) {
+      if (!scene?.npcs?.length) return;
+      const idx = scene.npcs.findIndex(n => String(n?.neonName || '') === npcName);
+      if (idx < 0) return;
+      const oldNpc = scene.npcs[idx];
+      const staticKey = srcKey + '_static_049';
+      const hasStatic = ensureStaticFrameTexture049(scene, srcKey, staticKey);
+      const nx = x ?? oldNpc.x ?? oldNpc.body?.x ?? 0;
+      const ny = y ?? oldNpc.y ?? oldNpc.body?.y ?? 0;
+      const depth = oldNpc.depth || ny;
+      oldNpc.destroy?.();
+      let obj;
+      if (hasStatic) {
+        obj = scene.add.image(nx, ny, staticKey).setOrigin(0.5, 0.86).setScale(scale || 0.76).setDepth(depth);
+      } else if (scene.textures.exists(srcKey)) {
+        obj = scene.add.sprite(nx, ny, srcKey, 0).setOrigin(0.5, 0.86).setScale(scale || 0.76).setDepth(depth);
+        obj.setCrop?.(0, 0, 128, 128);
+      } else {
+        obj = scene.add.rectangle(nx, ny, 28, 48, 0x888888, 0.9).setDepth(depth);
+      }
+      obj.neonName = npcName;
+      scene.npcs[idx] = obj;
+    }
+
+    if (typeof NeonNightsInteriorScene !== 'undefined') {
+      const oldCreate049 = NeonNightsInteriorScene.prototype.create;
+      NeonNightsInteriorScene.prototype.create = function() {
+        const result = oldCreate049 ? oldCreate049.apply(this, arguments) : undefined;
+        swapSeatedNpc049(this, 'Honey Vale', 'neon_honey_sit', 220, 423, 0.74);
+        swapSeatedNpc049(this, 'Paulie Sarto', 'neon_paulie_sit', 220, 572, 0.74);
+        swapSeatedNpc049(this, 'Vince “Switch” Calder', 'neon_vince_sit', 220, 722, 0.74);
+        swapSeatedNpc049(this, 'Nolan “Nole” Pike', 'neon_nole_sit', 1332, 160, 0.74);
+        if (this.currentStageDancer?.sprite?.setScale) this.currentStageDancer.sprite.setScale(0.48);
+        return result;
+      };
+
+      const oldStart049 = NeonNightsInteriorScene.prototype.startNextDancerTurn;
+      NeonNightsInteriorScene.prototype.startNextDancerTurn = function() {
+        const result = oldStart049 ? oldStart049.apply(this, arguments) : undefined;
+        if (this.currentStageDancer?.sprite?.setScale) {
+          this.currentStageDancer.sprite.setScale(NEON_NIGHTS_ASSETS_030?.scale?.walk || 1.0);
+        }
+        return result;
+      };
+
+      const oldFinish049 = NeonNightsInteriorScene.prototype.finishDancerTurn;
+      NeonNightsInteriorScene.prototype.finishDancerTurn = function() {
+        return oldFinish049 ? oldFinish049.apply(this, arguments) : undefined;
+      };
+    }
+  })();
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, NeonNightsInteriorScene, NeonNightsBackRoomScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
 </script>
