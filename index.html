@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'kims-front-door-hotfix-038';
+  const ASSET_REV = 'neon-entry-kims-text-hotfix-039';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -15338,6 +15338,276 @@
           }
         }
         return oldFire038 ? oldFire038.call(this, key) : undefined;
+      };
+    }
+  })();
+
+
+  // NEON_ENTRY_KIMS_TEXT_MALCOLM_FLIP_HOTFIX_039
+  // Fixes Neon Nights street entry, makes Johnny child-sized, restores readable Kim/Johnny dialogue, and forces Malcolm right-walk to use left frames flipped.
+  (function installNeonEntryKimsTextMalcolmFlipHotfix039() {
+    const HOTFIX_ID_039 = 'NEON_ENTRY_KIMS_TEXT_MALCOLM_FLIP_HOTFIX_039';
+    if (window[HOTFIX_ID_039]) return;
+    window[HOTFIX_ID_039] = true;
+
+    const RIGHT_TO_LEFT_039 = { E:'W', NE:'NW', SE:'SW' };
+    const RIGHT_TO_LEFT_NAME_039 = { E:'west', NE:'northwest', SE:'southwest' };
+    function mirrorFacing039(facing) { return RIGHT_TO_LEFT_039[facing || 'S'] || (facing || 'S'); }
+    function isRightFacing039(facing) { return !!RIGHT_TO_LEFT_039[facing || 'S']; }
+    function velocityMoving039(body) {
+      const v = body?.body?.velocity || body?.velocity;
+      return !!v && (Math.abs(v.x || 0) > 1 || Math.abs(v.y || 0) > 1);
+    }
+
+    // Broad Neon Nights exterior door zone, placed over the current visible club/front-door area.
+    const NEON_ENTRY_039 = { id:'chunk_d_neon_nights_door', x:2660, y:1600, w:620, h:390, type:'door', label:'Neon Nights' };
+    const NEON_ENTRY_WIDE_039 = { id:'chunk_d_neon_nights_frontwide_039', x:2620, y:1665, w:700, h:420, type:'door', label:'Neon Nights' };
+
+    if (Array.isArray(INTERACTION_ZONES)) {
+      let door = INTERACTION_ZONES.find(z => z.id === 'chunk_d_neon_nights_door');
+      if (!door) {
+        door = { ...NEON_ENTRY_039 };
+        INTERACTION_ZONES.push(door);
+      } else {
+        Object.assign(door, NEON_ENTRY_039);
+      }
+      if (!INTERACTION_ZONES.some(z => z.id === NEON_ENTRY_WIDE_039.id)) INTERACTION_ZONES.push({ ...NEON_ENTRY_WIDE_039 });
+    }
+
+    if (typeof GameScene !== 'undefined') {
+      const oldEnter039 = GameScene.prototype.enterBuilding;
+      GameScene.prototype.enterBuilding = function(zone) {
+        const s = `${zone?.id || ''} ${zone?.label || ''}`;
+        if (/neon[_\s-]*nights/i.test(s)) {
+          this.player?.body?.setVelocity?.(0, 0);
+          this.car?.body?.setVelocity?.(0, 0);
+          this.scene.start('NeonNightsInteriorScene', {
+            fromWorld: true,
+            spawn: { x: 800, y: 820, facing:'N' },
+            return: { x: 2920, y: 1900 }
+          });
+          return;
+        }
+        return oldEnter039 ? oldEnter039.call(this, zone) : undefined;
+      };
+
+      // World Malcolm right-facing directions always reuse left-facing rows and flip horizontally.
+      const oldFrame039 = GameScene.prototype.frameForFacing;
+      GameScene.prototype.frameForFacing = function() {
+        const f = this.playerFacing || 'S';
+        const cols = (typeof PLAYER_ASSET !== 'undefined' && PLAYER_ASSET.cols) || 4;
+        const rows = { S:0, SW:1, W:2, NW:3, N:4, NE:3, E:2, SE:1 };
+        return (rows[f] ?? 0) * cols;
+      };
+
+      const oldAnim039 = GameScene.prototype.animForFacing;
+      GameScene.prototype.animForFacing = function() {
+        const f = this.playerFacing || 'S';
+        const name = ({ S:'south', SW:'southwest', W:'west', NW:'northwest', N:'north', NE:'northwest', E:'west', SE:'southwest' })[f] || 'south';
+        return `detective_walk_${name}`;
+      };
+
+      const oldUpdatePlayer039 = GameScene.prototype.updatePlayerSprite;
+      GameScene.prototype.updatePlayerSprite = function(moving = false) {
+        const result = oldUpdatePlayer039 ? oldUpdatePlayer039.call(this, moving) : undefined;
+        if (this.playerSprite) this.playerSprite.setFlipX?.(isRightFacing039(this.playerFacing));
+        return result;
+      };
+    }
+
+    if (typeof MorningInteriorBaseScene022 !== 'undefined') {
+      const oldUpdateMorning039 = MorningInteriorBaseScene022.prototype.update;
+      MorningInteriorBaseScene022.prototype.update = function(time, delta) {
+        const result = oldUpdateMorning039 ? oldUpdateMorning039.call(this, time, delta) : undefined;
+        const sprite = this.playerSprite;
+        if (sprite && sprite.texture?.key) {
+          const renderFacing = mirrorFacing039(this.facing || 'S');
+          const flipped = isRightFacing039(this.facing || 'S');
+          sprite.setFlipX?.(flipped);
+          if (flipped) {
+            const moving = velocityMoving039(this.playerBody);
+            const key = sprite.texture.key;
+            if (moving && typeof animKey022 === 'function' && this.anims?.exists?.(animKey022(key, renderFacing))) {
+              sprite.play?.(animKey022(key, renderFacing), true);
+            } else if (!moving && typeof frameForFacing022 === 'function') {
+              sprite.anims?.stop?.();
+              sprite.setFrame?.(frameForFacing022(renderFacing, 0));
+            }
+          }
+        }
+        return result;
+      };
+    }
+
+    function patchNeonMalcolm039(SceneClass, prefix) {
+      if (typeof SceneClass === 'undefined' || !SceneClass?.prototype) return;
+      const proto = SceneClass.prototype;
+      const oldFrame = proto.frameForFacing;
+      if (oldFrame) proto.frameForFacing = function() {
+        const saved = this.playerFacing;
+        if (isRightFacing039(saved)) this.playerFacing = mirrorFacing039(saved);
+        const frame = oldFrame.call(this);
+        this.playerFacing = saved;
+        return frame;
+      };
+      const oldAnim = proto.animForFacing;
+      if (oldAnim) proto.animForFacing = function() {
+        const saved = this.playerFacing;
+        if (isRightFacing039(saved)) this.playerFacing = mirrorFacing039(saved);
+        const key = oldAnim.call(this);
+        this.playerFacing = saved;
+        return key;
+      };
+      const oldUpdate = proto.updatePlayerVisual;
+      if (oldUpdate) proto.updatePlayerVisual = function(moving) {
+        const result = oldUpdate.call(this, moving);
+        this.playerSprite?.setFlipX?.(isRightFacing039(this.playerFacing));
+        return result;
+      };
+    }
+    patchNeonMalcolm039(typeof NeonNightsInteriorScene !== 'undefined' ? NeonNightsInteriorScene : undefined, 'neon');
+    patchNeonMalcolm039(typeof NeonNightsBackRoomScene !== 'undefined' ? NeonNightsBackRoomScene : undefined, 'neon_backroom');
+
+    // Readable Kim/Johnny dialogue overlay. This replaces the low-contrast parchment text with a high-contrast phone-safe panel.
+    function isKims039(scene) { return scene?.scene?.key === 'KimsCornerMarketScene'; }
+    function dist039(a,b,c,d) { return Phaser.Math.Distance.Between(a,b,c,d); }
+    function nearestKimNpc039(scene, range = 108) {
+      if (!scene?.kimsNpcs038?.length || !scene.playerBody) return null;
+      let best = null, bestD = Infinity;
+      for (const npc of scene.kimsNpcs038) {
+        const d = dist039(scene.playerBody.x, scene.playerBody.y, npc.x, npc.y);
+        if (d <= range && d < bestD) { best = npc; bestD = d; }
+      }
+      return best;
+    }
+    function clearReadableDialogue039(scene) {
+      if (scene?._readableKimUi039) {
+        for (const obj of scene._readableKimUi039) obj?.destroy?.();
+      }
+      scene._readableKimUi039 = null;
+      scene._readableKimDialogue039 = null;
+    }
+    function registerReadableUi039(scene, objects) {
+      if (!scene.uiObjects) scene.uiObjects = [];
+      for (const obj of objects) {
+        if (!obj) continue;
+        obj.setScrollFactor?.(0);
+        obj.setDepth?.(9200);
+        if (!scene.uiObjects.includes(obj)) scene.uiObjects.push(obj);
+        scene.cameras?.main?.ignore?.(obj);
+      }
+      if (scene.uiCamera) {
+        const uiSet = new Set(scene.uiObjects || []);
+        scene.uiCamera.ignore(scene.children.list.filter(o => !uiSet.has(o)));
+      }
+    }
+    function readableLines039(npc) {
+      const name = String(npc?.name || '');
+      if (/johnny/i.test(name)) {
+        return [
+          'Detective King! You found the stairs. Case closed.',
+          'Johnny joke: Why did the robber steal cereal? Because he wanted a clean getaway.',
+          'Mr. Kim says I ask too many questions, but that is how detectives start.'
+        ];
+      }
+      if (/kim/i.test(name)) {
+        return [
+          'Morning, Malcolm. Coffee is fresh, rain is bad, and Raven Hook is already lying.',
+          'Mr. Kim wisdom: leave with your coat, your pistol, and your eyes open.',
+          'Crime stats report: overnight calls are up. Ramos is waiting at the station.'
+        ];
+      }
+      return npc?.lines?.length ? npc.lines.slice() : ['No comment.'];
+    }
+    function openReadableDialogue039(scene, npc) {
+      if (!scene || !npc) return false;
+      clearReadableDialogue039(scene);
+      scene.playerBody?.body?.setVelocity?.(0, 0);
+      scene.playerSprite?.anims?.stop?.();
+      scene._readableKimDialogue039 = { npc, index: 0, lines: readableLines039(npc) };
+
+      const panel = scene.add.rectangle(VIEW_W/2, VIEW_H - 95, VIEW_W - 54, 170, 0x02060a, 0.94)
+        .setStrokeStyle(4, 0xffd36b, 1);
+      const speaker = scene.add.text(42, VIEW_H - 170, npc.name || 'Speaker', {
+        fontFamily:'Courier New', fontSize:'25px', color:'#ffd36b', stroke:'#000000', strokeThickness:5
+      });
+      const line = scene.add.text(42, VIEW_H - 132, '', {
+        fontFamily:'Courier New', fontSize:'24px', color:'#ffffff', stroke:'#000000', strokeThickness:5,
+        wordWrap:{ width: VIEW_W - 128 }
+      });
+      const next = scene.add.text(VIEW_W - 150, VIEW_H - 44, 'A ▶', {
+        fontFamily:'Courier New', fontSize:'23px', color:'#90eaff', stroke:'#000000', strokeThickness:5
+      });
+      scene._readableKimUi039 = [panel, speaker, line, next];
+      scene._readableKimSpeaker039 = speaker;
+      scene._readableKimLine039 = line;
+      registerReadableUi039(scene, scene._readableKimUi039);
+      updateReadableDialogue039(scene);
+      return true;
+    }
+    function updateReadableDialogue039(scene) {
+      const dlg = scene?._readableKimDialogue039;
+      if (!dlg) return;
+      scene._readableKimSpeaker039?.setText(dlg.npc?.name || 'Speaker');
+      scene._readableKimLine039?.setText(dlg.lines[dlg.index] || '');
+      scene.setPrompt?.(`A: continue ${dlg.npc?.name || 'conversation'}`);
+    }
+    function advanceReadableDialogue039(scene) {
+      const dlg = scene?._readableKimDialogue039;
+      if (!dlg) return false;
+      if (dlg.index < dlg.lines.length - 1) {
+        dlg.index += 1;
+        updateReadableDialogue039(scene);
+      } else {
+        clearReadableDialogue039(scene);
+        scene.setPrompt?.('Kim’s Corner Market. Talk to Mr. Kim or Johnny. Front door exits to street.');
+      }
+      return true;
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldCreateKims039 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldCreateKims039 ? oldCreateKims039.apply(this, arguments) : undefined;
+        // Child scale for Johnny.
+        for (const npc of this.kimsNpcs038 || []) {
+          if (/johnny/i.test(npc.name || npc.id || '')) {
+            npc.sprite?.setScale?.(0.38);
+            npc.nameText?.setPosition?.(npc.x, npc.y - 62);
+            npc.body?.setDisplaySize?.(24, 34);
+          }
+        }
+        return result;
+      };
+      const oldInteractKims039 = KimsCornerMarketScene.prototype.handleInteract;
+      KimsCornerMarketScene.prototype.handleInteract = function() {
+        if (advanceReadableDialogue039(this)) return true;
+        const npc = nearestKimNpc039(this);
+        if (npc) return openReadableDialogue039(this, npc);
+        return oldInteractKims039 ? oldInteractKims039.call(this) : undefined;
+      };
+      const oldUpdateKims039 = KimsCornerMarketScene.prototype.update;
+      KimsCornerMarketScene.prototype.update = function(time, delta) {
+        const result = oldUpdateKims039 ? oldUpdateKims039.call(this, time, delta) : undefined;
+        if (this._readableKimDialogue039) {
+          this.playerBody?.body?.setVelocity?.(0, 0);
+        } else {
+          const npc = nearestKimNpc039(this);
+          if (npc) this.setPrompt?.(`A: talk to ${npc.name}`);
+        }
+        return result;
+      };
+    }
+
+    if (typeof MobileControlsScene !== 'undefined') {
+      const oldFire039 = MobileControlsScene.prototype.fireAction;
+      MobileControlsScene.prototype.fireAction = function(key) {
+        const target = this.getTargetScene?.();
+        if (isKims039(target) && key === 'a') {
+          target.handleInteract?.();
+          return;
+        }
+        return oldFire039 ? oldFire039.call(this, key) : undefined;
       };
     }
   })();
