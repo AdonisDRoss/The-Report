@@ -15773,6 +15773,236 @@
     }
   })();
 
+
+
+  // KIMS_FRONT_EXIT_AND_MALCOLM_MIRROR_HOTFIX_041
+  // Hardens Kim's lower-door exit and forces right-facing Malcolm coat movement to reuse left-facing frames flipped horizontally.
+  (function installKimsFrontExitAndMalcolmMirrorHotfix041() {
+    const HOTFIX_ID_041 = 'KIMS_FRONT_EXIT_AND_MALCOLM_MIRROR_HOTFIX_041';
+    if (window[HOTFIX_ID_041]) return;
+    window[HOTFIX_ID_041] = true;
+
+    const KIMS_EXIT_A_041 = { x: 335, y: 885, w: 620, h: 369 };
+    const KIMS_EXIT_B_041 = { x: 240, y: 760, w: 850, h: 494 };
+    const KIMS_WORLD_SPAWN_041 = { x: 2675, y: 1214 };
+    const KIMS_CAR_SPAWN_041 = { x: 2795, y: 1210, heading: 0 };
+
+    function isKims041(scene) { return scene?.scene?.key === 'KimsCornerMarketScene'; }
+    function playerPoint041(scene) { return { x: Number(scene?.playerBody?.x || 0), y: Number(scene?.playerBody?.y || 0) }; }
+    function inRect041(scene, r) {
+      const p = playerPoint041(scene);
+      return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
+    }
+    function nearKimFrontDoorA041(scene) { return inRect041(scene, KIMS_EXIT_A_041); }
+    function nearKimFrontDoorB041(scene) { return inRect041(scene, KIMS_EXIT_B_041); }
+
+    function transitionToWorld041(scene) {
+      if (!scene || scene._kimsWorldTransitioning041) return true;
+      scene._kimsWorldTransitioning041 = true;
+      scene._kimsWorldTransitioning040 = true;
+      scene._worldTransitioning038 = true;
+      scene.playerBody?.body?.setVelocity?.(0, 0);
+      scene.playerSprite?.anims?.stop?.();
+      const state = typeof ensureMalcolmMorningState022 === 'function' ? ensureMalcolmMorningState022() : (GAME.malcolm || {});
+      const msg = state.outfitEquipped
+        ? 'Morning shift: go to the police station and meet Ramos.'
+        : 'You can leave, but your pistol and detective clothes are upstairs.';
+      scene.cameras?.main?.fadeOut?.(90, 0, 0, 0);
+      scene.time?.delayedCall?.(105, () => {
+        scene.scene.start('GameScene', {
+          fromStationExit: true,
+          fromKimsFrontDoor: true,
+          spawn: KIMS_WORLD_SPAWN_041,
+          carSpawn: KIMS_CAR_SPAWN_041,
+          message: msg
+        });
+      });
+      return true;
+    }
+
+    const RIGHT_FACINGS_041 = new Set(['E','NE','SE']);
+    const MIRROR_FACING_041 = { E:'W', NE:'NW', SE:'SW' };
+    const DIR_NAME_041 = { S:'south', SW:'southwest', W:'west', NW:'northwest', N:'north', NE:'northwest', E:'west', SE:'southwest' };
+    function isRight041(facing) { return RIGHT_FACINGS_041.has(facing || ''); }
+    function mirrorFacing041(facing) { return MIRROR_FACING_041[facing] || facing || 'S'; }
+    function movingBody041(body) {
+      const b = body?.body;
+      return Math.abs(Number(b?.velocity?.x || 0)) > 5 || Math.abs(Number(b?.velocity?.y || 0)) > 5;
+    }
+
+    // Make future 4x8 animation creation treat right-facing rows as mirrored left-facing rows.
+    try {
+      if (typeof frameRowForFacing022 === 'function') {
+        frameRowForFacing022 = function(facing) {
+          return ({ S:0, SW:1, W:2, NW:3, N:4, NE:3, E:2, SE:1 })[facing] || 0;
+        };
+      }
+      if (typeof frameForFacing022 === 'function') {
+        frameForFacing022 = function(facing, step = 0) {
+          const row = ({ S:0, SW:1, W:2, NW:3, N:4, NE:3, E:2, SE:1 })[facing] || 0;
+          return row * 4 + Phaser.Math.Clamp(step, 0, 3);
+        };
+      }
+    } catch (e) {}
+
+    function applyMorningMirror041(scene) {
+      if (!scene?.playerSprite) return;
+      const facing = scene.facing || 'S';
+      const renderFacing = mirrorFacing041(facing);
+      const flipped = isRight041(facing);
+      const sprite = scene.playerSprite;
+      sprite.setFlipX?.(flipped);
+      const key = sprite.texture?.key;
+      if (!key) return;
+      if (movingBody041(scene.playerBody)) {
+        const anim = (typeof animKey022 === 'function') ? animKey022(key, renderFacing) : null;
+        if (anim && scene.anims?.exists?.(anim)) sprite.play?.(anim, true);
+      } else {
+        sprite.anims?.stop?.();
+        if (typeof frameForFacing022 === 'function') sprite.setFrame?.(frameForFacing022(renderFacing, 0));
+      }
+    }
+
+    function patchMorningScene041() {
+      if (typeof MorningInteriorBaseScene022 === 'undefined') return;
+      const proto = MorningInteriorBaseScene022.prototype;
+      const oldUpdate = proto.update;
+      proto.update = function(time, delta) {
+        const result = oldUpdate ? oldUpdate.call(this, time, delta) : undefined;
+        applyMorningMirror041(this);
+        return result;
+      };
+      const oldCreatePlayerAt = proto.createPlayerAt;
+      proto.createPlayerAt = function(x, y, sleeping = false) {
+        const result = oldCreatePlayerAt ? oldCreatePlayerAt.call(this, x, y, sleeping) : undefined;
+        applyMorningMirror041(this);
+        return result;
+      };
+      const oldSwap = proto.updatePlayerSpriteAsset;
+      proto.updatePlayerSpriteAsset = function() {
+        const result = oldSwap ? oldSwap.call(this) : undefined;
+        applyMorningMirror041(this);
+        return result;
+      };
+    }
+
+    function applyWorldMirror041(scene) {
+      const sprite = scene?.playerSprite;
+      if (!sprite) return;
+      const facing = scene.playerFacing || 'S';
+      const renderName = DIR_NAME_041[facing] || 'south';
+      const flipped = isRight041(facing);
+      sprite.setFlipX?.(flipped);
+      if (movingBody041(scene.player)) {
+        const key = sprite.texture?.key === (typeof MALCOLM_STATION_ASSET !== 'undefined' ? MALCOLM_STATION_ASSET.key : '')
+          ? `station_detective_walk_${renderName}`
+          : `detective_walk_${renderName}`;
+        if (scene.anims?.exists?.(key)) sprite.play?.(key, true);
+      } else {
+        sprite.anims?.stop?.();
+        const cols = sprite.texture?.key === (typeof MALCOLM_STATION_ASSET !== 'undefined' ? MALCOLM_STATION_ASSET.key : '')
+          ? ((typeof MALCOLM_STATION_ASSET !== 'undefined' && MALCOLM_STATION_ASSET.cols) || 4)
+          : ((typeof PLAYER_ASSET !== 'undefined' && PLAYER_ASSET.cols) || 4);
+        const row = ({ S:0, SW:1, W:2, NW:3, N:4, NE:3, E:2, SE:1 })[facing] || 0;
+        sprite.setFrame?.(row * cols);
+      }
+    }
+
+    function patchWorldScene041(SceneClass) {
+      if (typeof SceneClass === 'undefined' || !SceneClass?.prototype) return;
+      const proto = SceneClass.prototype;
+      const oldFrame = proto.frameForFacing;
+      if (oldFrame) proto.frameForFacing = function() {
+        const saved = this.playerFacing;
+        if (isRight041(saved)) this.playerFacing = mirrorFacing041(saved);
+        const out = oldFrame.call(this);
+        this.playerFacing = saved;
+        return out;
+      };
+      const oldAnim = proto.animForFacing;
+      if (oldAnim) proto.animForFacing = function() {
+        const saved = this.playerFacing;
+        if (isRight041(saved)) this.playerFacing = mirrorFacing041(saved);
+        const out = oldAnim.call(this);
+        this.playerFacing = saved;
+        return out;
+      };
+      const oldUpdate = proto.updatePlayerSprite || proto.updatePlayerVisual;
+      if (oldUpdate && proto.updatePlayerSprite) {
+        proto.updatePlayerSprite = function(moving) {
+          const result = oldUpdate.call(this, moving);
+          applyWorldMirror041(this);
+          return result;
+        };
+      } else if (oldUpdate && proto.updatePlayerVisual) {
+        proto.updatePlayerVisual = function(moving) {
+          const result = oldUpdate.call(this, moving);
+          applyWorldMirror041(this);
+          return result;
+        };
+      }
+    }
+
+    patchMorningScene041();
+    patchWorldScene041(typeof GameScene !== 'undefined' ? GameScene : undefined);
+    patchWorldScene041(typeof PoliceStationScene !== 'undefined' ? PoliceStationScene : undefined);
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldCreate041 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldCreate041 ? oldCreate041.apply(this, arguments) : undefined;
+        this.zones = (this.zones || []).filter(z => !/^front_door/.test(String(z.id || '')));
+        this.addHotZone?.('front_door_041', KIMS_EXIT_A_041.x, KIMS_EXIT_A_041.y, KIMS_EXIT_A_041.w, KIMS_EXIT_A_041.h, 'Front door: exit to street/world map — press A or B');
+        this.addHotZone?.('front_door_wide_041', KIMS_EXIT_B_041.x, KIMS_EXIT_B_041.y, KIMS_EXIT_B_041.w, KIMS_EXIT_B_041.h, 'Front glass/front counter exit: press B');
+        this._frontDoorGrace041 = this.entryData?.fromStreet ? 900 : 180;
+        this.input?.keyboard?.on?.('keydown-B', () => { if (nearKimFrontDoorB041(this)) transitionToWorld041(this); });
+        return result;
+      };
+
+      const oldInteract041 = KimsCornerMarketScene.prototype.handleInteract;
+      KimsCornerMarketScene.prototype.handleInteract = function() {
+        if (nearKimFrontDoorA041(this) || nearKimFrontDoorB041(this)) return transitionToWorld041(this);
+        return oldInteract041 ? oldInteract041.call(this) : undefined;
+      };
+
+      const oldUpdate041 = KimsCornerMarketScene.prototype.update;
+      KimsCornerMarketScene.prototype.update = function(time, delta) {
+        const m = this.mobile || MOBILE_INPUT_STATE || {};
+        const aNow = !!m.a;
+        const bNow = !!m.b;
+        const result = oldUpdate041 ? oldUpdate041.call(this, time, delta) : undefined;
+        this._frontDoorGrace041 = Math.max(0, (this._frontDoorGrace041 || 0) - (delta || 16));
+        if (nearKimFrontDoorB041(this)) {
+          this.setPrompt?.(nearKimFrontDoorA041(this) ? 'Front door: exit to street/world map — press A or B.' : 'Front of store: press B to exit to street/world map.');
+          if (this._frontDoorGrace041 <= 0) {
+            if ((bNow && !this._lastB041) || (nearKimFrontDoorA041(this) && aNow && !this._lastA041)) transitionToWorld041(this);
+          }
+        }
+        this._lastA041 = aNow;
+        this._lastB041 = bNow;
+        return result;
+      };
+    }
+
+    if (typeof MobileControlsScene !== 'undefined') {
+      const oldFire041 = MobileControlsScene.prototype.fireAction;
+      MobileControlsScene.prototype.fireAction = function(key) {
+        const target = this.getTargetScene?.();
+        if (isKims041(target) && (key === 'a' || key === 'b')) {
+          if (nearKimFrontDoorB041(target) && (key === 'b' || nearKimFrontDoorA041(target))) {
+            transitionToWorld041(target);
+            return;
+          }
+          if (key === 'a') {
+            target.handleInteract?.();
+            return;
+          }
+        }
+        return oldFire041 ? oldFire041.call(this, key) : undefined;
+      };
+    }
+  })();
+
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, NeonNightsInteriorScene, NeonNightsBackRoomScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
 </script>
