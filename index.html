@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'apartment-gear-hotfix-036';
+  const ASSET_REV = 'apartment-stairs-hotfix-037';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -14786,6 +14786,207 @@
   })();
 
 
+
+
+  // APARTMENT_STAIRS_TRANSITION_HOTFIX_037
+  // Moves Malcolm apartment/Kim's stairs transitions to the exact visible stair landings:
+  // apartment trigger at the lower stair landing, Kim's spawn at bottom of store stairs,
+  // Kim's return trigger at the top of store stairs, and apartment return spawn at top of stairs.
+  (function installApartmentStairTransitionHotfix037() {
+    const APT_DOWN_TRIGGER_037 = { x: 104, y: 650, w: 168, h: 190, label: 'Stairs: go downstairs to Kim’s Corner Market' };
+    const APT_TOP_STAIRS_SPAWN_037 = { x: 170, y: 496 };
+    const KIMS_BOTTOM_STAIRS_SPAWN_037 = { x: 1060, y: 432 };
+    const KIMS_UP_TRIGGER_037 = { x: 998, y: 44, w: 168, h: 168, label: 'Top of stairs: go upstairs to Malcolm’s apartment' };
+
+    function isApartment037(scene) { return scene?.scene?.key === 'MalcolmApartmentScene'; }
+    function isKims037(scene) { return scene?.scene?.key === 'KimsCornerMarketScene'; }
+    function pt037(scene) { return { x: Number(scene?.playerBody?.x || 0), y: Number(scene?.playerBody?.y || 0) }; }
+    function hit037(scene, r) {
+      const p = pt037(scene);
+      return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
+    }
+    function setPlayerPos037(scene, pos, facing) {
+      if (!scene?.playerBody || !pos) return;
+      scene.playerBody.setPosition(pos.x, pos.y);
+      scene.playerBody.body?.setVelocity?.(0, 0);
+      scene.playerSprite?.setPosition?.(pos.x, pos.y);
+      if (facing) scene.facing = facing;
+      scene.updatePlayerSpriteAsset?.();
+    }
+    function clearStairZones037(scene, ids) {
+      if (!scene) return;
+      const remove = new Set(ids);
+      scene.zones = (scene.zones || []).filter(z => !remove.has(z.id));
+    }
+    function addZone037(scene, id, r) {
+      scene.addHotZone?.(id, r.x, r.y, r.w, r.h, r.label);
+    }
+    function transitionDown037(scene) {
+      if (!scene || scene._transitioning037) return true;
+      scene._transitioning037 = true;
+      scene._transitionBlock037 = true;
+      scene.playerBody?.body?.setVelocity?.(0, 0);
+      scene.cameras?.main?.fadeOut?.(170, 0, 0, 0);
+      scene.time?.delayedCall?.(185, () => {
+        scene.scene.start('KimsCornerMarketScene', {
+          fromApartment: true,
+          fromApartmentStairs037: true,
+          spawn: KIMS_BOTTOM_STAIRS_SPAWN_037,
+          message: 'Downstairs: Kim’s Corner Market.'
+        });
+      });
+      return true;
+    }
+    function transitionUp037(scene) {
+      if (!scene || scene._transitioning037) return true;
+      scene._transitioning037 = true;
+      scene._transitionBlock037 = true;
+      scene.playerBody?.body?.setVelocity?.(0, 0);
+      scene.cameras?.main?.fadeOut?.(170, 0, 0, 0);
+      scene.time?.delayedCall?.(185, () => {
+        scene.scene.start('MalcolmApartmentScene', {
+          fromKimsStairs: true,
+          fromKimsStairs037: true,
+          spawn: APT_TOP_STAIRS_SPAWN_037
+        });
+      });
+      return true;
+    }
+
+    if (typeof MalcolmApartmentScene !== 'undefined') {
+      const oldCreate037 = MalcolmApartmentScene.prototype.create;
+      const oldInteract037 = MalcolmApartmentScene.prototype.handleInteract;
+      const oldSelect037 = MalcolmApartmentScene.prototype.handleSelectMenu;
+      const oldUpdate037 = MalcolmApartmentScene.prototype.update;
+
+      MalcolmApartmentScene.prototype.create = function() {
+        const result = oldCreate037.apply(this, arguments);
+        clearStairZones037(this, ['stairs_down']);
+        addZone037(this, 'stairs_down', APT_DOWN_TRIGGER_037);
+        if (this.entryData?.fromKimsStairs037 || this.entryData?.fromKimsStairs) {
+          setPlayerPos037(this, this.entryData.spawn || APT_TOP_STAIRS_SPAWN_037, 'S');
+        }
+        this._stairsEntryGrace037 = 520;
+        this.setPrompt?.('Apartment. Pick up gear at the dresser. Use the lower stair landing to go downstairs.');
+        return result;
+      };
+
+      MalcolmApartmentScene.prototype.handleInteract = function() {
+        if (hit037(this, APT_DOWN_TRIGGER_037)) return transitionDown037(this);
+
+        // Stop older broad stair rectangles from triggering while Malcolm is only near the rails.
+        const p = pt037(this);
+        const inOldBroadStairs = p.x >= 42 && p.x <= 372 && p.y >= 510 && p.y <= 1010;
+        if (inOldBroadStairs) {
+          this.setPrompt?.('Move onto the lower stair landing to go downstairs.');
+          return true;
+        }
+        return oldInteract037 ? oldInteract037.call(this) : undefined;
+      };
+
+      MalcolmApartmentScene.prototype.handleSelectMenu = function() {
+        return oldSelect037 ? oldSelect037.call(this) : undefined;
+      };
+
+      MalcolmApartmentScene.prototype.update = function(time, delta) {
+        const m = this.mobile || MOBILE_INPUT_STATE || {};
+        const savedA = !!m.a;
+        const savedSel = !!m.sel;
+        m.a = false;
+        m.sel = false;
+        const old025 = this._transitioning025;
+        this._transitioning025 = true;
+        const result = oldUpdate037 ? oldUpdate037.call(this, time, delta) : undefined;
+        this._transitioning025 = old025;
+        m.a = savedA;
+        m.sel = savedSel;
+
+        this._stairsEntryGrace037 = Math.max(0, (this._stairsEntryGrace037 || 0) - (delta || 16));
+
+        if (hit037(this, APT_DOWN_TRIGGER_037)) {
+          this.setPrompt?.('Stairs: going downstairs to Kim’s Corner Market.');
+          if (this._stairsEntryGrace037 <= 0) transitionDown037(this);
+        }
+
+        if (savedA && !this._lastA037) this.handleInteract();
+        if (savedSel && !this._lastSel037) this.handleSelectMenu();
+        this._lastA037 = savedA;
+        this._lastSel037 = savedSel;
+        return result;
+      };
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldCreate037 = KimsCornerMarketScene.prototype.create;
+      const oldInteract037 = KimsCornerMarketScene.prototype.handleInteract;
+      const oldUpdate037 = KimsCornerMarketScene.prototype.update;
+
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldCreate037.apply(this, arguments);
+        clearStairZones037(this, ['stairs_up']);
+        addZone037(this, 'stairs_up', KIMS_UP_TRIGGER_037);
+        if (this.entryData?.fromApartmentStairs037 || this.entryData?.fromApartment) {
+          setPlayerPos037(this, this.entryData.spawn || KIMS_BOTTOM_STAIRS_SPAWN_037, 'S');
+        }
+        this._stairsEntryGrace037 = 520;
+        this.setPrompt?.(this.entryData?.message || 'Kim’s Corner Market. Walk to the top of the stairs to return upstairs.');
+        return result;
+      };
+
+      KimsCornerMarketScene.prototype.handleInteract = function() {
+        if (hit037(this, KIMS_UP_TRIGGER_037)) return transitionUp037(this);
+
+        const p = pt037(this);
+        const inOldBroadStairs = p.x >= 925 && p.x <= 1235 && p.y >= 15 && p.y <= 405;
+        if (inOldBroadStairs) {
+          this.setPrompt?.('Go to the top of the stairs to return to Malcolm’s apartment.');
+          return true;
+        }
+        return oldInteract037 ? oldInteract037.call(this) : undefined;
+      };
+
+      KimsCornerMarketScene.prototype.update = function(time, delta) {
+        const m = this.mobile || MOBILE_INPUT_STATE || {};
+        const savedA = !!m.a;
+        const savedSel = !!m.sel;
+        m.a = false;
+        m.sel = false;
+        const old025 = this._transitioning025;
+        this._transitioning025 = true;
+        const result = oldUpdate037 ? oldUpdate037.call(this, time, delta) : undefined;
+        this._transitioning025 = old025;
+        m.a = savedA;
+        m.sel = savedSel;
+
+        this._stairsEntryGrace037 = Math.max(0, (this._stairsEntryGrace037 || 0) - (delta || 16));
+
+        if (hit037(this, KIMS_UP_TRIGGER_037)) {
+          this.setPrompt?.('Top of stairs: returning to Malcolm’s apartment.');
+          if (this._stairsEntryGrace037 <= 0) transitionUp037(this);
+        }
+
+        if (savedA && !this._lastA037) this.handleInteract();
+        this._lastA037 = savedA;
+        this._lastSel037 = savedSel;
+        return result;
+      };
+    }
+
+    if (typeof MobileControlsScene !== 'undefined') {
+      const oldFire037 = MobileControlsScene.prototype.fireAction;
+      MobileControlsScene.prototype.fireAction = function(key) {
+        const target = this.getTargetScene?.();
+        if (isApartment037(target)) {
+          if (key === 'a') { target.handleInteract?.(); return; }
+          if (key === 'sel') { target.handleSelectMenu?.(); return; }
+        }
+        if (isKims037(target)) {
+          if (key === 'a') { target.handleInteract?.(); return; }
+        }
+        return oldFire037 ? oldFire037.call(this, key) : undefined;
+      };
+    }
+  })();
 
   new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, NeonNightsInteriorScene, NeonNightsBackRoomScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
