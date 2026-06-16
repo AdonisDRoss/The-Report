@@ -69,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'kims-ramos-hotfix-028';
+  const ASSET_REV = 'neon-nights-workflow-030';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -206,7 +206,7 @@
     case: { active: false, complete: false, suspectArrested: false, evidenceCollected: false, evidenceInTrunk: false, witnessStatement: false, reportFiled: false },
     ramos: {
       introduced: false,
-      onDuty: false,
+      onDuty: true,
       dismissed: false,
       inCar: false,
       smallTalkIndex: 0
@@ -12721,7 +12721,7 @@
         this.time.delayedCall(230, () => {
           this.scene.start('KimsCornerMarketScene', {
             fromApartment: true,
-            spawn: { x: 1060, y: 430 },
+            spawn: { x: 1045, y: 220 },
             message: 'Downstairs: Kim’s Corner Market.'
           });
         });
@@ -13174,7 +13174,7 @@
   // APARTMENT_INTERACTION_HOTFIX_025
   // Fixes bed blocking, dresser pickup, SEL equip menu, and automatic stair/door transitions.
   (function installApartmentInteractionHotfix025() {
-    const APT_DRESSER_ZONE_025 = { id:'dresser_gear', x:520, y:90, w:700, h:500, label:'Dresser: pick up pistol and detective outfit' };
+    const APT_DRESSER_ZONE_025 = { id:'dresser_gear', x:650, y:120, w:500, h:420, label:'Dresser: pick up pistol and detective outfit' };
     const APT_STAIRS_ZONE_025  = { id:'stairs_down', x:50, y:520, w:310, h:470, label:'Staircase: go downstairs to Kim’s Corner Market' };
     const APT_BED_ZONE_025     = { id:'bed', x:455, y:70, w:430, h:500, label:'Bed: sleep/save' };
 
@@ -13264,8 +13264,7 @@
       const s = ensureMalcolmMorningState022();
       s.hasDetectiveOutfit = true;
       s.hasPistol = true;
-      scene.setPrompt?.('Picked up pistol and detective clothes from the dresser. Press A to equip, or SEL to close.');
-      openEquipMenu025(scene);
+      scene.setPrompt?.('Picked up pistol and detective clothes from the dresser. Press SEL, then A to equip.');
     }
 
     function equipGear025(scene) {
@@ -13289,7 +13288,7 @@
       scene.time.delayedCall(190, () => {
         scene.scene.start('KimsCornerMarketScene', {
           fromApartment: true,
-          spawn: { x: 1060, y: 430 },
+          spawn: { x: 1060, y: 225 },
           message: 'Downstairs: Kim’s Corner Market.'
         });
       });
@@ -13425,858 +13424,1052 @@
   })();
 
 
-  // KIMS_NPC_DIALOGUE_HOTFIX_026
-  // Adds Mr. Kim and Johnny downstairs, with action-button NPC conversations
-  // and a custom parchment-style RPG dialogue panel.
-  (function installKimsNpcDialogueHotfix026() {
-    if (typeof KimsCornerMarketScene === 'undefined') return;
 
-    const SHOP_NPC_TALK_RADIUS_026 = 92;
+  // NEON_NIGHTS_WORKFLOW_HOTFIX_030
+  // Enterable Neon Nights with crowd NPCs, Malcolm-normalized sprite scale, Red Curtain Heat music, and four-performer stage rotation.
+  const NEON_NIGHTS_TRACK_ASSET_030 = {
+    key: 'neon_red_curtain_heat',
+    path: 'assets/audio/music/red_curtain_heat.mp3',
+    volume: 0.68
+  };
 
-    const SHOP_NPC_DATA_026 = [
-      {
-        id: 'mr_kim',
-        name: 'Mr. Kim',
-        x: 308,
-        y: 582,
-        color: 0x4a5f3a,
-        skin: 0xc68f5b,
-        portraitColor: 0x6f8f4f,
-        lines: [
-          'Morning, Malcolm. You heading out already?',
-          'Coffee’s fresh. Take some if you want it.',
-          'Try to keep Johnny from touching the lottery display.'
-        ]
-      },
-      {
-        id: 'johnny',
-        name: 'Johnny',
-        x: 448,
-        y: 900,
-        color: 0x315d8a,
-        skin: 0xd7a26a,
-        portraitColor: 0x3d6f9b,
-        lines: [
-          'Detective King, you really carry a gun now?',
-          'Mr. Kim says I ask too many questions.',
-          'You going to the station today?'
-        ]
+  const NEON_NIGHTS_ASSETS_030 = {
+    walkFrame: { w:96, h:96 },
+    danceFrame: { w:128, h:192 },
+    sitFrame: { w:128, h:128 },
+    scale: {
+      walk: 1.08,
+      dance: 0.56,
+      sitting: 0.80,
+      bouncer: 1.10,
+      bartender: 1.06
+    },
+    sprites: [
+      { key:'neon_ruby_walk', path:'assets/characters/npcs/neon_nights/ruby_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_violet_walk', path:'assets/characters/npcs/neon_nights/violet_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_jade_walk', path:'assets/characters/npcs/neon_nights/jade_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_lana_walk', path:'assets/characters/npcs/neon_nights/lana_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_ruby_dance', path:'assets/characters/npcs/neon_nights/ruby_dance_4x4_128x192.png', fw:128, fh:192 },
+      { key:'neon_violet_dance', path:'assets/characters/npcs/neon_nights/violet_dance_4x4_128x192.png', fw:128, fh:192 },
+      { key:'neon_jade_dance', path:'assets/characters/npcs/neon_nights/jade_dance_4x4_128x192.png', fw:128, fh:192 },
+      { key:'neon_lana_dance', path:'assets/characters/npcs/neon_nights/lana_special_dance_4x4_128x192.png', fw:128, fh:192 },
+      { key:'neon_dock_regular_walk', path:'assets/characters/npcs/neon_nights/dock_regular_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_businessman_walk', path:'assets/characters/npcs/neon_nights/businessman_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_punk_walk', path:'assets/characters/npcs/neon_nights/neon_knives_punk_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_vice_cop_walk', path:'assets/characters/npcs/neon_nights/vice_cop_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_waitress_walk', path:'assets/characters/npcs/neon_nights/cocktail_waitress_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_offshift_dancer_walk', path:'assets/characters/npcs/neon_nights/offshift_dancer_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_bouncer_walk', path:'assets/characters/npcs/neon_nights/bouncer_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_bartender_walk', path:'assets/characters/npcs/neon_nights/bartender_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_vince_walk', path:'assets/characters/npcs/neon_nights/vince_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_paulie_walk', path:'assets/characters/npcs/neon_nights/paulie_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_nole_walk', path:'assets/characters/npcs/neon_nights/nole_walk_4x8_96.png', fw:96, fh:96 },
+      { key:'neon_honey_sit', path:'assets/characters/npcs/neon_nights/honey_sitting_4x2_128.png', fw:128, fh:128 },
+      { key:'neon_vince_sit', path:'assets/characters/npcs/neon_nights/vince_sitting_4x2_128.png', fw:128, fh:128 },
+      { key:'neon_paulie_sit', path:'assets/characters/npcs/neon_nights/paulie_sitting_4x2_128.png', fw:128, fh:128 },
+      { key:'neon_nole_sit', path:'assets/characters/npcs/neon_nights/nole_sitting_4x2_128.png', fw:128, fh:128 }
+    ]
+  };
+
+  class NeonNightsInteriorScene extends Phaser.Scene {
+    constructor(){ super('NeonNightsInteriorScene'); }
+
+    init(data){
+      this.dataIn = data || {};
+      this.returnSpawn = this.dataIn.returnSpawn || { x: 2328, y: 2600 };
+      this.mapW = 1600;
+      this.mapH = 1000;
+    }
+
+    preload(){
+      if (!this.cache.audio.exists(NEON_NIGHTS_TRACK_ASSET_030.key)) this.load.audio(NEON_NIGHTS_TRACK_ASSET_030.key, A(NEON_NIGHTS_TRACK_ASSET_030.path));
+      if (!this.cache.audio.exists(THEME_ASSET.key)) this.load.audio(THEME_ASSET.key, A(THEME_ASSET.path));
+      if (!this.textures.exists(PLAYER_ASSET.key)) this.load.spritesheet(PLAYER_ASSET.key, A(PLAYER_ASSET.path), { frameWidth: PLAYER_ASSET.frameWidth, frameHeight: PLAYER_ASSET.frameHeight });
+      for (const a of NEON_NIGHTS_ASSETS_030.sprites) {
+        if (!this.textures.exists(a.key)) this.load.spritesheet(a.key, A(a.path), { frameWidth:a.fw, frameHeight:a.fh });
       }
-    ];
+    }
 
-    function kimsRegisterDialogueUi026(scene, obj) {
-      if (!scene || !obj) return obj;
+    create(){
+      this.cameras.main.setBackgroundColor('#050309');
+      this.physics.world.setBounds(0, 0, this.mapW, this.mapH);
+      this.cameras.main.setBounds(0, 0, this.mapW, this.mapH);
+      this.mobile = MOBILE_INPUT_STATE;
+      this.uiObjects = [];
+      this.hotspots = [];
+      this.npcs = [];
+      this.stageDancers = [];
+      this.currentDancerIndex = -1;
+      this.currentStageDancer = null;
+      this.dancerSwitchLocked = false;
+      this.message = this.dataIn.message || 'Neon Nights — Red Gull Strip.';
+      this.messageTimer = 2600;
+
+      this.buildInteriorArt();
+      this.createWalls();
+      this.createPlayer();
+      this.createNeonAnims();
+      this.createCrowd();
+      this.createStageDancers();
+      this.createUi();
+
+      this.cameras.main.startFollow(this.playerBody, true, 0.18, 0.18);
+      this.cameras.main.setDeadzone(80, 54);
+      this.cameras.main.setZoom(getManualCameraZoom(1.18));
+      this.cameras.main.fadeIn(180, 0, 0, 0);
+
+      this.keys = this.input.keyboard.addKeys({ up:'W', down:'S', left:'A', right:'D', arrowUp:'UP', arrowDown:'DOWN', arrowLeft:'LEFT', arrowRight:'RIGHT', interact:'E', enter:'ENTER' });
+      this.input.keyboard.on('keydown-E', () => this.handleInteract());
+      this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
+      this.input.keyboard.on('keydown-A', () => this.handleInteract());
+      this.input.keyboard.on('keydown-ESC', () => this.exitToStreet());
+
+      launchGlobalMobileControls(this);
+      this.setupUiCamera();
+      installPauseMenu(this);
+      this.startClubMusicAndRotation();
+    }
+
+    registerNeonUi(obj) {
+      if (!obj) return obj;
+      if (!this.uiObjects.includes(obj)) this.uiObjects.push(obj);
       obj.setScrollFactor?.(0);
-      obj.setDepth?.(4300);
-      if (!scene.uiObjects) scene.uiObjects = [];
-      if (!scene.uiObjects.includes(obj)) scene.uiObjects.push(obj);
-      scene.cameras?.main?.ignore?.(obj);
-
-      // Existing UI camera was created before this patch UI, so let it see the new dialogue objects
-      // and keep it from drawing world objects created after setup.
-      if (scene.uiCamera) {
-        const uiSet = new Set(scene.uiObjects || []);
-        scene.uiCamera.ignore(scene.children.list.filter(o => !uiSet.has(o)));
-      }
+      if (obj.setDepth && obj.depth < 2500) obj.setDepth(2500);
+      if (this.cameras?.main) this.cameras.main.ignore(obj);
       return obj;
     }
 
-    function kimsIgnoreNpcOnUiCamera026(scene, npc) {
-      if (!scene?.uiCamera || !npc) return;
-      const objs = [npc.body, npc.sprite, npc.nameText].filter(Boolean);
-      scene.uiCamera.ignore(objs);
+    setupUiCamera() {
+      if (this.uiCamera) return;
+      this.uiCamera = this.cameras.add(0, 0, VIEW_W, VIEW_H).setScroll(0,0).setZoom(1).setName('NeonNightsUICamera');
+      this.uiCamera.roundPixels = true;
+      this.cameras.main.ignore(this.uiObjects || []);
+      const uiSet = new Set(this.uiObjects || []);
+      this.uiCamera.ignore(this.children.list.filter(obj => !uiSet.has(obj)));
     }
 
-    KimsCornerMarketScene.prototype.createShopNpc = function(cfg) {
-      if (!cfg || !this.add) return null;
-      if (!this.shopNpcs026) this.shopNpcs026 = [];
+    refreshUiCamera() {
+      if (!this.uiCamera) return;
+      const uiSet = new Set(this.uiObjects || []);
+      this.cameras.main.ignore(this.uiObjects || []);
+      this.uiCamera.ignore(this.children.list.filter(obj => !uiSet.has(obj)));
+    }
 
-      const body = this.add.rectangle(cfg.x, cfg.y, 28, 44, 0x000000, 0.0).setDepth(28);
-      this.physics.add.existing(body);
-      body.body.setImmovable(true);
-      body.body.setAllowGravity(false);
-      body.body.moves = false;
+    buildInteriorArt() {
+      const g = this.add.graphics().setDepth(0);
+      g.fillStyle(0x070309, 1).fillRect(0, 0, this.mapW, this.mapH);
+      g.fillStyle(0x130914, 1).fillRoundedRect(70, 55, 1460, 870, 24);
+      g.lineStyle(8, 0x050505, 1).strokeRoundedRect(70, 55, 1460, 870, 24);
 
-      const sprite = this.add.container(cfg.x, cfg.y).setDepth(29);
-      const shadow = this.add.ellipse(0, 22, 38, 14, 0x000000, 0.30);
-      const legs = this.add.rectangle(0, 16, 21, 26, 0x242a2d, 0.98).setStrokeStyle(1, 0x111111, 0.9);
-      const torso = this.add.rectangle(0, -8, 30, 42, cfg.color || 0x566273, 0.98).setStrokeStyle(2, 0x111111, 0.9);
-      const head = this.add.circle(0, -38, 13, cfg.skin || 0xc99162, 1).setStrokeStyle(2, 0x111111, 0.9);
-      const hair = this.add.rectangle(0, -48, 25, 7, 0x201611, 0.95);
-      sprite.add([shadow, legs, torso, head, hair]);
-      sprite.setScale(1.0);
+      // floor and neon grid
+      g.fillStyle(0x1a1018, 1).fillRect(120, 300, 1060, 530);
+      g.lineStyle(1, 0x3b1730, 0.38);
+      for (let x = 120; x <= 1180; x += 60) g.lineBetween(x, 300, x, 830);
+      for (let y = 300; y <= 830; y += 60) g.lineBetween(120, y, 1180, y);
 
-      const nameText = this.add.text(cfg.x, cfg.y - 72, cfg.name, {
-        fontFamily: 'Courier New',
-        fontSize: '17px',
-        color: '#f4d28a',
-        stroke: '#000000',
-        strokeThickness: 4
-      }).setOrigin(0.5).setDepth(40);
+      // stage, curtain, stairs-only access
+      g.fillStyle(0x21070d, 1).fillRoundedRect(270, 80, 760, 190, 12);
+      g.fillStyle(0x4a0714, 1).fillRoundedRect(295, 95, 710, 44, 8);
+      g.lineStyle(4, COLORS.neonPink, 0.8).strokeRoundedRect(270, 80, 760, 190, 12);
+      g.fillStyle(0x2d0b12, 1).fillRoundedRect(705, 260, 140, 70, 8);
+      g.lineStyle(3, COLORS.amber, 0.85).strokeRoundedRect(705, 260, 140, 70, 8);
+      g.fillStyle(0xff4fb8, 0.25).fillCircle(460, 150, 46);
+      g.fillStyle(0x45e6ff, 0.20).fillCircle(820, 150, 50);
 
-      const npc = {
-        id: cfg.id,
-        name: cfg.name,
-        x: cfg.x,
-        y: cfg.y,
-        color: cfg.color || 0x566273,
-        skin: cfg.skin || 0xc99162,
-        portraitColor: cfg.portraitColor || cfg.color || 0x566273,
-        body,
-        sprite,
-        nameText,
-        baseScale: 0.74,
-        lines: Array.isArray(cfg.lines) ? cfg.lines.slice() : []
-      };
+      // bar and back office
+      g.fillStyle(0x20120c, 1).fillRoundedRect(1210, 235, 250, 465, 12);
+      g.lineStyle(4, COLORS.amber, 0.85).strokeRoundedRect(1210, 235, 250, 465, 12);
+      g.fillStyle(0x331a10, 1).fillRoundedRect(1255, 285, 120, 380, 10);
+      g.fillStyle(0x0d1018, 1).fillRoundedRect(1215, 90, 250, 110, 12);
+      g.lineStyle(2, COLORS.cyan, 0.6).strokeRoundedRect(1215, 90, 250, 110, 12);
 
-      this.shopNpcs026.push(npc);
-
-      // Let the existing indoor scaling patch size the placeholder NPCs consistently.
-      if (!this.indoorNpcs) this.indoorNpcs = [];
-      this.indoorNpcs.push({ sprite, baseScale: npc.baseScale });
-
-      kimsIgnoreNpcOnUiCamera026(this, npc);
-      return npc;
-    };
-
-    KimsCornerMarketScene.prototype.getNearbyTalkNpc = function() {
-      if (!this.playerBody || !this.shopNpcs026?.length) return null;
-
-      let best = null;
-      let bestDist = Infinity;
-      for (const npc of this.shopNpcs026) {
-        const d = Phaser.Math.Distance.Between(this.playerBody.x, this.playerBody.y, npc.x, npc.y);
-        if (d <= SHOP_NPC_TALK_RADIUS_026 && d < bestDist) {
-          best = npc;
-          bestDist = d;
-        }
+      // booths
+      const boothColor = 0x350812;
+      for (const b of [
+        [145, 385], [145, 535], [145, 685],
+        [500, 760], [720, 760], [940, 760]
+      ]) {
+        g.fillStyle(boothColor, 1).fillRoundedRect(b[0], b[1], 150, 75, 12);
+        g.lineStyle(3, COLORS.neonPink, 0.42).strokeRoundedRect(b[0], b[1], 150, 75, 12);
+        g.fillStyle(0x110a0a, 1).fillCircle(b[0] + 75, b[1] + 37, 25);
       }
-      return best;
-    };
 
-    KimsCornerMarketScene.prototype.openDialogueForNpc = function(npcId) {
-      const npc = this.shopNpcs026?.find(n => n.id === npcId);
-      if (!npc) return false;
+      // door mat
+      g.fillStyle(0x101827, 1).fillRoundedRect(705, 860, 190, 70, 10);
+      g.lineStyle(3, COLORS.cyan, 0.85).strokeRoundedRect(705, 860, 190, 70, 10);
 
-      if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
-      if (this.playerSprite?.anims) this.playerSprite.anims.stop();
+      this.add.text(800, 28, 'NEON NIGHTS', { fontFamily:'Courier New', fontSize:'28px', color:'#f4d28a', stroke:'#000', strokeThickness:5 }).setOrigin(0.5).setDepth(20);
+    }
 
-      this.shopDialogue026 = {
-        npc,
-        index: 0,
-        open: true
+    createWalls() {
+      this.walls = this.physics.add.staticGroup();
+      const add = (x,y,w,h,label='wall') => {
+        const r = this.add.rectangle(x+w/2, y+h/2, w, h, 0xff0000, 0).setName(label);
+        this.physics.add.existing(r, true);
+        this.walls.add(r);
+        return r;
       };
+      add(70,55,1460,22,'north'); add(70,903,1460,22,'south'); add(70,55,22,870,'west'); add(1508,55,22,870,'east');
+      // Stage front is blocked except center stairs.
+      add(270,258,420,46,'stage front left'); add(860,258,170,46,'stage front right');
+      add(1210,235,250,465,'bar counter');
+      add(1215,90,250,110,'vip office');
+      for (const b of [[145,385],[145,535],[145,685],[500,760],[720,760],[940,760]]) add(b[0], b[1], 150, 75, 'booth');
+      this.addHotZone('exit', 705, 840, 190, 120, 'Front door: exit to Red Gull Strip');
+      this.addHotZone('bar', 1120, 355, 100, 185, 'Darla Venn — bartender');
+      this.addHotZone('honey', 145, 385, 190, 110, 'Honey Vale — booth three');
+      this.addHotZone('paulie', 145, 535, 190, 110, 'Paulie Sarto — Moretti collector');
+      this.addHotZone('vince', 145, 685, 190, 110, 'Vince “Switch” Calder — Neon Knives');
+      this.addHotZone('nole', 1205, 82, 270, 135, 'Nolan “Nole” Pike — owner');
+    }
 
-      this.buildDialogueUi();
-      this.updateDialogueUi();
-      return true;
-    };
+    addHotZone(id,x,y,w,h,label) { this.hotspots.push({id,x,y,w,h,label}); }
 
-    KimsCornerMarketScene.prototype.advanceDialogue = function() {
-      if (!this.shopDialogue026?.open) return false;
-
-      const dlg = this.shopDialogue026;
-      if (dlg.index < dlg.npc.lines.length - 1) {
-        dlg.index += 1;
-        this.updateDialogueUi();
+    createPlayer() {
+      const spawn = this.dataIn.spawn || { x: 800, y: 820, facing:'N' };
+      this.playerFacing = spawn.facing || 'N';
+      this.playerBody = this.add.rectangle(spawn.x, spawn.y, 32, 44, COLORS.blue, 0).setDepth(90);
+      this.physics.add.existing(this.playerBody);
+      this.playerBody.body.setCollideWorldBounds(true);
+      this.physics.add.collider(this.playerBody, this.walls);
+      if (this.textures.exists(PLAYER_ASSET.key)) {
+        this.createPlayerAnims();
+        this.playerSprite = this.add.sprite(spawn.x, spawn.y, PLAYER_ASSET.key, this.frameForFacing()).setOrigin(0.5, PLAYER_ASSET.originY).setScale(0.78 * 1.72).setDepth(91);
       } else {
-        this.closeDialogue();
+        this.playerSprite = this.add.rectangle(spawn.x, spawn.y, 28, 52, COLORS.blue, 1).setDepth(91);
       }
-      return true;
-    };
+    }
 
-    KimsCornerMarketScene.prototype.closeDialogue = function() {
-      if (this.shopDialogueUi026) {
-        for (const obj of this.shopDialogueUi026) obj?.destroy?.();
-      }
-      this.shopDialogueUi026 = null;
-      this.shopDialogue026 = null;
+    createPlayerAnims() {
+      if (!this.textures.exists(PLAYER_ASSET.key) || this.anims.exists('neon_malcolm_walk_south')) return;
+      const rows = [['south',0], ['southwest',1], ['west',2], ['northwest',3], ['north',4], ['northeast',5], ['east',6], ['southeast',7]];
+      const cols = 6;
+      for (const [name,row] of rows) this.anims.create({ key:`neon_malcolm_walk_${name}`, frames:this.anims.generateFrameNumbers(PLAYER_ASSET.key,{ start:row*cols, end:row*cols+cols-1 }), frameRate:8, repeat:-1 });
+    }
 
-      const near = this.getNearbyTalkNpc?.();
-      if (near) this.setPrompt?.(`A: talk to ${near.name}`);
-      else this.setPrompt?.('Kim’s Corner Market. Front door exits to street. Back stairs go upstairs.');
-    };
+    frameForFacing() {
+      const rows = { S:0, SW:1, W:2, NW:3, N:4, NE:5, E:6, SE:7 };
+      return (rows[this.playerFacing] || 0) * 6;
+    }
 
-    KimsCornerMarketScene.prototype.buildDialogueUi = function() {
-      if (this.shopDialogueUi026) {
-        for (const obj of this.shopDialogueUi026) obj?.destroy?.();
-      }
+    animForFacing() {
+      const names = { S:'south', SW:'southwest', W:'west', NW:'northwest', N:'north', NE:'northeast', E:'east', SE:'southeast' };
+      return `neon_malcolm_walk_${names[this.playerFacing] || 'south'}`;
+    }
 
-      const panelX = VIEW_W / 2;
-      const panelY = VIEW_H - 118;
-      const panelW = Math.min(840, VIEW_W - 70);
-      const panelH = 152;
-      const portraitX = panelX + panelW / 2 - 82;
-      const portraitY = panelY + 6;
-
-      const panel = this.add.rectangle(panelX, panelY, panelW, panelH, 0xe6d5b7, 0.98)
-        .setStrokeStyle(5, 0x2a2118, 1);
-      const inner = this.add.rectangle(panelX, panelY, panelW - 18, panelH - 18, 0xf1e3c8, 0.74)
-        .setStrokeStyle(1, 0x79644b, 0.85);
-      const tail = this.add.triangle(panelX - 255, panelY - panelH / 2 + 4, 0, 0, 40, 0, 18, -26, 0xe6d5b7, 0.98)
-        .setStrokeStyle(4, 0x2a2118, 1);
-
-      const portraitFrame = this.add.rectangle(portraitX, portraitY, 104, 112, 0xc7b28f, 1)
-        .setStrokeStyle(4, 0x2a2118, 1);
-      const portraitBg = this.add.rectangle(portraitX, portraitY, 88, 96, 0x9d8b70, 1)
-        .setStrokeStyle(1, 0x5a4937, 0.9);
-      const portraitHead = this.add.circle(portraitX, portraitY - 14, 26, 0xc99162, 1)
-        .setStrokeStyle(3, 0x2a2118, 1);
-      const portraitTorso = this.add.rectangle(portraitX, portraitY + 39, 54, 45, 0x566273, 1)
-        .setStrokeStyle(3, 0x2a2118, 1);
-      const portraitHair = this.add.rectangle(portraitX, portraitY - 42, 52, 14, 0x201611, 0.95);
-
-      const nameText = this.add.text(panelX - panelW / 2 + 34, panelY - panelH / 2 + 18, '', {
-        fontFamily: 'Courier New',
-        fontSize: '24px',
-        color: '#9d3f25',
-        stroke: '#f1e3c8',
-        strokeThickness: 2
-      }).setOrigin(0, 0);
-
-      const lineText = this.add.text(panelX - panelW / 2 + 34, panelY - panelH / 2 + 58, '', {
-        fontFamily: 'Courier New',
-        fontSize: '23px',
-        color: '#2a2118',
-        stroke: '#f7ecd6',
-        strokeThickness: 1,
-        wordWrap: { width: panelW - 190 }
-      }).setOrigin(0, 0);
-
-      const nextText = this.add.text(panelX + panelW / 2 - 155, panelY + panelH / 2 - 34, 'A ▶', {
-        fontFamily: 'Courier New',
-        fontSize: '18px',
-        color: '#2a2118',
-        stroke: '#f7ecd6',
-        strokeThickness: 2
-      }).setOrigin(0, 0);
-
-      this.shopDialogueUi026 = [
-        panel, inner, tail,
-        portraitFrame, portraitBg, portraitHead, portraitTorso, portraitHair,
-        nameText, lineText, nextText
-      ];
-
-      this.shopDialogueNameText026 = nameText;
-      this.shopDialogueLineText026 = lineText;
-      this.shopDialoguePortraitHead026 = portraitHead;
-      this.shopDialoguePortraitTorso026 = portraitTorso;
-      this.shopDialoguePortraitBg026 = portraitBg;
-
-      for (const obj of this.shopDialogueUi026) kimsRegisterDialogueUi026(this, obj);
-    };
-
-    KimsCornerMarketScene.prototype.updateDialogueUi = function() {
-      const dlg = this.shopDialogue026;
-      if (!dlg?.open || !dlg.npc) return;
-
-      const npc = dlg.npc;
-      const text = npc.lines[dlg.index] || '';
-
-      this.shopDialogueNameText026?.setText(npc.name);
-      this.shopDialogueLineText026?.setText(text);
-      this.shopDialoguePortraitHead026?.setFillStyle(npc.skin || 0xc99162, 1);
-      this.shopDialoguePortraitTorso026?.setFillStyle(npc.portraitColor || npc.color || 0x566273, 1);
-      this.shopDialoguePortraitBg026?.setFillStyle(npc.id === 'mr_kim' ? 0x7b6a54 : 0x6c7d8d, 1);
-      this.setPrompt?.(`A: continue ${npc.name}`);
-    };
-
-    const oldKimsCreate026 = KimsCornerMarketScene.prototype.create;
-    KimsCornerMarketScene.prototype.create = function() {
-      const result = oldKimsCreate026.call(this);
-
-      this.shopNpcs026 = [];
-      for (const cfg of SHOP_NPC_DATA_026) this.createShopNpc(cfg);
-
-      this.dialogueActionCooldown026 = 0;
-      this.setPrompt?.('Kim’s Corner Market. Talk to Mr. Kim or Johnny, or use the stairs/front door.');
-      return result;
-    };
-
-    const oldKimsInteract026 = KimsCornerMarketScene.prototype.handleInteract;
-    KimsCornerMarketScene.prototype.handleInteract = function() {
-      const now = this.time?.now || 0;
-      if (now < (this.dialogueActionCooldown026 || 0)) return;
-      this.dialogueActionCooldown026 = now + 170;
-
-      // Priority 1: advance open dialogue.
-      if (this.shopDialogue026?.open) {
-        this.advanceDialogue();
-        return;
-      }
-
-      // Priority 2: talk to nearby NPC before stairs/front door.
-      const nearNpc = this.getNearbyTalkNpc?.();
-      if (nearNpc) {
-        this.openDialogueForNpc(nearNpc.id);
-        return;
-      }
-
-      // Priority 3+: preserve existing stairs/front-door behavior.
-      return oldKimsInteract026.call(this);
-    };
-
-    const oldKimsUpdate026 = KimsCornerMarketScene.prototype.update;
-    KimsCornerMarketScene.prototype.update = function(time, delta) {
-      // Dialogue freezes Malcolm and prevents automatic stairs/front-door transitions.
-      if (this.shopDialogue026?.open) {
-        if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
-        if (this.playerSprite) {
-          this.updatePlayerSpriteAsset?.();
-          this.playerSprite.setPosition(this.playerBody.x, this.playerBody.y);
-          this.playerSprite.anims?.stop?.();
-          this.playerSprite.setFrame?.(frameForFacing022(this.facing || 'S', 0));
+    createNeonAnims() {
+      const mkWalk = (key) => {
+        if (!this.textures.exists(key)) return;
+        const rows = [['S',0], ['SW',1], ['W',2], ['NW',3], ['N',4], ['NE',5], ['E',6], ['SE',7]];
+        for (const [dir,row] of rows) {
+          const anim = `${key}_${dir}_walk`;
+          if (!this.anims.exists(anim)) this.anims.create({ key:anim, frames:this.anims.generateFrameNumbers(key,{start:row*4,end:row*4+3}), frameRate:7, repeat:-1 });
         }
+      };
+      const mkDance = (key) => {
+        if (!this.textures.exists(key)) return;
+        const anim = `${key}_loop`;
+        if (!this.anims.exists(anim)) this.anims.create({ key:anim, frames:this.anims.generateFrameNumbers(key,{start:0,end:15}), frameRate:6, repeat:-1 });
+      };
+      for (const a of NEON_NIGHTS_ASSETS_030.sprites) {
+        if (a.fw === 96 && a.fh === 96) mkWalk(a.key);
+        if (a.fw === 128 && a.fh === 192) mkDance(a.key);
+      }
+    }
 
-        const m = this.mobile || {};
-        if (m.a && !this._lastDialogueA026) this.handleInteract();
-        this._lastDialogueA026 = !!m.a;
-        this.updateDialogueUi();
+    createCrowd() {
+      const addNpc = (name,key,x,y,opts={}) => {
+        let obj;
+        if (this.textures.exists(key)) {
+          obj = this.add.sprite(x,y,key, opts.frame || 0).setOrigin(0.5, opts.originY ?? 0.84).setScale(opts.scale || NEON_NIGHTS_ASSETS_030.scale.walk).setDepth(opts.depth || y);
+          if (opts.anim && this.anims.exists(opts.anim)) obj.play(opts.anim, true);
+        } else {
+          obj = this.add.rectangle(x,y,28,48,opts.color || 0x888888,0.9).setDepth(opts.depth || y);
+        }
+        obj.neonName = name;
+        this.npcs.push(obj);
+        return obj;
+      };
+
+      // Door / bar / booth named people.
+      addNpc('Roy “Brick” Malloy', 'neon_bouncer_walk', 735, 815, { scale:NEON_NIGHTS_ASSETS_030.scale.bouncer, frame:0 });
+      addNpc('Darla Venn', 'neon_bartender_walk', 1312, 365, { scale:NEON_NIGHTS_ASSETS_030.scale.bartender, frame:0 });
+      addNpc('Honey Vale', 'neon_honey_sit', 220, 423, { scale:NEON_NIGHTS_ASSETS_030.scale.sitting, frame:0, originY:0.86 });
+      addNpc('Paulie Sarto', 'neon_paulie_sit', 220, 572, { scale:NEON_NIGHTS_ASSETS_030.scale.sitting, frame:0, originY:0.86 });
+      addNpc('Vince “Switch” Calder', 'neon_vince_sit', 220, 722, { scale:NEON_NIGHTS_ASSETS_030.scale.sitting, frame:0, originY:0.86 });
+      addNpc('Nolan “Nole” Pike', 'neon_nole_sit', 1332, 160, { scale:NEON_NIGHTS_ASSETS_030.scale.sitting, frame:0, originY:0.86 });
+
+      // Crowd regulars and gang floor presence.
+      addNpc('Earl Voss — dock regular', 'neon_dock_regular_walk', 545, 505, { frame:0 });
+      addNpc('Martin Kell — nervous businessman', 'neon_businessman_walk', 760, 545, { frame:0 });
+      addNpc('Neon Knives regular', 'neon_punk_walk', 965, 505, { frame:0 });
+      addNpc('Off-duty vice cop', 'neon_vice_cop_walk', 1020, 650, { frame:0 });
+      addNpc('Cocktail waitress', 'neon_waitress_walk', 1145, 600, { frame:0 });
+      addNpc('Off-shift dancer', 'neon_offshift_dancer_walk', 520, 660, { frame:0 });
+    }
+
+    createStageDancers() {
+      this.dancerRoster = [
+        { name:'Lana Lux', walk:'neon_lana_walk', dance:'neon_lana_dance', start:{x:520,y:360}, stage:{x:770,y:202}, exit:{x:1060,y:350}, special:true },
+        { name:'Ruby Vex', walk:'neon_ruby_walk', dance:'neon_ruby_dance', start:{x:520,y:360}, stage:{x:770,y:202}, exit:{x:1060,y:350} },
+        { name:'Violet Starr', walk:'neon_violet_walk', dance:'neon_violet_dance', start:{x:520,y:360}, stage:{x:770,y:202}, exit:{x:1060,y:350} },
+        { name:'Jade Monroe', walk:'neon_jade_walk', dance:'neon_jade_dance', start:{x:520,y:360}, stage:{x:770,y:202}, exit:{x:1060,y:350} }
+      ];
+      for (const d of this.dancerRoster) {
+        const s = this.add.sprite(d.start.x, d.start.y, this.textures.exists(d.walk) ? d.walk : d.dance, 0)
+          .setOrigin(0.5, 0.88)
+          .setScale(NEON_NIGHTS_ASSETS_030.scale.walk)
+          .setDepth(225)
+          .setVisible(false);
+        d.sprite = s;
+        this.stageDancers.push(s);
+      }
+    }
+
+    createUi() {
+      this.hudBg = this.registerNeonUi(this.add.rectangle(12, 12, 936, 62, 0x02060a, 0.74).setOrigin(0,0).setDepth(2500));
+      this.hudText = this.registerNeonUi(this.add.text(24, 20, 'NEON NIGHTS', { fontFamily:'Courier New', fontSize:'15px', color:'#f4d28a', stroke:'#000', strokeThickness:3 }).setDepth(2501));
+      this.promptText = this.registerNeonUi(this.add.text(VIEW_W/2, VIEW_H-40, '', { fontFamily:'Courier New', fontSize:'15px', color:'#f4d28a', stroke:'#000', strokeThickness:3 }).setOrigin(0.5).setDepth(2501));
+      this.performerText = this.registerNeonUi(this.add.text(VIEW_W-26, 20, '', { fontFamily:'Courier New', fontSize:'14px', color:'#86e7ff', stroke:'#000', strokeThickness:3 }).setOrigin(1,0).setDepth(2501));
+      this.messageText = this.registerNeonUi(this.add.text(VIEW_W/2, 96, '', { fontFamily:'Courier New', fontSize:'16px', color:'#ffffff', stroke:'#000', strokeThickness:4 }).setOrigin(0.5).setDepth(2501));
+      this.refreshUiCamera();
+    }
+
+    inputDir() {
+      const left = this.keys.left.isDown || this.keys.arrowLeft.isDown || this.mobile.left || (this.mobile.useStick && this.mobile.analogX < -0.25);
+      const right = this.keys.right.isDown || this.keys.arrowRight.isDown || this.mobile.right || (this.mobile.useStick && this.mobile.analogX > 0.25);
+      const up = this.keys.up.isDown || this.keys.arrowUp.isDown || this.mobile.up || (this.mobile.useStick && this.mobile.analogY < -0.25);
+      const down = this.keys.down.isDown || this.keys.arrowDown.isDown || this.mobile.down || (this.mobile.useStick && this.mobile.analogY > 0.25);
+      let vx = (right ? 1 : 0) - (left ? 1 : 0);
+      let vy = (down ? 1 : 0) - (up ? 1 : 0);
+      const len = Math.hypot(vx, vy) || 1;
+      return { vx:vx/len, vy:vy/len, moving:!!(vx||vy) };
+    }
+
+    update(time, delta) {
+      if (this.pauseMenuOpen) {
+        if (this.playerBody?.body) this.playerBody.body.setVelocity(0,0);
+        this.updatePlayerVisual(false);
         return;
       }
-
-      const result = oldKimsUpdate026.call(this, time, delta);
-
-      const nearNpc = this.getNearbyTalkNpc?.();
-      if (nearNpc) this.setPrompt?.(`A: talk to ${nearNpc.name}`);
-
-      return result;
-    };
-
-    const oldKimsShutdown026 = KimsCornerMarketScene.prototype.shutdown;
-    KimsCornerMarketScene.prototype.shutdown = function() {
-      this.closeDialogue?.();
-      if (typeof oldKimsShutdown026 === 'function') return oldKimsShutdown026.call(this);
-    };
-  })();
-
-
-
-  // APARTMENT_KIMS_FLOW_HOTFIX_027
-  // Fixes A-at-dresser pickup/equip flow and places Malcolm at the bottom of Kim's stairs,
-  // outside the immediate return-to-apartment transition zone.
-  (function installApartmentKimsFlowHotfix027() {
-    const APT_DRESSER_SAFE_ZONE_027 = { x:520, y:90, w:700, h:500 };
-    const APT_STAIRS_SAFE_ZONE_027  = { x:50, y:520, w:310, h:470 };
-    const KIMS_SAFE_BOTTOM_OF_STAIRS_027 = { x:1060, y:430 };
-
-    function pointInZone027(scene, z) {
-      const x = scene?.playerBody?.x || 0;
-      const y = scene?.playerBody?.y || 0;
-      return x >= z.x && x <= z.x + z.w && y >= z.y && y <= z.y + z.h;
-    }
-
-    function openEquipMenuSafe027(scene) {
-      const s = ensureMalcolmMorningState022();
-      s.hasDetectiveOutfit = true;
-      s.hasPistol = true;
-      if (typeof scene.handleSelectMenu === 'function' && !scene._equipMenuOpen025) {
-        scene.handleSelectMenu();
+      const d = this.inputDir();
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(d.vx * 225, d.vy * 225);
+      if (d.moving) {
+        const angle = Phaser.Math.RadToDeg(Math.atan2(d.vy, d.vx));
+        this.playerFacing = ['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8];
       }
-      scene.setPrompt?.('Dresser gear picked up. Press A to equip detective outfit and pistol.');
+      this.updatePlayerVisual(d.moving);
+      this.updatePrompt();
+      if (this.messageTimer > 0) this.messageTimer -= delta || 16;
+      this.messageText?.setText(this.messageTimer > 0 ? this.message : '');
+      this.refreshUiCamera();
     }
 
-    function goDownstairsSafe027(scene) {
-      if (scene._transitioning027) return;
-      scene._transitioning027 = true;
-      scene._transitioning025 = true;
-      scene.cameras.main.fadeOut(180, 0, 0, 0);
-      scene.time.delayedCall(190, () => {
-        scene.scene.start('KimsCornerMarketScene', {
-          fromApartment: true,
-          spawn: { ...KIMS_SAFE_BOTTOM_OF_STAIRS_027 },
-          message: 'Downstairs: Kim’s Corner Market.'
-        });
+    updatePlayerVisual(moving) {
+      if (!this.playerSprite || !this.playerBody) return;
+      this.playerSprite.setPosition(this.playerBody.x, this.playerBody.y);
+      if (this.playerSprite.play && this.textures.exists(PLAYER_ASSET.key)) {
+        if (moving) {
+          const key = this.animForFacing();
+          if (this.playerSprite.anims.currentAnim?.key !== key || !this.playerSprite.anims.isPlaying) this.playerSprite.play(key, true);
+        } else {
+          this.playerSprite.anims.stop();
+          this.playerSprite.setFrame(this.frameForFacing());
+        }
+      }
+    }
+
+    getCurrentHotspot() {
+      if (!this.playerBody) return null;
+      const b = this.playerBody.getBounds();
+      const p = { x:this.playerBody.x, y:this.playerBody.y };
+      let near = null, best = Infinity;
+      for (const h of this.hotspots) {
+        const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
+        if (Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return h;
+        const d = Phaser.Math.Distance.Between(p.x, p.y, h.x+h.w/2, h.y+h.h/2);
+        if (d < 110 && d < best) { near = h; best = d; }
+      }
+      return near;
+    }
+
+    updatePrompt() {
+      const h = this.getCurrentHotspot();
+      if (h) this.promptText?.setText(`A/E: ${h.label}`);
+      else this.promptText?.setText('A/E talk/use | ESC exit | Red Curtain Heat playing');
+      this.hudText?.setText('NEON NIGHTS | Red Gull Strip | crowd, bar, booths, stage rotation');
+    }
+
+    handleInteract() {
+      if (this.pauseMenuOpen) return;
+      const h = this.getCurrentHotspot();
+      if (!h) { this.message = 'The room keeps moving under red light.'; this.messageTimer = 1500; return; }
+      if (h.id === 'exit') { this.exitToStreet(); return; }
+      const lines = {
+        bar:'Darla Venn: “You want a drink or information, Detective?”',
+        honey:'Honey Vale: “Not here, Malcolm. Booth three hears everything.”',
+        paulie:'Paulie Sarto: “Club business ain’t police business.”',
+        vince:'Vince: “You looking at me or the jacket?”',
+        nole:'Nole Pike: “I own the paper. Everybody else owns the trouble.”'
+      };
+      this.message = lines[h.id] || h.label;
+      this.messageTimer = 3600;
+    }
+
+    startClubMusicAndRotation() {
+      if (THEME_MUSIC && THEME_MUSIC.isPlaying) THEME_MUSIC.pause();
+      this.startNextDancerTurn();
+    }
+
+    playRedCurtainHeatForCurrentDancer() {
+      if (this.neonTrack) {
+        this.neonTrack.off?.('complete');
+        this.neonTrack.stop?.();
+        this.neonTrack.destroy?.();
+      }
+      if (!this.cache.audio.exists(NEON_NIGHTS_TRACK_ASSET_030.key)) {
+        this.time.delayedCall(45000, () => this.finishDancerTurn());
+        return;
+      }
+      this.neonTrack = this.sound.add(NEON_NIGHTS_TRACK_ASSET_030.key, { loop:false, volume:NEON_NIGHTS_TRACK_ASSET_030.volume });
+      const finish = () => this.finishDancerTurn();
+      this.neonTrack.once('complete', finish);
+      const play = () => { try { this.neonTrack.play(); } catch(e) {} };
+      if (this.sound.locked) this.sound.once(Phaser.Sound.Events.UNLOCKED, play); else play();
+    }
+
+    startNextDancerTurn() {
+      if (this.dancerSwitchLocked) return;
+      this.currentDancerIndex = (this.currentDancerIndex + 1) % this.dancerRoster.length;
+      const d = this.dancerRoster[this.currentDancerIndex];
+      this.currentStageDancer = d;
+      const s = d.sprite;
+      for (const o of this.stageDancers) o.setVisible(false);
+      s.setVisible(true).setTexture(d.walk).setFrame(0).setScale(NEON_NIGHTS_ASSETS_030.scale.walk).setOrigin(0.5,0.88).setPosition(d.start.x, d.start.y).setDepth(230);
+      if (this.anims.exists(`${d.walk}_E_walk`)) s.play(`${d.walk}_E_walk`, true);
+      this.performerText?.setText(`NOW: ${d.name}`);
+      this.tweens.add({
+        targets:s,
+        x:d.stage.x,
+        y:d.stage.y,
+        duration:1650,
+        ease:'Sine.easeInOut',
+        onComplete:() => {
+          s.setTexture(d.dance).setFrame(0).setOrigin(0.5,0.88).setScale(NEON_NIGHTS_ASSETS_030.scale.dance).setDepth(245);
+          if (this.anims.exists(`${d.dance}_loop`)) s.play(`${d.dance}_loop`, true);
+          this.playRedCurtainHeatForCurrentDancer();
+        }
       });
     }
 
-    if (typeof MalcolmApartmentScene !== 'undefined') {
-      const oldAptInteract027 = MalcolmApartmentScene.prototype.handleInteract;
-      MalcolmApartmentScene.prototype.handleInteract = function() {
-        if (this._equipMenuOpen025) {
-          const s = ensureMalcolmMorningState022();
-          if (s.hasDetectiveOutfit && s.hasPistol) {
-            s.outfitEquipped = true;
-            if (this._equipMenu025) {
-              this._equipMenu025.forEach(o => o?.destroy?.());
-              this._equipMenu025 = null;
-            }
-            this._equipMenuOpen025 = false;
-            this.updatePlayerSpriteAsset?.();
-            this.setPrompt?.('Equipped detective outfit and pistol. Step onto the staircase to go downstairs.');
-            return;
-          }
+    finishDancerTurn() {
+      if (this.dancerSwitchLocked) return;
+      const d = this.currentStageDancer;
+      if (!d?.sprite?.active) return;
+      this.dancerSwitchLocked = true;
+      const s = d.sprite;
+      if (s.anims) s.anims.stop();
+      s.setTexture(d.walk).setFrame(0).setOrigin(0.5,0.88).setScale(NEON_NIGHTS_ASSETS_030.scale.walk);
+      if (this.anims.exists(`${d.walk}_E_walk`)) s.play(`${d.walk}_E_walk`, true);
+      this.tweens.add({
+        targets:s,
+        x:d.exit.x,
+        y:d.exit.y,
+        duration:1350,
+        ease:'Sine.easeInOut',
+        onComplete:() => {
+          s.setVisible(false);
+          this.dancerSwitchLocked = false;
+          this.time.delayedCall(350, () => this.startNextDancerTurn());
         }
+      });
+    }
 
-        if (pointInZone027(this, APT_DRESSER_SAFE_ZONE_027)) {
-          openEquipMenuSafe027(this);
+    shutdownClubAudio() {
+      if (this.neonTrack) {
+        this.neonTrack.off?.('complete');
+        this.neonTrack.stop?.();
+        this.neonTrack.destroy?.();
+        this.neonTrack = null;
+      }
+      startTheme(this);
+      if (THEME_MUSIC && MUSIC_SETTINGS.enabled) {
+        THEME_MUSIC.setVolume(THEME_ASSET.volume);
+        if (THEME_MUSIC.isPaused) THEME_MUSIC.resume();
+        if (!THEME_MUSIC.isPlaying) THEME_MUSIC.play();
+      }
+    }
+
+    exitToStreet() {
+      this.shutdownClubAudio();
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(0,0);
+      this.cameras.main.fadeOut(160, 0, 0, 0);
+      this.time.delayedCall(170, () => {
+        this.scene.start('GameScene', {
+          fromStationExit:true,
+          spawn:this.returnSpawn,
+          message:'Exited Neon Nights. Main music restored.'
+        });
+      });
+    }
+  }
+
+  (function installNeonNightsWorkflowHotfix030() {
+    if (typeof GameScene !== 'undefined') {
+      const __neonOldEnterBuilding030 = GameScene.prototype.enterBuilding;
+      GameScene.prototype.enterBuilding = function(zone) {
+        const text = String(zone?.id || '') + ' ' + String(zone?.label || '');
+        if (/neon[_\s-]?nights/i.test(text)) {
+          if (this.player?.body) this.player.body.setVelocity(0,0);
+          const zx = Number(zone?.x) || 2328;
+          const zy = Number(zone?.y) || 2518;
+          const zw = Number(zone?.w) || 150;
+          const zh = Number(zone?.h) || 95;
+          this.scene.start('NeonNightsInteriorScene', {
+            returnSpawn: { x: zx + zw / 2, y: zy + zh + 38 },
+            message: 'Entered Neon Nights.'
+          });
           return;
         }
-
-        if (pointInZone027(this, APT_STAIRS_SAFE_ZONE_027)) {
-          goDownstairsSafe027(this);
-          return;
-        }
-
-        return oldAptInteract027.call(this);
+        return __neonOldEnterBuilding030.call(this, zone);
       };
     }
 
-    if (typeof KimsCornerMarketScene !== 'undefined') {
-      const oldKimsCreate027 = KimsCornerMarketScene.prototype.create;
-      KimsCornerMarketScene.prototype.create = function() {
-        const result = oldKimsCreate027.call(this);
-
-        if (this.entryData?.fromApartment) {
-          this._transitioning025 = false;
-          this._transitioning027 = false;
-          this._kimsEntryGrace027 = 850;
-          this.playerBody?.setPosition?.(KIMS_SAFE_BOTTOM_OF_STAIRS_027.x, KIMS_SAFE_BOTTOM_OF_STAIRS_027.y);
-          this.playerSprite?.setPosition?.(KIMS_SAFE_BOTTOM_OF_STAIRS_027.x, KIMS_SAFE_BOTTOM_OF_STAIRS_027.y);
-          this.setPrompt?.('Bottom of the stairs. Talk to Mr. Kim or Johnny, or walk to the front door.');
-        }
-
-        return result;
+    if (typeof MobileControlsScene !== 'undefined') {
+      const __neonOldGetTarget030 = MobileControlsScene.prototype.getTargetScene;
+      MobileControlsScene.prototype.getTargetScene = function() {
+        const neon = this.scene.get('NeonNightsInteriorScene');
+        if (neon?.scene?.isActive()) return neon;
+        return __neonOldGetTarget030 ? __neonOldGetTarget030.call(this) : null;
       };
 
-      const oldKimsUpdate027 = KimsCornerMarketScene.prototype.update;
-      KimsCornerMarketScene.prototype.update = function(time, delta) {
-        if (this._kimsEntryGrace027 > 0) {
-          this._kimsEntryGrace027 -= delta || 16;
-
-          // Keep old automatic stair transition from firing while Malcolm has just arrived downstairs.
-          if (this.playerBody?.body) this.playerBody.body.setVelocity(0, 0);
-          this.playerBody?.setPosition?.(KIMS_SAFE_BOTTOM_OF_STAIRS_027.x, KIMS_SAFE_BOTTOM_OF_STAIRS_027.y);
-          this.playerSprite?.setPosition?.(KIMS_SAFE_BOTTOM_OF_STAIRS_027.x, KIMS_SAFE_BOTTOM_OF_STAIRS_027.y);
-          this._lastA025 = !!this.mobile?.a;
-          this._lastDialogueA026 = !!this.mobile?.a;
-          return;
+      const __neonOldFireAction030 = MobileControlsScene.prototype.fireAction;
+      MobileControlsScene.prototype.fireAction = function(key) {
+        const target = this.getTargetScene?.();
+        if (target?.scene?.key === 'NeonNightsInteriorScene') {
+          if (key === 'a' && typeof target.handleInteract === 'function') { target.handleInteract(); return; }
+          if (key === 'b' && typeof target.exitToStreet === 'function') { target.exitToStreet(); return; }
+          if (key === 'sta') { target.togglePauseMenu?.(); return; }
         }
-
-        return oldKimsUpdate027.call(this, time, delta);
+        return __neonOldFireAction030.call(this, key);
       };
     }
   })();
 
 
+  // NEON_BACKROOM_AND_SCALE_FIX_HOTFIX_032
+  // Adds the Neon Nights back room, fixes indoor Malcolm scale consistency,
+  // parks Malcolm's sedan near Kim's, and tightens the Neon Nights entrance zone.
+  class NeonNightsBackRoomScene extends Phaser.Scene {
+    constructor(){ super('NeonNightsBackRoomScene'); }
 
-  // KIMS_RAMOS_HOTFIX_028
-  // Adds real Mr. Kim / Johnny sprite sheets, 1001 generated quote/joke banks,
-  // parked car placement near Kim's, and delays Ramos companion status until Malcolm meets her inside RH police station.
-  (function installKimsRamosHotfix028() {
-    const MR_KIM_ASSET_028 = {
-      key: 'mr_kim_walk_4x8_192_028',
-      path: 'assets/characters/npcs/kims/mr_kim_walk_4x8_192.png',
-      frameWidth: 192,
-      frameHeight: 192,
-      baseScale: 0.45,
-      originY: 0.88
-    };
+    init(data){
+      this.dataIn = data || {};
+      this.mainRoomSpawn = this.dataIn.mainRoomSpawn || { x: 168, y: 198, facing:'S' };
+      this.mapW = 1500;
+      this.mapH = 980;
+      this.hotspots = [];
+      this.uiObjects = [];
+      this.message = this.dataIn.message || 'Neon Nights back room.';
+      this.messageTimer = 2600;
+      this._touchCooldown031 = 0;
+    }
 
-    const JOHNNY_ASSET_028 = {
-      key: 'johnny_walk_4x8_192_028',
-      path: 'assets/characters/npcs/kims/johnny_walk_4x8_192.png',
-      frameWidth: 192,
-      frameHeight: 192,
-      baseScale: 0.39,
-      originY: 0.88
-    };
-
-    // Approximate placement from the marked X in the supplied mobile screenshot outside Kim's.
-    const KIMS_PARKED_CAR_028 = { x: 2825, y: 1198, heading: -Math.PI / 2 };
-    const KIMS_WORLD_SPAWN_028 = { x: 2675, y: 1214 };
-
-    function makeMrKimWisdom1001_028() {
-      const starts = [
-        'A quiet morning tells you who listens before trouble starts',
-        'A locked door is honest; an unlocked one wants a witness',
-        'Coffee teaches patience because it burns the impatient man',
-        'The street does not lie, it only waits for someone to read it',
-        'A receipt remembers what a mouth forgets',
-        'Rain makes every footprint tell the truth',
-        'A badge opens doors, but manners keep them open',
-        'A man who hurries past breakfast is already chasing yesterday',
-        'Small stores hear big secrets before city hall does',
-        'The quiet customer is sometimes louder than the drunk one',
-        'When the register is short, check the hands not the story',
-        'Good police work starts with noticing who stopped talking',
-        'Old neighborhoods forgive slowly and remember perfectly',
-        'The alley has no judge, but it keeps records',
-        'A clean counter still has fingerprints',
-        'Never trust a calm street after payday',
-        'A hard case is usually several small cases stacked wrong',
-        'The first lie is nervous; the second lie gets rehearsed',
-        'A city coughs before it bleeds',
-        'If the coffee is bitter, drink it anyway and learn something'
-      ];
-      const middles = [
-        'so look twice before you move once',
-        'so keep your notebook closer than your temper',
-        'so ask the second question',
-        'so watch the hands while the mouth works',
-        'so count what changed overnight',
-        'so do not mistake silence for peace',
-        'so listen to the clerk before the captain',
-        'so let the suspect finish talking',
-        'so check the back door and the ashtray',
-        'so never ignore a nervous joke',
-        'so remember who benefits from confusion',
-        'so make the facts carry their own weight',
-        'so keep your shoes dry and your eyes open',
-        'so mark the time before memory edits it',
-        'so look for the person avoiding the obvious',
-        'so measure fear before anger',
-        'so do not let rain wash away common sense'
-      ];
-      const ends = [
-        'Detective King',
-        'Malcolm',
-        'that is Raven Hook for you',
-        'that is how small trouble becomes murder',
-        'and that is why I open early',
-        'before the city starts charging interest',
-        'because morning is the only honest hour',
-        'because criminals hate careful people',
-        'before the phones start ringing',
-        'while the coffee is still fresh'
-      ];
-      const out = [];
-      for (let i = 0; i < 1001; i++) {
-        out.push(`Kim wisdom ${i + 1}: ${starts[i % starts.length]}, ${middles[Math.floor(i / starts.length) % middles.length]}, ${ends[Math.floor(i / (starts.length * middles.length)) % ends.length]}.`);
+    preload(){
+      if (!this.textures.exists(PLAYER_ASSET.key)) this.load.spritesheet(PLAYER_ASSET.key, A(PLAYER_ASSET.path), { frameWidth: PLAYER_ASSET.frameWidth, frameHeight: PLAYER_ASSET.frameHeight });
+      for (const a of (typeof NEON_NIGHTS_ASSETS_030 !== 'undefined' ? NEON_NIGHTS_ASSETS_030.sprites : [])) {
+        if (!this.textures.exists(a.key)) this.load.spritesheet(a.key, A(a.path), { frameWidth:a.fw, frameHeight:a.fh });
       }
-      return out;
     }
 
-    function makeJohnnyJokes1001_028() {
-      const setups = [
-        'Why did the detective bring an umbrella',
-        'Why did the stolen radio confess',
-        'Why did the donut file a police report',
-        'Why did the patrol car cross the street',
-        'Why did the witness stare at the cereal aisle',
-        'Why did the criminal hide in the freezer',
-        'Why did the payphone refuse to talk',
-        'Why did the flashlight get promoted',
-        'Why did the rain follow Detective King',
-        'Why did the sandwich need a lawyer',
-        'Why did the shoplifter bring exact change',
-        'Why did Mr. Kim count the gum twice',
-        'Why did the alley wear a trench coat',
-        'Why did the suspect buy coffee',
-        'Why did the case file go to school',
-        'Why did the badge take a nap',
-        'Why did the siren sing off-key',
-        'Why did the newspaper whisper',
-        'Why did the evidence bag blush',
-        'Why did the cereal box ask for protection'
-      ];
-      const punches = [
-        'because Raven Hook keeps raining clues',
-        'because it could not handle the static pressure',
-        'because somebody glazed over the facts',
-        'because the sidewalk had priors',
-        'because the flakes looked suspicious',
-        'because he wanted a cold case',
-        'because it was tired of being tapped',
-        'because it was bright under pressure',
-        'because even the clouds want answers',
-        'because it was framed with rye bread',
-        'because he wanted to make a clean getaway',
-        'because one pack was acting minty',
-        'because it was undercover',
-        'because he wanted grounds for appeal',
-        'because it needed to learn the hard facts',
-        'because the night shift was exhausting',
-        'because it only knew the blues',
-        'because it had a source at breakfast',
-        'because it got caught red-handed',
-        'because it was afraid of the cereal killer'
-      ];
-      const tags = ['Get it?', 'Mr. Kim hated that one.', 'That one is evidence.', 'I made that up myself.', 'Do detectives laugh on duty?', 'That one is going in my notebook.', 'Too much?', 'I can do better.', 'Probably.', 'I heard it on the corner.'];
-      const out = [];
-      for (let i = 0; i < 1001; i++) {
-        out.push(`Johnny joke ${i + 1}: ${setups[i % setups.length]}? ${punches[Math.floor(i / setups.length) % punches.length]}. ${tags[Math.floor(i / (setups.length * punches.length)) % tags.length]}`);
-      }
-      return out;
+    create(){
+      this.cameras.main.setBackgroundColor('#06030a');
+      this.physics.world.setBounds(0,0,this.mapW,this.mapH);
+      this.cameras.main.setBounds(0,0,this.mapW,this.mapH);
+      this.mobile = MOBILE_INPUT_STATE;
+      this.keys = this.input.keyboard.addKeys({ up:'W', down:'S', left:'A', right:'D', arrowUp:'UP', arrowDown:'DOWN', arrowLeft:'LEFT', arrowRight:'RIGHT', interact:'E', enter:'ENTER', esc:'ESC' });
+      this.buildArt();
+      this.createWalls();
+      this.createPlayer();
+      this.createBackroomNpcs();
+      this.createUi();
+      this.cameras.main.startFollow(this.playerBody, true, 0.18, 0.18);
+      this.cameras.main.setDeadzone(80, 54);
+      this.cameras.main.setZoom(getManualCameraZoom(1.18));
+      this.cameras.main.fadeIn(180,0,0,0);
+      this.input.keyboard.on('keydown-E', () => this.handleInteract());
+      this.input.keyboard.on('keydown-ENTER', () => this.handleInteract());
+      this.input.keyboard.on('keydown-A', () => this.handleInteract());
+      this.input.keyboard.on('keydown-ESC', () => this.returnToMainRoom());
+      launchGlobalMobileControls(this);
+      this.setupUiCamera();
+      installPauseMenu(this);
     }
 
-    window.RH_MR_KIM_WISDOM_1001 = window.RH_MR_KIM_WISDOM_1001 || makeMrKimWisdom1001_028();
-    window.RH_JOHNNY_JOKES_1001 = window.RH_JOHNNY_JOKES_1001 || makeJohnnyJokes1001_028();
-
-    function kimCrimeStatsReport028() {
-      const day = Number(GAME.day || 1);
-      const calls = 24 + ((day * 7) % 31);
-      const theft = 3 + ((day * 5) % 8);
-      const cars = 1 + ((day * 3) % 6);
-      const disturbance = 6 + ((day * 11) % 14);
-      const caseNote = GAME.case?.active
-        ? (GAME.case.suspectArrested ? 'your active case already has a suspect detained' : 'your active case is still open')
-        : 'no active case has been logged yet this morning';
-      return `Crime stats report: ${calls} calls overnight, ${theft} theft complaints, ${cars} stolen-car reports, ${disturbance} disturbances; ${caseNote}.`;
-    }
-
-    function dialogueIndex028(offset = 0) {
-      const day = Number(GAME.day || 1);
-      const minute = Number(GAME._morningDialogueSeed028 || 0);
-      GAME._morningDialogueSeed028 = minute + 1;
-      return Math.abs((day * 37 + minute * 13 + offset) % 1001);
-    }
-
-    function activeKimLines028(npcId) {
-      if (npcId === 'mr_kim') {
-        const q = window.RH_MR_KIM_WISDOM_1001[dialogueIndex028(5)];
-        return [
-          'Morning, Malcolm. You heading out already?',
-          q,
-          kimCrimeStatsReport028(),
-          'Ramos is waiting at the station. Go meet her before you start patrol.'
-        ];
-      }
-      if (npcId === 'johnny') {
-        const j = window.RH_JOHNNY_JOKES_1001[dialogueIndex028(11)];
-        return [
-          'Detective King, you really carry a gun now?',
-          j,
-          'Mr. Kim says I ask too many questions.',
-          'You going to the station today?'
-        ];
-      }
-      return null;
-    }
-
-    function registerWorldOnly028(scene, obj) {
-      if (!scene || !obj) return obj;
-      scene.uiCamera?.ignore?.(obj);
+    registerUi(obj) {
+      if (!obj) return obj;
+      if (!this.uiObjects.includes(obj)) this.uiObjects.push(obj);
+      obj.setScrollFactor?.(0);
+      if (obj.setDepth && obj.depth < 2500) obj.setDepth(2500);
+      if (this.cameras?.main) this.cameras.main.ignore(obj);
       return obj;
     }
 
-    function registerUiCameraRefresh028(scene) {
-      if (!scene?.uiCamera || !scene.uiObjects) return;
-      const uiSet = new Set(scene.uiObjects || []);
-      scene.uiCamera.ignore(scene.children.list.filter(o => !uiSet.has(o)));
+    setupUiCamera() {
+      if (this.uiCamera) return;
+      this.uiCamera = this.cameras.add(0, 0, VIEW_W, VIEW_H).setScroll(0,0).setZoom(1).setName('NeonBackRoomUICamera');
+      this.uiCamera.roundPixels = true;
+      this.refreshUiCamera();
     }
 
+    refreshUiCamera() {
+      if (!this.uiCamera) return;
+      const uiSet = new Set(this.uiObjects || []);
+      this.cameras.main.ignore(this.uiObjects || []);
+      this.uiCamera.ignore(this.children.list.filter(obj => !uiSet.has(obj)));
+    }
+
+    buildArt() {
+      const g = this.add.graphics().setDepth(0);
+      g.fillStyle(0x070309, 1).fillRect(0,0,this.mapW,this.mapH);
+      g.fillStyle(0x120814, 1).fillRoundedRect(65,55,1370,865,18);
+      g.lineStyle(7, 0x050505, 1).strokeRoundedRect(65,55,1370,865,18);
+      g.fillStyle(0x191019,1).fillRect(110,120,1240,720);
+      g.lineStyle(1, 0x401b35, 0.30);
+      for (let x=110; x<=1350; x+=58) g.lineBetween(x,120,x,840);
+      for (let y=120; y<=840; y+=58) g.lineBetween(110,y,1350,y);
+
+      // Decorative open doorway markers
+      g.fillStyle(0x250913,1).fillRoundedRect(82,690,130,140,8);
+      g.lineStyle(3, COLORS.neonPink, 0.75).strokeRoundedRect(82,690,130,140,8);
+      this.add.text(146, 650, 'TO\nMAIN ROOM', { fontFamily:'Courier New', fontSize:'24px', color:'#ff6ea8', align:'center', stroke:'#000', strokeThickness:4 }).setOrigin(0.5).setDepth(30);
+
+      // Three private booths with one chair and dance space.
+      const boothXs = [415, 655, 895];
+      for (const bx of boothXs) {
+        g.fillStyle(0x350812,1).fillRoundedRect(bx, 445, 160, 170, 10);
+        g.lineStyle(3, COLORS.neonPink, 0.40).strokeRoundedRect(bx, 445, 160, 170, 10);
+        g.fillStyle(0x180d10,1).fillCircle(bx + 78, 516, 20);
+        g.fillStyle(0x2f0a11,1).fillRoundedRect(bx + 100, 548, 32, 34, 5); // one chair only
+      }
+
+      // Lounge / prep area upper left.
+      g.fillStyle(0x2c0914,1).fillRoundedRect(170,155,210,85,12);
+      g.lineStyle(2, COLORS.cyan, 0.45).strokeRoundedRect(170,155,210,85,12);
+      g.fillStyle(0x140e14,1).fillCircle(250, 292, 38);
+      g.fillStyle(0x2f0a11,1).fillRoundedRect(210,332,80,26,6);
+
+      // Dressing room on the right.
+      g.fillStyle(0x1a0e15,1).fillRoundedRect(1115,120,255,300,10);
+      g.lineStyle(4, COLORS.amber, 0.70).strokeRoundedRect(1115,120,255,300,10);
+      for (let i=0;i<3;i++) {
+        const mx = 1140 + i*74;
+        g.fillStyle(0x2a1a14,1).fillRoundedRect(mx, 155, 58, 86, 6);
+        g.lineStyle(2, 0xffd28a, 0.8).strokeRoundedRect(mx, 155, 58, 86, 6);
+        for (let b=0;b<4;b++) g.fillStyle(0xffe2a8, 0.85).fillCircle(mx + 10 + b*12, 150, 4);
+        for (let b=0;b<4;b++) g.fillStyle(0xffe2a8, 0.85).fillCircle(mx + 10 + b*12, 246, 4);
+      }
+      g.fillStyle(0x37221b,1).fillRoundedRect(1138, 258, 210, 22, 5);
+      for (let i=0;i<4;i++) g.fillStyle(0x5d0f24,1).fillCircle(1165 + i*50, 302, 16);
+      g.fillStyle(0x29130e,1).fillRoundedRect(1135, 332, 205, 48, 6);
+      for (let i=0;i<6;i++) g.fillStyle([0xd24b61,0x6d9ef8,0xe7c36d,0xffffff][i%4],0.95).fillRoundedRect(1146+i*31,342,18,28,4);
+      this.add.text(1242, 98, 'DRESSING ROOM', { fontFamily:'Courier New', fontSize:'26px', color:'#ff5f9c', stroke:'#000', strokeThickness:4 }).setOrigin(0.5).setDepth(30);
+
+      // Nolan's office below dressing room.
+      g.fillStyle(0x150d0c,1).fillRoundedRect(1080, 515, 290, 255, 10);
+      g.lineStyle(4, COLORS.neonPink, 0.55).strokeRoundedRect(1080, 515, 290, 255, 10);
+      g.fillStyle(0x3b2316,1).fillRoundedRect(1142, 620, 160, 76, 6);
+      g.fillStyle(0x2d0c11,1).fillRoundedRect(1176, 585, 88, 28, 4);
+      g.fillStyle(0x7a613a,1).fillRoundedRect(1098, 532, 50, 180, 4);
+      for (let i=0;i<5;i++) g.fillStyle(0x4a2a17 + i*2000, 1).fillRoundedRect(1102, 540 + i*33, 42, 10, 2);
+      g.fillStyle(0x56606e,1).fillRoundedRect(1320, 548, 28, 160, 3);
+      for (let i=0;i<4;i++) g.fillStyle(0x1d1516,1).fillRoundedRect(1323, 555 + i*38, 22, 26, 2);
+      this.add.text(1222, 486, "NOLE'S OFFICE", { fontFamily:'Courier New', fontSize:'26px', color:'#ff5f9c', stroke:'#000', strokeThickness:4 }).setOrigin(0.5).setDepth(30);
+
+      // Labels for private booths.
+      this.add.text(660, 405, 'PRIVATE BOOTHS', { fontFamily:'Courier New', fontSize:'22px', color:'#7ee7ff', stroke:'#000', strokeThickness:4 }).setOrigin(0.5).setDepth(30);
+    }
+
+    createWalls() {
+      this.walls = this.physics.add.staticGroup();
+      const add = (x,y,w,h,label='wall') => {
+        const r = this.add.rectangle(x+w/2, y+h/2, w, h, 0xff0000, 0).setName(label);
+        this.physics.add.existing(r, true);
+        this.walls.add(r);
+        return r;
+      };
+      // Perimeter, leaving the lower-left doorway open.
+      add(65,55,1370,24,'north');
+      add(65,896,1370,24,'south');
+      add(65,55,24,620,'west upper');
+      add(65,835,24,85,'west lower');
+      add(1411,55,24,865,'east');
+      // Booth walls with open fronts.
+      for (const bx of [415,655,895]) {
+        add(bx,445,160,10,'booth top');
+        add(bx,445,10,170,'booth left');
+        add(bx+150,445,10,170,'booth right');
+        add(bx,605,52,10,'booth bottom left');
+        add(bx+108,605,52,10,'booth bottom right');
+      }
+      // Dressing room / office walls with open doors on left side.
+      add(1115,120,255,10,'dress top'); add(1115,120,10,300,'dress left upper'); add(1115,252,10,168,'dress left lower'); add(1360,120,10,300,'dress right'); add(1115,410,255,10,'dress bottom');
+      add(1080,515,290,10,'office top'); add(1080,515,10,255,'office left upper'); add(1080,633,10,137,'office left lower'); add(1360,515,10,255,'office right'); add(1080,760,290,10,'office bottom');
+
+      this.addHotZone('return_main', 82, 690, 130, 140, 'Doorway: back to main room');
+      this.addHotZone('dressing_room', 1115, 120, 255, 300, 'Dressing room');
+      this.addHotZone('nole_office', 1080, 515, 290, 255, "Nole's office");
+      this.addHotZone('booth_a', 415, 445, 160, 170, 'Private booth');
+      this.addHotZone('booth_b', 655, 445, 160, 170, 'Private booth');
+      this.addHotZone('booth_c', 895, 445, 160, 170, 'Private booth');
+    }
+
+    addHotZone(id,x,y,w,h,label){ this.hotspots.push({id,x,y,w,h,label}); }
+
+    createPlayer() {
+      const spawn = this.dataIn.spawn || { x: 190, y: 760, facing:'E' };
+      this.playerFacing = spawn.facing || 'E';
+      this.playerBody = this.add.rectangle(spawn.x, spawn.y, 32, 44, COLORS.blue, 0).setDepth(90);
+      this.physics.add.existing(this.playerBody);
+      this.playerBody.body.setCollideWorldBounds(true);
+      this.physics.add.collider(this.playerBody, this.walls);
+      if (this.textures.exists(PLAYER_ASSET.key)) {
+        this.createPlayerAnims();
+        this.playerSprite = this.add.sprite(spawn.x, spawn.y, PLAYER_ASSET.key, this.frameForFacing()).setOrigin(0.5, PLAYER_ASSET.originY).setScale(0.78 * 1.72).setDepth(91);
+      } else {
+        this.playerSprite = this.add.rectangle(spawn.x, spawn.y, 28, 52, COLORS.blue, 1).setDepth(91);
+      }
+    }
+
+    createPlayerAnims() {
+      if (!this.textures.exists(PLAYER_ASSET.key) || this.anims.exists('neon_backroom_malcolm_walk_south')) return;
+      const rows = [['south',0], ['southwest',1], ['west',2], ['northwest',3], ['north',4], ['northeast',5], ['east',6], ['southeast',7]];
+      const cols = 6;
+      for (const [name,row] of rows) {
+        this.anims.create({ key:`neon_backroom_malcolm_walk_${name}`, frames:this.anims.generateFrameNumbers(PLAYER_ASSET.key,{ start:row*cols, end:row*cols+cols-1 }), frameRate:8, repeat:-1 });
+      }
+    }
+
+    frameForFacing() { const rows = { S:0, SW:1, W:2, NW:3, N:4, NE:5, E:6, SE:7 }; return (rows[this.playerFacing] || 0) * 6; }
+    animForFacing() { const names = { S:'south', SW:'southwest', W:'west', NW:'northwest', N:'north', NE:'northeast', E:'east', SE:'southeast' }; return `neon_backroom_malcolm_walk_${names[this.playerFacing] || 'south'}`; }
+
+    createBackroomNpcs() {
+      const addNpc = (name,key,x,y,opts={}) => {
+        let obj;
+        if (this.textures.exists(key)) obj = this.add.sprite(x,y,key, opts.frame || 0).setOrigin(0.5, opts.originY ?? 0.84).setScale(opts.scale || 0.80).setDepth(opts.depth || y);
+        else obj = this.add.rectangle(x,y,28,48,opts.color || 0x888888,0.9).setDepth(opts.depth || y);
+        obj.neonName = name;
+        return obj;
+      };
+      addNpc('Nolan “Nole” Pike', 'neon_nole_sit', 1232, 680, { scale:NEON_NIGHTS_ASSETS_030.scale.sitting, frame:0, originY:0.86 });
+      addNpc('Dressing Room Dancer', 'neon_offshift_dancer_walk', 1216, 314, { scale:NEON_NIGHTS_ASSETS_030.scale.walk, frame:0 });
+      addNpc('Private Booth Guest', 'neon_businessman_walk', 497, 565, { scale:NEON_NIGHTS_ASSETS_030.scale.walk, frame:0 });
+      addNpc('Private Booth Dancer', 'neon_waitress_walk', 737, 565, { scale:NEON_NIGHTS_ASSETS_030.scale.walk, frame:0 });
+      addNpc('Private Booth Guest 2', 'neon_punk_walk', 977, 565, { scale:NEON_NIGHTS_ASSETS_030.scale.walk, frame:0 });
+    }
+
+    createUi() {
+      const panel = this.registerUi(this.add.rectangle(500, 40, 970, 54, 0x03111e, 0.72).setStrokeStyle(2, 0x55d8ff, 0.75).setOrigin(0,0));
+      const title = this.registerUi(this.add.text(18, 15, 'NEON NIGHTS BACK ROOM', { fontFamily:'Courier New', fontSize:'22px', color:'#90eaff', stroke:'#000', strokeThickness:4 }));
+      const hint = this.registerUi(this.add.text(18, 42, 'Touch lower-left doorway to return. A/E examines hotspots.', { fontFamily:'Courier New', fontSize:'16px', color:'#d7f6ff', stroke:'#000', strokeThickness:4 }));
+      this.promptText = this.registerUi(this.add.text(24, VIEW_H - 42, '', { fontFamily:'Courier New', fontSize:'20px', color:'#fff4cf', stroke:'#000', strokeThickness:4 }));
+      this.messageText = this.registerUi(this.add.text(470, 15, '', { fontFamily:'Courier New', fontSize:'18px', color:'#ffd37e', stroke:'#000', strokeThickness:4 }).setOrigin(0.5,0));
+      this.refreshUiCamera();
+    }
+
+    inputDir() {
+      const left = this.keys.left.isDown || this.keys.arrowLeft.isDown || this.mobile.left || (this.mobile.useStick && this.mobile.analogX < -0.25);
+      const right = this.keys.right.isDown || this.keys.arrowRight.isDown || this.mobile.right || (this.mobile.useStick && this.mobile.analogX > 0.25);
+      const up = this.keys.up.isDown || this.keys.arrowUp.isDown || this.mobile.up || (this.mobile.useStick && this.mobile.analogY < -0.25);
+      const down = this.keys.down.isDown || this.keys.arrowDown.isDown || this.mobile.down || (this.mobile.useStick && this.mobile.analogY > 0.25);
+      let vx = (right ? 1 : 0) - (left ? 1 : 0);
+      let vy = (down ? 1 : 0) - (up ? 1 : 0);
+      const len = Math.hypot(vx, vy) || 1;
+      return { vx:vx/len, vy:vy/len, moving:!!(vx||vy) };
+    }
+
+    update(time, delta) {
+      if (this.pauseMenuOpen) {
+        if (this.playerBody?.body) this.playerBody.body.setVelocity(0,0);
+        this.updatePlayerVisual(false);
+        return;
+      }
+      const d = this.inputDir();
+      if (this.playerBody?.body) this.playerBody.body.setVelocity(d.vx * 225, d.vy * 225);
+      if (d.moving) {
+        const angle = Phaser.Math.RadToDeg(Math.atan2(d.vy, d.vx));
+        this.playerFacing = ['E','SE','S','SW','W','NW','N','NE'][Math.round(((angle+360)%360)/45)%8];
+      }
+      this.updatePlayerVisual(d.moving);
+      this.updatePrompt();
+      if (this.messageTimer > 0) this.messageTimer -= delta || 16;
+      if (this._touchCooldown031 > 0) this._touchCooldown031 -= delta || 16;
+      this.messageText?.setText(this.messageTimer > 0 ? this.message : '');
+      if (this._touchCooldown031 <= 0 && this.playerInHotspot('return_main')) this.returnToMainRoom();
+      this.refreshUiCamera();
+    }
+
+    updatePlayerVisual(moving) {
+      if (!this.playerSprite || !this.playerBody) return;
+      this.playerSprite.setPosition(this.playerBody.x, this.playerBody.y);
+      if (this.playerSprite.play && this.textures.exists(PLAYER_ASSET.key)) {
+        if (moving) {
+          const key = this.animForFacing();
+          if (this.playerSprite.anims.currentAnim?.key !== key || !this.playerSprite.anims.isPlaying) this.playerSprite.play(key, true);
+        } else {
+          this.playerSprite.anims.stop();
+          this.playerSprite.setFrame(this.frameForFacing());
+        }
+      }
+    }
+
+    getCurrentHotspot() {
+      if (!this.playerBody) return null;
+      const b = this.playerBody.getBounds();
+      const p = { x:this.playerBody.x, y:this.playerBody.y };
+      let near = null, best = Infinity;
+      for (const h of this.hotspots) {
+        const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
+        if (Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, p.x, p.y)) return h;
+        const d = Phaser.Math.Distance.Between(p.x, p.y, h.x+h.w/2, h.y+h.h/2);
+        if (d < 95 && d < best) { near = h; best = d; }
+      }
+      return near;
+    }
+
+    playerInHotspot(id) {
+      const h = this.hotspots.find(z => z.id === id);
+      if (!h || !this.playerBody) return false;
+      const b = this.playerBody.getBounds();
+      const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
+      return Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, this.playerBody.x, this.playerBody.y);
+    }
+
+    updatePrompt() {
+      const h = this.getCurrentHotspot();
+      if (h) this.promptText?.setText(`A/E: ${h.label}`);
+      else this.promptText?.setText('Lower-left doorway returns to the club.');
+    }
+
+    handleInteract() {
+      if (this.pauseMenuOpen) return;
+      const h = this.getCurrentHotspot();
+      if (!h) { this.message = 'Perfume, powder, cigarettes, and bad decisions.'; this.messageTimer = 1600; return; }
+      if (h.id === 'return_main') { this.returnToMainRoom(); return; }
+      const lines = {
+        dressing_room: 'The dressing room smells like powder, hair spray, and stage heat.',
+        nole_office: 'Nole keeps ledgers, envelopes, and secrets in here.',
+        booth_a: 'Private booth: one chair for the client, room for the dancer to work.',
+        booth_b: 'Private booth: soft neon, cheap perfume, and a one-song promise.',
+        booth_c: 'Private booth: velvet walls and too many whispered deals.'
+      };
+      this.message = lines[h.id] || h.label;
+      this.messageTimer = 3000;
+    }
+
+    returnToMainRoom() {
+      if (this._transitioning031) return;
+      this._transitioning031 = true;
+      this.cameras.main.fadeOut(160,0,0,0);
+      this.time.delayedCall(170, () => {
+        this.scene.start('NeonNightsInteriorScene', {
+          returnSpawn: this.dataIn.returnSpawn || { x: 2328, y: 2600 },
+          spawn: this.mainRoomSpawn,
+          message: 'Back in Neon Nights.'
+        });
+      });
+    }
+  }
+
+  (function installNeonBackRoomAndScaleFix031() {
+    const FIXED_INDOOR_MALCOLM_SCALE_031 = 0.78 * 1.72;
+    const KIMS_WORLD_SPAWN_031 = { x: 2675, y: 1214 };
+    const KIMS_CAR_SPAWN_031 = { x: 2795, y: 1210, heading: 0 };
+
+    function forceIndoorMalcolmScale(scene) {
+      if (!scene?.playerSprite) return;
+      scene.playerSprite.setScale(FIXED_INDOOR_MALCOLM_SCALE_031);
+      if (scene.playerSprite.setOrigin) scene.playerSprite.setOrigin(0.5, 0.82);
+    }
+
+    // Keep Malcolm the same indoor size in pajamas and detective clothes.
+    if (typeof MorningInteriorBaseScene022 !== 'undefined') {
+      const oldUpdate031 = MorningInteriorBaseScene022.prototype.update;
+      MorningInteriorBaseScene022.prototype.update = function(time, delta) {
+        const result = oldUpdate031 ? oldUpdate031.call(this, time, delta) : undefined;
+        forceIndoorMalcolmScale(this);
+        return result;
+      };
+      const oldCreatePlayerAt031 = MorningInteriorBaseScene022.prototype.createPlayerAt;
+      MorningInteriorBaseScene022.prototype.createPlayerAt = function(x, y, sleeping = false) {
+        const result = oldCreatePlayerAt031.call(this, x, y, sleeping);
+        forceIndoorMalcolmScale(this);
+        return result;
+      };
+      const oldSwap031 = MorningInteriorBaseScene022.prototype.updatePlayerSpriteAsset;
+      MorningInteriorBaseScene022.prototype.updatePlayerSpriteAsset = function() {
+        const result = oldSwap031 ? oldSwap031.call(this) : undefined;
+        forceIndoorMalcolmScale(this);
+        return result;
+      };
+    }
+
+    // Kim's front door puts Malcolm outside and parks his car by the store.
     if (typeof KimsCornerMarketScene !== 'undefined') {
-      const oldKimsPreload028 = KimsCornerMarketScene.prototype.preload;
-      KimsCornerMarketScene.prototype.preload = function() {
-        const result = oldKimsPreload028.call(this);
-        if (!this.textures.exists(MR_KIM_ASSET_028.key)) {
-          this.load.spritesheet(MR_KIM_ASSET_028.key, A(MR_KIM_ASSET_028.path), {
-            frameWidth: MR_KIM_ASSET_028.frameWidth,
-            frameHeight: MR_KIM_ASSET_028.frameHeight
+      const oldKimsInteract031 = KimsCornerMarketScene.prototype.handleInteract;
+      KimsCornerMarketScene.prototype.handleInteract = function() {
+        const z = this.nearestZone?.();
+        if (z?.id === 'front_door') {
+          const state = ensureMalcolmMorningState022();
+          const msg = state.outfitEquipped
+            ? 'Morning shift: go to the police station and meet Ramos.'
+            : 'You can leave, but your pistol and detective clothes are upstairs.';
+          this.cameras.main.fadeOut(180, 0,0,0);
+          this.time.delayedCall(190, () => {
+            this.scene.start('GameScene', {
+              fromStationExit: true,
+              spawn: KIMS_WORLD_SPAWN_031,
+              carSpawn: KIMS_CAR_SPAWN_031,
+              message: msg
+            });
           });
-        }
-        if (!this.textures.exists(JOHNNY_ASSET_028.key)) {
-          this.load.spritesheet(JOHNNY_ASSET_028.key, A(JOHNNY_ASSET_028.path), {
-            frameWidth: JOHNNY_ASSET_028.frameWidth,
-            frameHeight: JOHNNY_ASSET_028.frameHeight
-          });
-        }
-        return result;
-      };
-
-      KimsCornerMarketScene.prototype.createShopNpc = function(cfg) {
-        if (!cfg || !this.add) return null;
-        if (!this.shopNpcs026) this.shopNpcs026 = [];
-
-        const asset = cfg.id === 'mr_kim' ? MR_KIM_ASSET_028 : cfg.id === 'johnny' ? JOHNNY_ASSET_028 : null;
-        const body = this.add.rectangle(cfg.x, cfg.y, 30, 46, 0x000000, 0.0).setDepth(28);
-        this.physics.add.existing(body);
-        body.body.setImmovable(true);
-        body.body.setAllowGravity(false);
-        body.body.moves = false;
-
-        let sprite;
-        if (asset && this.textures.exists(asset.key)) {
-          createFourByEightAnims022(this, asset.key);
-          sprite = this.add.sprite(cfg.x, cfg.y, asset.key, frameForFacing022('S', 0))
-            .setOrigin(0.5, asset.originY)
-            .setScale(asset.baseScale * 1.42)
-            .setDepth(29);
-        } else {
-          sprite = this.add.container(cfg.x, cfg.y).setDepth(29);
-          const shadow = this.add.ellipse(0, 22, 38, 14, 0x000000, 0.30);
-          const legs = this.add.rectangle(0, 16, 21, 26, 0x242a2d, 0.98).setStrokeStyle(1, 0x111111, 0.9);
-          const torso = this.add.rectangle(0, -8, 30, 42, cfg.color || 0x566273, 0.98).setStrokeStyle(2, 0x111111, 0.9);
-          const head = this.add.circle(0, -38, 13, cfg.skin || 0xc99162, 1).setStrokeStyle(2, 0x111111, 0.9);
-          const hair = this.add.rectangle(0, -48, 25, 7, 0x201611, 0.95);
-          sprite.add([shadow, legs, torso, head, hair]);
-          sprite.setScale(1.0);
-        }
-
-        const nameText = this.add.text(cfg.x, cfg.y - 76, cfg.name, {
-          fontFamily: 'Courier New',
-          fontSize: '17px',
-          color: '#f4d28a',
-          stroke: '#000000',
-          strokeThickness: 4
-        }).setOrigin(0.5).setDepth(40);
-
-        const npc = {
-          id: cfg.id,
-          name: cfg.name,
-          x: cfg.x,
-          y: cfg.y,
-          color: cfg.color || 0x566273,
-          skin: cfg.skin || 0xc99162,
-          portraitColor: cfg.portraitColor || cfg.color || 0x566273,
-          body,
-          sprite,
-          nameText,
-          baseScale: asset ? asset.baseScale : 0.74,
-          lines: activeKimLines028(cfg.id) || (Array.isArray(cfg.lines) ? cfg.lines.slice() : [])
-        };
-
-        this.shopNpcs026.push(npc);
-        if (!this.indoorNpcs) this.indoorNpcs = [];
-        this.indoorNpcs.push({ sprite, baseScale: npc.baseScale });
-        registerWorldOnly028(this, body);
-        registerWorldOnly028(this, sprite);
-        registerWorldOnly028(this, nameText);
-        return npc;
-      };
-
-      const oldOpenDialogue028 = KimsCornerMarketScene.prototype.openDialogueForNpc;
-      KimsCornerMarketScene.prototype.openDialogueForNpc = function(npcId) {
-        const npc = this.shopNpcs026?.find(n => n.id === npcId);
-        const lines = activeKimLines028(npcId);
-        if (npc && lines) npc.lines = lines;
-        return oldOpenDialogue028.call(this, npcId);
-      };
-    }
-
-    if (typeof GameScene !== 'undefined') {
-      const oldGameCreate028 = GameScene.prototype.create;
-      GameScene.prototype.create = function() {
-        if (!GAME.ramos?.introduced) {
-          GAME.ramos.onDuty = false;
-          GAME.ramos.dismissed = false;
-          GAME.ramos.inCar = false;
-        }
-        const result = oldGameCreate028.call(this);
-        if (!GAME.ramos?.introduced) this.setRamosVisible?.(false);
-        return result;
-      };
-
-      const oldApplyEntrySpawn028 = GameScene.prototype.applyEntrySpawn;
-      GameScene.prototype.applyEntrySpawn = function() {
-        const result = oldApplyEntrySpawn028.call(this);
-        const s = this.entryData?.spawn || {};
-        const msg = String(this.entryData?.message || '');
-        const fromKimsMorning = (Math.abs((s.x || 0) - KIMS_WORLD_SPAWN_028.x) < 260 && Math.abs((s.y || 0) - KIMS_WORLD_SPAWN_028.y) < 260)
-          || /police station|meet Ramos|Morning shift/i.test(msg);
-        if (fromKimsMorning && this.car) {
-          this.car.setPosition(KIMS_PARKED_CAR_028.x, KIMS_PARKED_CAR_028.y);
-          this.car.heading = KIMS_PARKED_CAR_028.heading;
-          this.car.vx = 0;
-          this.car.vy = 0;
-          this.car.rotationFrame = this.getVehicleFrame?.(this.car.heading) || 0;
-          this.car.body?.setVelocity(0, 0);
-          GAME.car.visualState.driverDoorOpen = false;
-          this.syncVehicleSprites?.();
-          this.message = 'Morning shift: your car is parked outside Kim’s. Go to the police station and meet Ramos.';
-          this.messageTimer = 3600;
-        }
-        return result;
-      };
-
-      const oldRamosIsOnDutyGame028 = GameScene.prototype.ramosIsOnDuty;
-      GameScene.prototype.ramosIsOnDuty = function() {
-        if (!GAME.ramos?.introduced) return false;
-        return oldRamosIsOnDutyGame028.call(this);
-      };
-    }
-
-    if (typeof PoliceStationScene !== 'undefined') {
-      function ramosMeetNear028(scene, range = 115) {
-        if (!scene?.ramosMeetBody028 || GAME.ramos?.introduced || scene.floorId !== 'floor1') return false;
-        return Phaser.Math.Distance.Between(scene.playerBody.x, scene.playerBody.y, scene.ramosMeetBody028.x, scene.ramosMeetBody028.y) <= range;
-      }
-
-      function destroyRamosMeet028(scene) {
-        for (const obj of [scene.ramosMeetBody028, scene.ramosMeetSprite028, scene.ramosMeetName028]) obj?.destroy?.();
-        scene.ramosMeetBody028 = null;
-        scene.ramosMeetSprite028 = null;
-        scene.ramosMeetName028 = null;
-      }
-
-      function createRamosMeetNpc028(scene) {
-        if (!scene || scene.floorId !== 'floor1' || GAME.ramos?.introduced || scene.ramosMeetBody028) return;
-        const x = 850;
-        const y = 660;
-        scene.ramosMeetBody028 = scene.add.rectangle(x, y, 28, 46, COLORS.purple, 0.0).setDepth(29);
-        scene.physics.add.existing(scene.ramosMeetBody028);
-        scene.ramosMeetBody028.body.setImmovable(true);
-        scene.ramosMeetBody028.body.moves = false;
-
-        if (scene.textures.exists(RAMOS_WALK_ASSET.key)) {
-          scene.createRamosAnims?.();
-          scene.ramosMeetSprite028 = scene.add.sprite(x, y, RAMOS_WALK_ASSET.key, scene.ramosFrame(RAMOS_WALK_ASSET, 'S'))
-            .setOrigin(0.5, RAMOS_WALK_ASSET.originY)
-            .setScale(RAMOS_WALK_ASSET.stationScale || RAMOS_WALK_ASSET.scale)
-            .setDepth(30);
-        } else {
-          scene.ramosMeetSprite028 = scene.add.rectangle(x, y, 30, 54, COLORS.purple, 1).setDepth(30);
-        }
-
-        scene.ramosMeetName028 = scene.add.text(x, y - 72, 'Detective Ramos', {
-          fontFamily: 'Courier New',
-          fontSize: '17px',
-          color: '#86e7ff',
-          stroke: '#000000',
-          strokeThickness: 4
-        }).setOrigin(0.5).setDepth(40);
-
-        scene.uiCamera?.ignore?.([scene.ramosMeetBody028, scene.ramosMeetSprite028, scene.ramosMeetName028].filter(Boolean));
-      }
-
-      const oldStationCreate028 = PoliceStationScene.prototype.create;
-      PoliceStationScene.prototype.create = function() {
-        if (!GAME.ramos?.introduced) {
-          GAME.ramos.onDuty = false;
-          GAME.ramos.dismissed = false;
-          GAME.ramos.inCar = false;
-        }
-        const result = oldStationCreate028.call(this);
-        if (!GAME.ramos?.introduced && this.floorId === 'floor1') {
-          this.setRamosVisible?.(false);
-          createRamosMeetNpc028(this);
-          this.promptText?.setText('Find Detective Ramos inside the station before patrol.');
-        }
-        return result;
-      };
-
-      const oldStationInteract028 = PoliceStationScene.prototype.handleInteract;
-      PoliceStationScene.prototype.handleInteract = function() {
-        if (ramosMeetNear028(this)) {
-          GAME.ramos.introduced = true;
-          GAME.ramos.onDuty = true;
-          GAME.ramos.dismissed = false;
-          GAME.ramos.inCar = false;
-          destroyRamosMeet028(this);
-          if (this.ramosBody) {
-            this.ramosBody.setPosition(this.playerBody.x - 62, this.playerBody.y + 18);
-            this.ramosFacing = 'S';
-            this.setRamosVisible?.(true);
-          }
-          this.promptText?.setText('Ramos: Detective King? Captain assigned me to ride with you. I’m your new partner.');
           return;
         }
-        return oldStationInteract028.call(this);
+        return oldKimsInteract031 ? oldKimsInteract031.call(this) : undefined;
+      };
+    }
+
+    // World entry spawn can now park Malcolm's sedan too.
+    if (typeof GameScene !== 'undefined') {
+      const oldApplyEntrySpawn031 = GameScene.prototype.applyEntrySpawn;
+      GameScene.prototype.applyEntrySpawn = function() {
+        const result = oldApplyEntrySpawn031 ? oldApplyEntrySpawn031.call(this) : undefined;
+        if (this.entryData?.carSpawn && this.car) {
+          const cs = this.entryData.carSpawn;
+          this.car.setPosition(cs.x, cs.y);
+          this.car.heading = Number.isFinite(cs.heading) ? cs.heading : (this.car.heading || 0);
+          this.car.vx = 0; this.car.vy = 0;
+          if (this.car.body) {
+            this.car.body.reset?.(cs.x, cs.y);
+            this.car.body.setVelocity?.(0,0);
+          }
+          this.syncVehicleSprites?.();
+          this.refreshPlayerCarWorldSprite?.();
+        }
+        return result;
+      };
+    }
+
+    // Tighten Neon Nights street entrance to the exact front-door spot.
+    if (Array.isArray(INTERACTION_ZONES)) {
+      const neonDoor = INTERACTION_ZONES.find(z => z.id === 'chunk_d_neon_nights_door');
+      if (neonDoor) {
+        neonDoor.x = 2270;
+        neonDoor.y = 2470;
+        neonDoor.w = 120;
+        neonDoor.h = 105;
+        neonDoor.label = 'Neon Nights';
+      }
+    }
+
+    // Extend Neon Nights interior with the back-room door and fixed player scale.
+    if (typeof NeonNightsInteriorScene !== 'undefined') {
+      const oldCreate031 = NeonNightsInteriorScene.prototype.create;
+      NeonNightsInteriorScene.prototype.create = function() {
+        const result = oldCreate031.call(this);
+        // Hide Nole from main room; he lives in the back office now.
+        this.hotspots = (this.hotspots || []).filter(h => h.id !== 'nole');
+        if (Array.isArray(this.npcs)) {
+          this.npcs = this.npcs.filter(npc => {
+            if ((npc?.neonName || '').includes('Nolan')) { npc.destroy?.(); return false; }
+            return true;
+          });
+        }
+        // Add a visible VIP/back-room doorway on the upper-left of the club.
+        const deco = this.add.graphics().setDepth(24);
+        deco.fillStyle(0x1a0c12,1).fillRoundedRect(106, 96, 88, 112, 6);
+        deco.lineStyle(3, COLORS.neonPink, 0.75).strokeRoundedRect(106, 96, 88, 112, 6);
+        deco.fillStyle(0x2a1216,1).fillRect(130, 120, 40, 60);
+        deco.fillStyle(0x8d1a34,0.95).fillCircle(150, 86, 8);
+        this.add.text(148, 64, 'VIP\nOFFICE', { fontFamily:'Courier New', fontSize:'20px', color:'#ff6b9f', align:'center', stroke:'#000', strokeThickness:4 }).setOrigin(0.5).setDepth(25);
+        if (!(this.hotspots || []).some(h => h.id === 'backroom_door')) this.addHotZone('backroom_door', 98, 90, 108, 130, 'VIP office / back room');
+        forceIndoorMalcolmScale(this);
+        return result;
       };
 
-      const oldStationUpdate028 = PoliceStationScene.prototype.update;
-      PoliceStationScene.prototype.update = function(time, delta) {
-        const result = oldStationUpdate028.call(this, time, delta);
-        if (ramosMeetNear028(this)) this.promptText?.setText('A/E: meet Detective Ramos');
+      const oldUpdateVisual031 = NeonNightsInteriorScene.prototype.updatePlayerVisual;
+      NeonNightsInteriorScene.prototype.updatePlayerVisual = function(moving) {
+        const result = oldUpdateVisual031.call(this, moving);
+        forceIndoorMalcolmScale(this);
         return result;
+      };
+
+      NeonNightsInteriorScene.prototype.playerInHotspot031 = function(id) {
+        const h = (this.hotspots || []).find(z => z.id === id);
+        if (!h || !this.playerBody) return false;
+        const b = this.playerBody.getBounds();
+        const r = new Phaser.Geom.Rectangle(h.x, h.y, h.w, h.h);
+        return Phaser.Geom.Rectangle.Overlaps(r, b) || Phaser.Geom.Rectangle.Contains(r, this.playerBody.x, this.playerBody.y);
+      };
+
+      NeonNightsInteriorScene.prototype.enterBackRoom = function() {
+        if (this._transitioning031) return;
+        this._transitioning031 = true;
+        if (this.playerBody?.body) this.playerBody.body.setVelocity(0,0);
+        this.cameras.main.fadeOut(160,0,0,0);
+        this.time.delayedCall(170, () => {
+          this.scene.start('NeonNightsBackRoomScene', {
+            returnSpawn: this.returnSpawn,
+            spawn: { x: 170, y: 760, facing:'E' },
+            mainRoomSpawn: { x: 180, y: 235, facing:'S' },
+            message: 'Into the back room.'
+          });
+        });
+      };
+
+      const oldHandleInteract031 = NeonNightsInteriorScene.prototype.handleInteract;
+      NeonNightsInteriorScene.prototype.handleInteract = function() {
+        const h = this.getCurrentHotspot?.();
+        if (h?.id === 'backroom_door') { this.enterBackRoom(); return; }
+        return oldHandleInteract031.call(this);
+      };
+
+      const oldUpdate031 = NeonNightsInteriorScene.prototype.update;
+      NeonNightsInteriorScene.prototype.update = function(time, delta) {
+        const result = oldUpdate031.call(this, time, delta);
+        this._touchCooldown031 = Math.max(0, (this._touchCooldown031 || 0) - (delta || 16));
+        if (!this.pauseMenuOpen && !this._transitioning031 && this._touchCooldown031 <= 0 && this.playerInHotspot031('backroom_door')) {
+          this._touchCooldown031 = 500;
+          this.enterBackRoom();
+        }
+        return result;
+      };
+    }
+
+    // Mobile controls should target the back room too.
+    if (typeof MobileControlsScene !== 'undefined') {
+      const oldGetTarget031 = MobileControlsScene.prototype.getTargetScene;
+      MobileControlsScene.prototype.getTargetScene = function() {
+        const back = this.scene.get('NeonNightsBackRoomScene');
+        if (back?.scene?.isActive()) return back;
+        return oldGetTarget031 ? oldGetTarget031.call(this) : null;
+      };
+
+      const oldFire031 = MobileControlsScene.prototype.fireAction;
+      MobileControlsScene.prototype.fireAction = function(key) {
+        const target = this.getTargetScene?.();
+        if (target?.scene?.key === 'NeonNightsBackRoomScene') {
+          if (key === 'a' && typeof target.handleInteract === 'function') { target.handleInteract(); return; }
+          if (key === 'b' && typeof target.returnToMainRoom === 'function') { target.returnToMainRoom(); return; }
+          if (key === 'sta') { target.togglePauseMenu?.(); return; }
+        }
+        return oldFire031 ? oldFire031.call(this, key) : undefined;
       };
     }
   })();
 
 
-
-  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
+  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, NeonNightsInteriorScene, NeonNightsBackRoomScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
 })();
 </script>
 </body>
