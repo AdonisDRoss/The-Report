@@ -17,392 +17,7 @@
 </head>
 <body>
 <div id="game"></div>
-<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js">
-
-  // TRANSITION_B_CONFIRM_AND_NEON_SPAWN_HOTFIX_045
-  // Uses B as the confirm button for building transitions so A can remain the talk/interact button.
-  // Fixes Kim's front exit, Neon exterior entry, Neon front-room spawn, Neon exits, and Neon back-room transitions.
-  (function installTransitionBConfirmAndNeonSpawnHotfix045() {
-    const HOTFIX_ID_045 = 'TRANSITION_B_CONFIRM_AND_NEON_SPAWN_HOTFIX_045';
-    if (window[HOTFIX_ID_045]) return;
-    window[HOTFIX_ID_045] = true;
-
-    const NEON_WORLD_ENTRY_045 = [
-      { id:'chunk_d_neon_nights_door', x:2475, y:1015, w:430, h:390, type:'door', label:'Neon Nights' },
-      { id:'chunk_d_neon_nights_exact_045', x:2520, y:1080, w:310, h:280, type:'door', label:'Neon Nights' }
-    ];
-
-    const NEON_MAIN_SPAWN_045 = { x: 735, y: 315, facing:'S' };
-    const NEON_MAIN_EXIT_045 = { id:'exit_045', x:570, y:470, w:390, h:300, label:'Exit to Red Gull Strip' };
-    const NEON_BACKROOM_ENTRY_045 = { id:'backroom_door_045', x:670, y:120, w:300, h:230, label:'Back room / VIP hallway' };
-    const NEON_BACKROOM_RETURN_045 = { id:'return_main_045', x:45, y:620, w:295, h:290, label:'Return to main room' };
-
-    const KIMS_EXIT_045 = { x: 330, y: 790, w: 700, h: 460 };
-
-    function sceneKey045(scene) { return scene?.scene?.key || ''; }
-    function now045(scene) { return Number(scene?.time?.now || Date.now()); }
-    function playerPoint045(scene) {
-      const p = scene?.player || scene?.playerBody || scene?.car || {};
-      return { x: Number(p.x || 0), y: Number(p.y || 0) };
-    }
-    function inRect045(scene, r) {
-      const p = playerPoint045(scene);
-      return p.x >= r.x && p.x <= r.x + r.w && p.y >= r.y && p.y <= r.y + r.h;
-    }
-    function rectActorOverlap045(scene, r) {
-      const a = scene?.inCar ? scene?.car : (scene?.player || scene?.playerBody);
-      if (!a || !r) return false;
-      const x = Number(a.x || 0), y = Number(a.y || 0);
-      const aw = Number(a.displayWidth || a.width || 42);
-      const ah = Number(a.displayHeight || a.height || 58);
-      return !(x + aw/2 < r.x || x - aw/2 > r.x + r.w || y + ah/2 < r.y || y - ah/2 > r.y + r.h);
-    }
-    function stopPlayer045(scene) {
-      try { scene?.player?.body?.setVelocity?.(0, 0); } catch (_) {}
-      try { scene?.playerBody?.body?.setVelocity?.(0, 0); } catch (_) {}
-      try { scene?.car?.body?.setVelocity?.(0, 0); } catch (_) {}
-      try { scene?.playerSprite?.anims?.stop?.(); } catch (_) {}
-    }
-
-    function installWorldNeonZones045() {
-      if (!Array.isArray(INTERACTION_ZONES)) return;
-      for (const src of NEON_WORLD_ENTRY_045) {
-        const z = INTERACTION_ZONES.find(e => e.id === src.id);
-        if (z) Object.assign(z, src);
-        else INTERACTION_ZONES.push({ ...src });
-      }
-    }
-    function activeNeonWorldZone045(scene) {
-      for (const z of NEON_WORLD_ENTRY_045) {
-        if (rectActorOverlap045(scene, z)) return z;
-      }
-      return null;
-    }
-    function activeDoorZone045(scene) {
-      const neon = activeNeonWorldZone045(scene);
-      if (neon) return neon;
-      const z = scene?.closestZone;
-      if (z && (z.type === 'door' || /door|market|diner|pawn|neon|station|building/i.test(`${z.id || ''} ${z.label || ''}`))) return z;
-      return null;
-    }
-
-    function enterNeon045(scene) {
-      if (!scene || sceneKey045(scene) !== 'GameScene') return false;
-      const now = now045(scene);
-      if (now < Number(scene._transitionLock045 || 0)) return true;
-      scene._transitionLock045 = now + 650;
-      const p = playerPoint045(scene);
-      stopPlayer045(scene);
-      scene.scene.start('NeonNightsInteriorScene', {
-        fromWorld: true,
-        returnSpawn: { x: Math.round(p.x || 2660), y: Math.round(p.y || 1210) },
-        return: { x: Math.round(p.x || 2660), y: Math.round(p.y || 1210) },
-        spawn: NEON_MAIN_SPAWN_045,
-        message: 'Entered Neon Nights.'
-      });
-      return true;
-    }
-
-    function enterDoorFromWorld045(scene, z) {
-      if (!scene || sceneKey045(scene) !== 'GameScene' || !z) return false;
-      if (/neon[_\s-]*nights/i.test(`${z.id || ''} ${z.label || ''}`)) return enterNeon045(scene);
-      if (typeof scene.enterBuilding === 'function') {
-        return scene.enterBuilding(z);
-      }
-      return false;
-    }
-
-    function kimsExitToWorld045(scene) {
-      if (!scene || scene._kimsExitLock045) return true;
-      scene._kimsExitLock045 = true;
-      stopPlayer045(scene);
-      const state = typeof ensureMalcolmMorningState022 === 'function' ? ensureMalcolmMorningState022() : (GAME.malcolm || {});
-      const msg = state.outfitEquipped
-        ? 'Exited Kim’s Corner Market. Press B at building doors to enter.'
-        : 'Exited Kim’s. Your pistol and detective clothes are upstairs.';
-      scene.scene.start('GameScene', {
-        fromStationExit: true,
-        fromKimsFrontDoor: true,
-        spawn: { x: 2675, y: 1214 },
-        carSpawn: { x: 2795, y: 1210, heading: 0 },
-        message: msg
-      });
-      return true;
-    }
-
-    function addOrReplaceHotspot045(scene, h) {
-      if (!scene) return;
-      if (!Array.isArray(scene.hotspots)) scene.hotspots = [];
-      const old = scene.hotspots.find(z => z.id === h.id);
-      if (old) Object.assign(old, h);
-      else scene.hotspots.push({ ...h });
-    }
-    function playerInHotspot045(scene, id) {
-      const h = (scene?.hotspots || []).find(z => z.id === id);
-      if (!h) return false;
-      return inRect045(scene, h);
-    }
-
-    function exitNeonToWorld045(scene) {
-      if (!scene || scene._neonExitLock045) return true;
-      scene._neonExitLock045 = true;
-      stopPlayer045(scene);
-      const ret = scene.returnSpawn || scene.dataIn?.returnSpawn || scene.dataIn?.return || { x: 2660, y: 1210 };
-      scene.scene.start('GameScene', {
-        fromStationExit: true,
-        fromNeonExit: true,
-        spawn: ret,
-        message: 'Exited Neon Nights.'
-      });
-      return true;
-    }
-    function enterBackRoom045(scene) {
-      if (!scene || scene._neonBackLock045) return true;
-      scene._neonBackLock045 = true;
-      stopPlayer045(scene);
-      scene.scene.start('NeonNightsBackRoomScene', {
-        fromMainRoom: true,
-        returnSpawn: { x: 760, y: 260 },
-        spawn: { x: 150, y: 725, facing:'E' }
-      });
-      return true;
-    }
-    function returnToNeonMain045(scene) {
-      if (!scene || scene._neonReturnLock045) return true;
-      scene._neonReturnLock045 = true;
-      stopPlayer045(scene);
-      scene.scene.start('NeonNightsInteriorScene', {
-        fromBackRoom: true,
-        spawn: { x: 770, y: 265, facing:'S' },
-        returnSpawn: scene.dataIn?.returnSpawn || { x: 2660, y: 1210 },
-        message: 'Returned to Neon Nights.'
-      });
-      return true;
-    }
-
-    installWorldNeonZones045();
-
-    if (typeof GameScene !== 'undefined') {
-      const oldCreate045 = GameScene.prototype.create;
-      GameScene.prototype.create = function() {
-        const result = oldCreate045 ? oldCreate045.apply(this, arguments) : undefined;
-        installWorldNeonZones045();
-        this._transitionLock045 = 0;
-        return result;
-      };
-
-      const oldUpdateClosest045 = GameScene.prototype.updateClosestZone;
-      GameScene.prototype.updateClosestZone = function() {
-        const result = oldUpdateClosest045 ? oldUpdateClosest045.call(this) : undefined;
-        const neon = activeNeonWorldZone045(this);
-        if (neon) this.closestZone = neon;
-        return result;
-      };
-
-      const oldUpdate045 = GameScene.prototype.update;
-      GameScene.prototype.update = function(time, delta) {
-        const result = oldUpdate045 ? oldUpdate045.call(this, time, delta) : undefined;
-        const z = activeDoorZone045(this);
-        if (z) {
-          const label = z.label || 'building';
-          this.message = `Enter ${label}: press B.`;
-          this.messageTimer = Math.max(Number(this.messageTimer || 0), 75);
-          if (typeof this.setPrompt === 'function') this.setPrompt(`Enter ${label}: press B.`);
-        }
-        return result;
-      };
-
-      const oldHandleInteract045 = GameScene.prototype.handleInteract;
-      GameScene.prototype.handleInteract = function() {
-        const z = activeDoorZone045(this);
-        if (z) {
-          const label = z.label || 'building';
-          this.message = `Enter ${label}: press B.`;
-          this.messageTimer = 900;
-          if (typeof this.setPrompt === 'function') this.setPrompt(`Enter ${label}: press B.`);
-          return true;
-        }
-        return oldHandleInteract045 ? oldHandleInteract045.call(this) : undefined;
-      };
-
-      const oldHandleCarOrArrest045 = GameScene.prototype.handleCarOrArrest;
-      GameScene.prototype.handleCarOrArrest = function() {
-        const z = activeDoorZone045(this);
-        if (z) return enterDoorFromWorld045(this, z);
-        return oldHandleCarOrArrest045 ? oldHandleCarOrArrest045.call(this) : undefined;
-      };
-    }
-
-    if (typeof KimsCornerMarketScene !== 'undefined') {
-      const oldCreateKims045 = KimsCornerMarketScene.prototype.create;
-      KimsCornerMarketScene.prototype.create = function() {
-        const result = oldCreateKims045 ? oldCreateKims045.apply(this, arguments) : undefined;
-        this._kimsExitLock045 = false;
-        return result;
-      };
-
-      const oldUpdateKims045 = KimsCornerMarketScene.prototype.update;
-      KimsCornerMarketScene.prototype.update = function(time, delta) {
-        const result = oldUpdateKims045 ? oldUpdateKims045.call(this, time, delta) : undefined;
-        if (inRect045(this, KIMS_EXIT_045)) {
-          this.setPrompt?.('Exit to street/world map: press B.');
-        }
-        return result;
-      };
-
-      const oldHandleKims045 = KimsCornerMarketScene.prototype.handleInteract;
-      KimsCornerMarketScene.prototype.handleInteract = function() {
-        if (inRect045(this, KIMS_EXIT_045)) {
-          this.setPrompt?.('Exit to street/world map: press B.');
-          return true;
-        }
-        return oldHandleKims045 ? oldHandleKims045.call(this) : undefined;
-      };
-    }
-
-    if (typeof NeonNightsInteriorScene !== 'undefined') {
-      const oldInitNeon045 = NeonNightsInteriorScene.prototype.init;
-      NeonNightsInteriorScene.prototype.init = function(data) {
-        const result = oldInitNeon045 ? oldInitNeon045.call(this, data) : undefined;
-        this.dataIn = data || this.dataIn || {};
-        this.returnSpawn = this.dataIn.returnSpawn || this.dataIn.return || this.returnSpawn || { x: 2660, y: 1210 };
-        this.dataIn.spawn = this.dataIn.spawn || NEON_MAIN_SPAWN_045;
-        this._neonExitLock045 = false;
-        this._neonBackLock045 = false;
-        return result;
-      };
-
-      const oldCreateNeon045 = NeonNightsInteriorScene.prototype.create;
-      NeonNightsInteriorScene.prototype.create = function() {
-        const result = oldCreateNeon045 ? oldCreateNeon045.apply(this, arguments) : undefined;
-        this._neonExitLock045 = false;
-        this._neonBackLock045 = false;
-        addOrReplaceHotspot045(this, NEON_MAIN_EXIT_045);
-        addOrReplaceHotspot045(this, NEON_BACKROOM_ENTRY_045);
-        if (this.playerBody && this.dataIn?.spawn) {
-          const s = this.dataIn.spawn;
-          this.playerBody.setPosition?.(s.x ?? NEON_MAIN_SPAWN_045.x, s.y ?? NEON_MAIN_SPAWN_045.y);
-          this.playerSprite?.setPosition?.(this.playerBody.x, this.playerBody.y);
-        }
-        return result;
-      };
-
-      const oldUpdateNeon045 = NeonNightsInteriorScene.prototype.update;
-      NeonNightsInteriorScene.prototype.update = function(time, delta) {
-        const result = oldUpdateNeon045 ? oldUpdateNeon045.call(this, time, delta) : undefined;
-        if (playerInHotspot045(this, 'exit_045') || playerInHotspot045(this, 'exit')) {
-          this.setPrompt?.('Exit to Red Gull Strip: press B.');
-        } else if (playerInHotspot045(this, 'backroom_door_045') || playerInHotspot045(this, 'backroom_door')) {
-          this.setPrompt?.('Back room: press B.');
-        }
-        return result;
-      };
-
-      const oldHandleNeon045 = NeonNightsInteriorScene.prototype.handleInteract;
-      NeonNightsInteriorScene.prototype.handleInteract = function() {
-        if (playerInHotspot045(this, 'exit_045') || playerInHotspot045(this, 'exit')) {
-          this.setPrompt?.('Exit to Red Gull Strip: press B.');
-          return true;
-        }
-        if (playerInHotspot045(this, 'backroom_door_045') || playerInHotspot045(this, 'backroom_door')) {
-          this.setPrompt?.('Back room: press B.');
-          return true;
-        }
-        return oldHandleNeon045 ? oldHandleNeon045.call(this) : undefined;
-      };
-    }
-
-    if (typeof NeonNightsBackRoomScene !== 'undefined') {
-      const oldCreateBack045 = NeonNightsBackRoomScene.prototype.create;
-      NeonNightsBackRoomScene.prototype.create = function() {
-        const result = oldCreateBack045 ? oldCreateBack045.apply(this, arguments) : undefined;
-        this._neonReturnLock045 = false;
-        addOrReplaceHotspot045(this, NEON_BACKROOM_RETURN_045);
-        return result;
-      };
-
-      const oldUpdateBack045 = NeonNightsBackRoomScene.prototype.update;
-      NeonNightsBackRoomScene.prototype.update = function(time, delta) {
-        const result = oldUpdateBack045 ? oldUpdateBack045.call(this, time, delta) : undefined;
-        if (playerInHotspot045(this, 'return_main_045') || playerInHotspot045(this, 'return_main')) {
-          this.setPrompt?.('Return to main room: press B.');
-        }
-        return result;
-      };
-
-      const oldHandleBack045 = NeonNightsBackRoomScene.prototype.handleInteract;
-      NeonNightsBackRoomScene.prototype.handleInteract = function() {
-        if (playerInHotspot045(this, 'return_main_045') || playerInHotspot045(this, 'return_main')) {
-          this.setPrompt?.('Return to main room: press B.');
-          return true;
-        }
-        return oldHandleBack045 ? oldHandleBack045.call(this) : undefined;
-      };
-    }
-
-    if (typeof MobileControlsScene !== 'undefined') {
-      const oldFire045 = MobileControlsScene.prototype.fireAction;
-      MobileControlsScene.prototype.fireAction = function(key) {
-        const target = this.getTargetScene?.();
-        const k = sceneKey045(target);
-
-        if (k === 'GameScene') {
-          const z = activeDoorZone045(target);
-          if (z && key === 'a') {
-            target.message = `Enter ${z.label || 'building'}: press B.`;
-            target.messageTimer = 900;
-            target.setPrompt?.(`Enter ${z.label || 'building'}: press B.`);
-            return;
-          }
-          if (z && key === 'b') {
-            enterDoorFromWorld045(target, z);
-            return;
-          }
-        }
-
-        if (k === 'KimsCornerMarketScene') {
-          if (inRect045(target, KIMS_EXIT_045) && key === 'b') {
-            kimsExitToWorld045(target);
-            return;
-          }
-          if (inRect045(target, KIMS_EXIT_045) && key === 'a') {
-            target.setPrompt?.('Exit to street/world map: press B.');
-            return;
-          }
-        }
-
-        if (k === 'NeonNightsInteriorScene') {
-          if (key === 'b' && (playerInHotspot045(target, 'exit_045') || playerInHotspot045(target, 'exit'))) {
-            exitNeonToWorld045(target);
-            return;
-          }
-          if (key === 'b' && (playerInHotspot045(target, 'backroom_door_045') || playerInHotspot045(target, 'backroom_door'))) {
-            enterBackRoom045(target);
-            return;
-          }
-          if (key === 'a' && (playerInHotspot045(target, 'exit_045') || playerInHotspot045(target, 'exit') || playerInHotspot045(target, 'backroom_door_045') || playerInHotspot045(target, 'backroom_door'))) {
-            target.setPrompt?.('Use B to confirm this transition.');
-            return;
-          }
-        }
-
-        if (k === 'NeonNightsBackRoomScene') {
-          if (key === 'b' && (playerInHotspot045(target, 'return_main_045') || playerInHotspot045(target, 'return_main'))) {
-            returnToNeonMain045(target);
-            return;
-          }
-          if (key === 'a' && (playerInHotspot045(target, 'return_main_045') || playerInHotspot045(target, 'return_main'))) {
-            target.setPrompt?.('Return to main room: press B.');
-            return;
-          }
-        }
-
-        return oldFire045 ? oldFire045.call(this, key) : undefined;
-      };
-    }
-  })();
-
-</script>
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 <script>
 (() => {
   // Hard mobile control lock: prevents Safari/browser gestures from dragging the page.
@@ -454,7 +69,7 @@
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
   const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
-  const ASSET_REV = 'transition-b-confirm-hotfix-045';
+  const ASSET_REV = 'walk-trigger-neon-npc-chatter-047';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
     if (/^(https?:)?\/\//.test(clean) || clean.startsWith('data:')) return clean;
@@ -17042,152 +16657,499 @@
     }
   })();
 
-  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, NeonNightsInteriorScene, NeonNightsBackRoomScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
-})();
-// NEON_ENTRY_WORLDMAP_HOTFIX_044
-  // Exiting Kim's goes to the world map first, then Neon Nights can be entered at Malcolm's exact outside position.
-  // Prevents one-button chain transitions by adding a short world-entry grace period at the Neon front spot.
-  (function installNeonEntryWorldMapHotfix044() {
-    const HOTFIX_ID_044 = 'NEON_ENTRY_WORLDMAP_HOTFIX_044';
-    if (window[HOTFIX_ID_044]) return;
-    window[HOTFIX_ID_044] = true;
 
-    const NEON_ENTRY_ZONES_044 = [
-      { id:'chunk_d_neon_nights_door', x:2520, y:1070, w:260, h:280, type:'door', label:'Neon Nights' },
-      { id:'chunk_d_neon_nights_exact_044', x:2460, y:1020, w:380, h:360, type:'door', label:'Neon Nights' }
+
+  // WALK_ON_TRANSITIONS_AND_NEON_NPC_CHATTER_HOTFIX_047
+  // Walk-on doors: Kim's front door, Neon exterior door, and Neon interior exit. A remains talk-only in Neon.
+  (function installWalkOnTransitionsAndNeonNpcChatter047() {
+    const PATCH_ID_047 = 'WALK_ON_TRANSITIONS_AND_NEON_NPC_CHATTER_HOTFIX_047';
+    if (window[PATCH_ID_047]) return;
+    window[PATCH_ID_047] = true;
+
+    const SHOW_TRIGGER_RINGS_047 = true; // visible circle markers for current testing screenshots
+
+    // Pic 1: Kim's front glass door mat -> outside street.
+    const KIMS_FRONT_EXIT_047 = { id:'kims_front_walk_exit_047', x:540, y:1095, w:230, h:155, label:'Walk outside' };
+    const KIMS_STREET_SPAWN_047 = { x:2675, y:1214 };
+
+    // Pic 2: current/legacy Neon Nights front-door spots. Kept small so the whole block no longer steals A-talk.
+    const NEON_WORLD_ENTRIES_047 = [
+      { id:'neon_entry_photo_current_047', x:2740, y:1715, w:260, h:245, type:'door', label:'Neon Nights', exitX:2860, exitY:1990 },
+      { id:'neon_entry_photo_alt_047', x:2490, y:1040, w:350, h:340, type:'door', label:'Neon Nights', exitX:2660, exitY:1415 },
+      { id:'chunk_d_neon_nights_door', x:2270, y:2470, w:150, h:135, type:'door', label:'Neon Nights', exitX:2345, exitY:2610 }
     ];
 
-    function actor044(scene) {
-      return scene?.inCar ? (scene?.car || null) : (scene?.player || scene?.playerBody || null);
-    }
-    function now044(scene) { return Number(scene?.time?.now || Date.now()); }
-    function rectOverlap044(a, r) {
+    // Pic 3: X spawn inside, and circled front mat exits back out.
+    const NEON_INTERIOR_SPAWN_047 = { x:735, y:315, facing:'S' };
+    const NEON_INTERIOR_EXIT_047 = { id:'neon_front_walk_exit_047', x:660, y:805, w:280, h:170, label:'Walk outside to Red Gull Strip' };
+
+const NEON_CONVOS_047 = [
+    { player:'Who watched the front door tonight?', a:'Roy: Everybody watched it. Nobody admits it.', b:'Darla: Keep your voice low. The owner hears cash drawers better than cops.' },
+    { player:'Anybody see a sedan idling outside?', a:'Dock Regular: Black sedan rolled by twice.', b:'Vice Cop: No plates from where I stood.' },
+    { player:'You know Honey Vale?', a:'Honey: I know who pays and who pretends.', b:'Paulie: That is enough talking for one table.' },
+    { player:'Nolan in tonight?', a:'Darla: Office light has been on since seven.', b:'Roy: He hates visitors without envelopes.' },
+    { player:'Any Moretti trouble?', a:'Paulie: Trouble pays the cover charge here.', b:'Vince: Trouble also leaves by the alley.' },
+    { player:'Neon Knives hanging around?', a:'Vince: Jackets do not make a gang.', b:'Off-duty Vice: In this place they usually do.' },
+    { player:'Who runs the side booths?', a:'Waitress: Whoever pays Nole on time.', b:'Businessman: And whoever does not ask for receipts.' },
+    { player:'Any fights tonight?', a:'Roy: One shove near the bar. I put it down.', b:'Darla: He put it through a table.' },
+    { player:'Anybody leave in a hurry?', a:'Earl: A man in a gray coat kept checking the rain.', b:'Martin: He left before the second song ended.' },
+    { player:'Who was near the office?', a:'Nole: My office is not a public sidewalk.', b:'Honey: Then stop letting half the Strip line up outside it.' },
+    { player:'What did you hear by the stage?', a:'Off-shift Dancer: Somebody said Bell Cartage had a problem.', b:'Waitress: Somebody says that every week.' },
+    { player:'Any weapons inside?', a:'Roy: Not after the door search.', b:'Vince: Unless you count glass ashtrays.' },
+    { player:'Who is nervous?', a:'Martin: I am not nervous.', b:'Darla: He has said that six times.' },
+    { player:'Any new faces?', a:'Earl: Rain brings strangers.', b:'Vice Cop: Neon brings liars.' },
+    { player:'Did a woman in red come through?', a:'Honey: Depends which red.', b:'Waitress: Coat, not dress. Back hallway.' },
+    { player:'What is Nole hiding?', a:'Nole: A profitable business.', b:'Darla: That means everything and nothing.' },
+    { player:'Who uses the back room?', a:'Roy: Staff, owner, and people who pay to be called staff.', b:'Paulie: Watch your wording.' },
+    { player:'Who paid cash tonight?', a:'Darla: Everybody with sense.', b:'Businessman: Some of us prefer privacy.' },
+    { player:'Anybody mention Raven Pawn?', a:'Vince: Pawn boys talk too much.', b:'Honey: They talk when scared.' },
+    { player:'Anybody mention Russo Auto?', a:'Earl: Tow truck driver came in wet and mad.', b:'Darla: Left after one drink.' },
+    { player:'Who is watching me?', a:'Vice Cop: Half the room.', b:'Roy: The other half is pretending not to.' },
+    { player:'Any dancers threatened?', a:'Off-shift Dancer: Threats are cheaper than tips.', b:'Waitress: Not funny, but true.' },
+    { player:'Who owns the gambling book?', a:'Paulie: No book here.', b:'Darla: Funny. I just wiped beer off one.' },
+    { player:'Anybody asking about police?', a:'Martin: A man asked when patrol changes.', b:'Roy: That man got walked out.' },
+    { player:'Where did he go?', a:'Roy: South sidewalk, then alley.', b:'Earl: He cut toward the canal.' },
+    { player:'Any names?', a:'Honey: People use fake names in real trouble.', b:'Vince: And real names for fake trouble.' },
+    { player:'What happened before I came in?', a:'Darla: Rain, music, lies.', b:'Waitress: Same as every night, just louder.' },
+    { player:'Who talked to Bell Cartage?', a:'Businessman: Not me.', b:'Nole: He means yes.' },
+    { player:'Any Holloway Kings here?', a:'Earl: One kid with gold rings.', b:'Vince: Not Kings. Just trying to look like one.' },
+    { player:'Any Los Reyes trouble?', a:'Darla: They keep south of here unless invited.', b:'Roy: Tonight nobody invited them.' },
+    { player:'Iron Dogs come through?', a:'Roy: Two bikers, no colors.', b:'Waitress: Oil on their boots, money in hand.' },
+    { player:'Receipt Crew around?', a:'Honey: They like markets, not clubs.', b:'Darla: They like any place with a register.' },
+    { player:'Who touched the payphone?', a:'Earl: Gray coat.', b:'Vice Cop: Called, waited, left.' },
+    { player:'What did gray coat look like?', a:'Martin: Tall, cheap hat, clean shoes.', b:'Roy: Shoes were not clean when I was done.' },
+    { player:'Anybody bleeding?', a:'Waitress: Bathroom sink had pink water.', b:'Darla: I told Nole to fix the lock.' },
+    { player:'Bathroom locked?', a:'Nole: Temporarily.', b:'Honey: Temporarily since Tuesday.' },
+    { player:'Any envelopes change hands?', a:'Paulie: People hand paper around all day.', b:'Vince: Some paper buys silence.' },
+    { player:'Who talks to Paulie?', a:'Paulie: Friends.', b:'Darla: Debtors.' },
+    { player:'Who talks to Vince?', a:'Vince: Fans.', b:'Roy: Knives.' },
+    { player:'Honey, what did you see?', a:'Honey: A man scared enough to tip before sitting.', b:'Paulie: She sees too much.' },
+    { player:'Darla, what did you pour?', a:'Darla: Rye, club soda, and a lie about being fine.', b:'Businessman: That was private.' },
+    { player:'Roy, who did you toss?', a:'Roy: Hat man with shaking hands.', b:'Earl: He bounced off the door frame.' },
+    { player:'Nole, who rents the office phone?', a:'Nole: Nobody rents my office.', b:'Darla: He means the price went up.' },
+    { player:'Anybody talk about City Hall?', a:'Vice Cop: Always.', b:'Honey: Tonight they said courthouse files moved.' },
+    { player:'Courthouse files?', a:'Martin: I did not say files.', b:'Darla: You just did.' },
+    { player:'Who came from the harbor?', a:'Earl: Salt smell on a wool coat.', b:'Roy: Dock men do not wear wool unless somebody else bought it.' },
+    { player:'Who left with the dancer?', a:'Off-shift Dancer: Nobody leaves with us without being seen.', b:'Waitress: That is the point of Roy.' },
+    { player:'Any private booth argument?', a:'Honey: Booth three heard debt.', b:'Paulie: Booth three should mind itself.' },
+    { player:'Debt to who?', a:'Paulie: Not your case.', b:'Vince: That means it is exactly your case.' },
+    { player:'Any police on payroll here?', a:'Vice Cop: Ask Internal Affairs.', b:'Darla: They do not drink here. Too visible.' },
+    { player:'Who is lying?', a:'Honey: Everybody, but one man is sweating truth.', b:'Martin: I would like to leave.' },
+    { player:'No one leaves yet.', a:'Roy: Then I need that in writing.', b:'Nole: And preferably with a warrant.' },
+    { player:'Who saw the alley door?', a:'Waitress: I saw it shut itself.', b:'Vince: Doors do not owe statements.' },
+    { player:'Did the music stop?', a:'Darla: Needle skipped once.', b:'Earl: Right when the office door slammed.' },
+    { player:'Who slammed it?', a:'Nole: Old hinges.', b:'Honey: New panic.' },
+    { player:'Any car keys found?', a:'Roy: One set by the mat.', b:'Darla: Nole put them in the till.' },
+    { player:'Nole, give me the keys.', a:'Nole: Evidence needs paperwork.', b:'Vice Cop: So does obstruction.' },
+    { player:'Last chance. What did I miss?', a:'Honey: The scared ones look at the exits.', b:'Darla: The guilty ones already know where they are.' }
+  ];
+
+    function now047() { return (typeof performance !== 'undefined' ? performance.now() : Date.now()); }
+    function actor047(scene) { return scene?.playerBody || scene?.player || null; }
+    function pointInRect047(x, y, r) { return x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h; }
+    function actorPointInRect047(scene, r) {
+      const a = actor047(scene);
       if (!a || !r) return false;
-      const x = Number(a.x || 0), y = Number(a.y || 0);
-      const aw = Number(a.displayWidth || a.width || 36), ah = Number(a.displayHeight || a.height || 48);
-      const ax1 = x - aw * 0.5, ay1 = y - ah * 0.5, ax2 = x + aw * 0.5, ay2 = y + ah * 0.5;
-      const bx1 = r.x, by1 = r.y, bx2 = r.x + r.w, by2 = r.y + r.h;
-      return !(ax2 < bx1 || ax1 > bx2 || ay2 < by1 || ay1 > by2);
+      return pointInRect047(Number(a.x || 0), Number(a.y || 0), r);
     }
-    function installZones044() {
-      if (!Array.isArray(INTERACTION_ZONES)) return;
-      for (const src of NEON_ENTRY_ZONES_044) {
-        const found = INTERACTION_ZONES.find(z => z.id === src.id);
-        if (found) Object.assign(found, src);
-        else INTERACTION_ZONES.push({ ...src });
-      }
+    function actorBoundsInRect047(scene, r) {
+      const a = actor047(scene);
+      if (!a || !r) return false;
+      if (actorPointInRect047(scene, r)) return true;
+      try {
+        const b = a.getBounds?.();
+        if (b && Phaser?.Geom?.Rectangle) return Phaser.Geom.Rectangle.Overlaps(new Phaser.Geom.Rectangle(r.x, r.y, r.w, r.h), b);
+      } catch (_) {}
+      return false;
     }
-    function activeZone044(scene) {
-      const a = actor044(scene);
-      if (!a) return null;
-      for (const z of NEON_ENTRY_ZONES_044) {
-        if (rectOverlap044(a, z)) return z;
-      }
-      return null;
-    }
-    function canEnter044(scene) {
-      return now044(scene) >= Number(scene?._neonEntryGraceUntil044 || 0);
-    }
-    function seedGrace044(scene) {
-      scene._neonEntryGraceUntil044 = activeZone044(scene) ? now044(scene) + 950 : 0;
-    }
-    function stopActor044(scene) {
-      try { scene?.player?.body?.setVelocity?.(0,0); } catch (_) {}
+    function setLock047(scene, ms=850) { scene._walkTransitionLock047 = now047() + ms; }
+    function isLocked047(scene) { return now047() < Number(scene?._walkTransitionLock047 || 0) || now047() < Number(scene?._ignoreWalkTransitionsUntil047 || 0); }
+    function stopActor047(scene) {
       try { scene?.playerBody?.body?.setVelocity?.(0,0); } catch (_) {}
+      try { scene?.player?.body?.setVelocity?.(0,0); } catch (_) {}
       try { scene?.car?.body?.setVelocity?.(0,0); } catch (_) {}
+      try { scene?.playerSprite?.anims?.stop?.(); } catch (_) {}
     }
-    function enterNeon044(scene) {
-      if (!scene || scene.scene?.key !== 'GameScene') return false;
-      if (!canEnter044(scene)) return false;
-      const current = now044(scene);
-      if (current < Number(scene._neonTransitionLock044 || 0)) return true;
-      scene._neonTransitionLock044 = current + 700;
-      const a = actor044(scene) || { x: 2660, y: 1210 };
-      const ret = { x: Math.round(Number(a.x) || 2660), y: Math.round(Number(a.y) || 1210) };
-      stopActor044(scene);
-      scene.scene.start('NeonNightsInteriorScene', {
-        fromWorld: true,
-        returnSpawn: ret,
-        return: ret,
-        spawn: { x: 800, y: 820, facing:'N' },
-        message: 'Entered Neon Nights.'
-      });
+    function addRing047(scene, r, color=0x45e6ff) {
+      if (!SHOW_TRIGGER_RINGS_047 || !scene?.add || scene[`_ring_${r.id}`]) return;
+      const cx = r.x + r.w / 2, cy = r.y + r.h / 2;
+      const ring = scene.add.circle(cx, cy, Math.max(r.w, r.h) * 0.52, color, 0.10)
+        .setDepth(2300)
+        .setStrokeStyle(4, color, 0.75);
+      scene[`_ring_${r.id}`] = ring;
+    }
+    function fadeScene047(scene, targetKey, data, ms=170) {
+      if (!scene || isLocked047(scene)) return true;
+      setLock047(scene, 1150);
+      stopActor047(scene);
+      try { scene.cameras.main.fadeOut(ms, 0,0,0); } catch (_) {}
+      scene.time.delayedCall(ms + 25, () => scene.scene.start(targetKey, data || {}));
       return true;
     }
 
-    installZones044();
+    function installNeonWorldZones047() {
+      if (!Array.isArray(INTERACTION_ZONES)) return;
+      for (const src of NEON_WORLD_ENTRIES_047) {
+        const old = INTERACTION_ZONES.find(z => z.id === src.id);
+        if (old) Object.assign(old, src);
+        else INTERACTION_ZONES.push({ ...src });
+      }
+      // Keep any previous broad Neon door record narrowed to the current precise slot.
+      const primary = NEON_WORLD_ENTRIES_047[0];
+      const door = INTERACTION_ZONES.find(z => z.id === 'chunk_d_neon_nights_door');
+      if (door) Object.assign(door, NEON_WORLD_ENTRIES_047[2]);
+    }
+    function activeNeonWorldZone047(scene) {
+      if (!scene || scene.scene?.key !== 'GameScene' || scene.inCar) return null;
+      for (const z of NEON_WORLD_ENTRIES_047) if (actorPointInRect047(scene, z)) return z;
+      return null;
+    }
+    function inLegacyNeonArea047(scene) {
+      if (!scene || scene.scene?.key !== 'GameScene' || scene.inCar) return false;
+      const legacy = [
+        { x:1840, y:1180, w:1900, h:1940 },
+        { x:2520, y:1450, w:1100, h:950 },
+        { x:2145, y:2140, w:760, h:680 },
+        { x:2460, y:1020, w:380, h:360 },
+        { x:2475, y:1015, w:430, h:390 }
+      ];
+      return legacy.some(r => actorBoundsInRect047(scene, r));
+    }
+    function enterNeonFromWorld047(scene, z) {
+      if (!scene || scene.scene?.key !== 'GameScene' || isLocked047(scene)) return true;
+      const exit = { x:Math.round(Number(z?.exitX || 2860)), y:Math.round(Number(z?.exitY || 1990)) };
+      return fadeScene047(scene, 'NeonNightsInteriorScene', {
+        fromWorld:true,
+        returnSpawn:exit,
+        spawn:{ ...NEON_INTERIOR_SPAWN_047 },
+        message:'Entered Neon Nights.'
+      });
+    }
+    function exitNeonToStreet047(scene) {
+      if (!scene || scene.scene?.key !== 'NeonNightsInteriorScene' || isLocked047(scene)) return true;
+      if (typeof scene.shutdownClubAudio === 'function') scene.shutdownClubAudio();
+      const r = scene.returnSpawn || scene.dataIn?.returnSpawn || { x:2860, y:1990 };
+      return fadeScene047(scene, 'GameScene', {
+        fromStationExit:true,
+        fromNeonExit:true,
+        noAutoNeonEnter047:true,
+        spawn:{ x:Math.round(Number(r.x || 2860)), y:Math.round(Number(r.y || 1990)) },
+        message:'Exited Neon Nights. Main music restored.'
+      });
+    }
+    function exitKimsToStreet047(scene) {
+      if (!scene || scene.scene?.key !== 'KimsCornerMarketScene' || isLocked047(scene)) return true;
+      const state = typeof ensureMalcolmMorningState022 === 'function' ? ensureMalcolmMorningState022() : (GAME?.malcolm || {});
+      const msg = state.outfitEquipped ? 'Morning shift: go to the police station and meet Ramos.' : 'You should equip your detective outfit from the closet before shift.';
+      return fadeScene047(scene, 'GameScene', {
+        fromStationExit:true,
+        fromKimsFrontDoor:true,
+        noAutoNeonEnter047:true,
+        spawn:{ ...KIMS_STREET_SPAWN_047 },
+        message:msg
+      });
+    }
+
+    function nearestNeonNpc047(scene, maxDist=125) {
+      const p = actor047(scene);
+      if (!p || !Array.isArray(scene?.npcs)) return null;
+      let best = null, bd = maxDist;
+      for (const n of scene.npcs) {
+        if (!n?.active || !n.visible) continue;
+        const d = Phaser.Math.Distance.Between(p.x, p.y, n.x, n.y);
+        if (d < bd) { best = n; bd = d; }
+      }
+      return best;
+    }
+    function bubble047(scene, obj, text, color='#ffffff', hold=3400) {
+      if (!scene?.add || !obj || !text) return;
+      const t = scene.add.text(obj.x, obj.y - 78, String(text), {
+        fontFamily:'Courier New', fontSize:'13px', color, backgroundColor:'rgba(0,0,0,.70)',
+        stroke:'#000000', strokeThickness:3, padding:{ left:5, right:5, top:3, bottom:3 }, wordWrap:{ width:240 }
+      }).setOrigin(0.5, 1).setDepth(2450).setAlign('center');
+      scene.tweens.add({ targets:t, y:t.y - 18, alpha:0, delay:hold-900, duration:900, ease:'Sine.easeOut', onComplete:() => t.destroy() });
+    }
+    function talkToNearestNeonNpc047(scene) {
+      if (!scene || scene.scene?.key !== 'NeonNightsInteriorScene') return false;
+      const npc = nearestNeonNpc047(scene, 135);
+      if (!npc) {
+        scene.message = 'No one is close enough to talk.';
+        scene.messageTimer = 1400;
+        return true;
+      }
+      const idx = Number(scene._neonPlayerTalkIndex047 || 0) % NEON_CONVOS_047.length;
+      scene._neonPlayerTalkIndex047 = idx + 1;
+      const c = NEON_CONVOS_047[idx];
+      const p = actor047(scene);
+      bubble047(scene, p, `Malcolm: ${c.player}`, '#f4d28a', 3300);
+      scene.time.delayedCall(500, () => bubble047(scene, npc, c.a, '#ffffff', 3800));
+      scene.message = `${npc.neonName || 'Club regular'} talks with Malcolm.`;
+      scene.messageTimer = 3600;
+      return true;
+    }
+    function dir047(dx, dy) {
+      const a = Phaser.Math.RadToDeg(Math.atan2(dy, dx));
+      return ['E','SE','S','SW','W','NW','N','NE'][Math.round(((a + 360) % 360) / 45) % 8];
+    }
+    function playWalk047(scene, npc, dx, dy) {
+      const key = npc?.texture?.key;
+      if (!key || !scene?.anims) return;
+      const anim = `${key}_${dir047(dx, dy)}_walk`;
+      if (scene.anims.exists(anim)) npc.play(anim, true);
+    }
+    function startNpcRoute047(scene, npc, home) {
+      if (!scene || !npc?.active || npc._route047) return;
+      npc._home047 = home || { x:npc.x, y:npc.y };
+      const points = [
+        { x:Math.max(410, npc._home047.x - 120), y:Math.max(375, npc._home047.y - 80) },
+        { x:Math.min(1160, npc._home047.x + 135), y:Math.max(390, npc._home047.y - 40) },
+        { x:Math.min(1170, npc._home047.x + 95), y:Math.min(760, npc._home047.y + 125) },
+        { x:Math.max(390, npc._home047.x - 95), y:Math.min(770, npc._home047.y + 95) }
+      ];
+      let i = Math.floor(Math.random() * points.length);
+      const go = () => {
+        if (!scene.scene?.isActive() || !npc.active) return;
+        const p = points[i++ % points.length];
+        const dx = p.x - npc.x, dy = p.y - npc.y;
+        playWalk047(scene, npc, dx, dy);
+        npc._route047 = scene.tweens.add({
+          targets:npc, x:p.x, y:p.y, duration:Phaser.Math.Between(1700, 3100), ease:'Sine.easeInOut',
+          onUpdate:() => npc.setDepth?.(Math.round(npc.y)),
+          onComplete:() => {
+            try { npc.anims?.stop?.(); } catch (_) {}
+            scene.time.delayedCall(Phaser.Math.Between(500, 1500), go);
+          }
+        });
+      };
+      go();
+    }
+    function setupNeonNpcChatter047(scene) {
+      if (!scene || scene._neonChatterReady047) return;
+      scene._neonChatterReady047 = true;
+      scene.talkToNearestNeonNpc047 = () => talkToNearestNeonNpc047(scene);
+      const walkers = (scene.npcs || []).filter(n => /Earl|Martin|regular|vice|waitress|Off-shift|Dancer/i.test(n.neonName || ''));
+      for (const n of walkers) startNpcRoute047(scene, n, { x:n.x, y:n.y });
+      scene.time.addEvent({
+        delay:5200,
+        loop:true,
+        callback:() => {
+          if (!scene.scene?.isActive() || !Array.isArray(scene.npcs) || scene.npcs.length < 2) return;
+          const pool = scene.npcs.filter(n => n?.active && n.visible && Phaser.Math.Distance.Between(n.x, n.y, 800, 560) < 650);
+          if (pool.length < 2) return;
+          const a = Phaser.Utils.Array.GetRandom(pool);
+          let b = Phaser.Utils.Array.GetRandom(pool);
+          if (a === b) b = Phaser.Utils.Array.GetRandom(pool);
+          const c = NEON_CONVOS_047[Math.floor(Math.random() * NEON_CONVOS_047.length)];
+          bubble047(scene, a, c.a, '#ffffff');
+          scene.time.delayedCall(700, () => bubble047(scene, b, c.b, '#86e7ff'));
+        }
+      });
+    }
+
+    function worldTalkOnly047(scene) {
+      if (!scene || scene.scene?.key !== 'GameScene') return false;
+      if (!scene.closestZone && typeof scene.isRamosNearPlayer === 'function' && scene.isRamosNearPlayer()) {
+        scene.ramosActionTalk?.();
+        return true;
+      }
+      if (scene.closestZone && /neon/i.test(`${scene.closestZone.id || ''} ${scene.closestZone.label || ''}`)) {
+        scene.message = 'Walk onto the Neon Nights door circle to enter. A talks to NPCs only.';
+        scene.messageTimer = 1000;
+        scene.setPrompt?.('Walk-on door trigger. A talks only.');
+        return true;
+      }
+      return false;
+    }
+    function safeCarOrArrest047(scene) {
+      if (!scene || scene.scene?.key !== 'GameScene') return false;
+      if (scene.inCar) {
+        scene.inCar=false;
+        if (GAME?.ramos) GAME.ramos.inCar = false;
+        scene.player?.setVisible?.(false)?.setPosition?.(scene.car.x-34, scene.car.y+8);
+        if (scene.player?.body) { scene.player.body.enable=true; scene.player.body.setVelocity(0,0); }
+        scene.updatePlayerSprite?.(false);
+        if (scene.ramosBody) scene.ramosBody.setPosition(scene.player.x + 48, scene.player.y + 10);
+        if (scene.car?.body) scene.car.body.setVelocity(0,0);
+        scene.car.vx = scene.car.vy = 0;
+        scene.cameras.main.startFollow(scene.player,true,CAMERA.followLerp,CAMERA.followLerp);
+        scene.cameras.main.setDeadzone(42, 32);
+        scene.cameras.main.setZoom(getManualCameraZoom(CAMERA.playerZoom));
+        if (GAME?.car?.visualState) GAME.car.visualState.driverDoorOpen=true;
+        scene.syncVehicleSprites?.();
+        scene.time.delayedCall(900,()=>{ if (GAME?.car?.visualState) GAME.car.visualState.driverDoorOpen=false; scene.syncVehicleSprites?.(); });
+        scene.message='Exited vehicle.';
+        scene.messageTimer=1800;
+        return true;
+      }
+      if (typeof scene.canUseCar === 'function' && scene.canUseCar()) {
+        scene.inCar=true;
+        if (GAME?.ramos && GAME.ramos.onDuty && !GAME.ramos.dismissed) GAME.ramos.inCar = true;
+        scene.player?.setVisible?.(false);
+        if (scene.player?.body) scene.player.body.enable=false;
+        scene.playerSprite?.setVisible?.(false);
+        scene.setRamosVisible?.(false);
+        scene.cameras.main.startFollow(scene.car,true,CAMERA.followLerp,CAMERA.followLerp);
+        scene.cameras.main.setDeadzone(62, 48);
+        if (GAME?.car?.visualState) GAME.car.visualState.driverDoorOpen=true;
+        scene.syncVehicleSprites?.();
+        scene.time.delayedCall(700,()=>{ if (GAME?.car?.visualState) GAME.car.visualState.driverDoorOpen=false; scene.syncVehicleSprites?.(); });
+        scene.message='Entered unmarked sedan.';
+        scene.messageTimer=1800;
+        return true;
+      }
+      scene.tryArrest?.();
+      return true;
+    }
 
     if (typeof GameScene !== 'undefined') {
-      const oldCreate044 = GameScene.prototype.create;
+      const oldCreate047 = GameScene.prototype.create;
       GameScene.prototype.create = function() {
-        const result = oldCreate044 ? oldCreate044.apply(this, arguments) : undefined;
-        installZones044();
-        this._neonTransitionLock044 = 0;
-        seedGrace044(this);
+        const result = oldCreate047 ? oldCreate047.apply(this, arguments) : undefined;
+        installNeonWorldZones047();
+        if (this.entryData?.noAutoNeonEnter047 || this.entryData?.fromNeonExit || this.scene?.settings?.data?.fromNeonExit) this._ignoreWalkTransitionsUntil047 = now047() + 1200;
+        for (const z of NEON_WORLD_ENTRIES_047) addRing047(this, z, 0xff4fb8);
         return result;
       };
-
-      const oldUpdateClosest044 = GameScene.prototype.updateClosestZone;
+      const oldUpdateClosest047 = GameScene.prototype.updateClosestZone;
       GameScene.prototype.updateClosestZone = function() {
-        const result = oldUpdateClosest044 ? oldUpdateClosest044.call(this) : undefined;
-        const z = activeZone044(this);
-        if (z && canEnter044(this)) this.closestZone = z;
+        const result = oldUpdateClosest047 ? oldUpdateClosest047.call(this) : undefined;
+        const exact = activeNeonWorldZone047(this);
+        if (exact) this.closestZone = exact;
+        else if (this.closestZone && /neon/i.test(`${this.closestZone.id || ''} ${this.closestZone.label || ''}`)) this.closestZone = null;
         return result;
       };
-
-      const oldUpdate044 = GameScene.prototype.update;
+      const oldUpdate047 = GameScene.prototype.update;
       GameScene.prototype.update = function(time, delta) {
-        const result = oldUpdate044 ? oldUpdate044.call(this, time, delta) : undefined;
-        const z = activeZone044(this);
+        const result = oldUpdate047 ? oldUpdate047.call(this, time, delta) : undefined;
+        installNeonWorldZones047();
+        const z = activeNeonWorldZone047(this);
         if (z) {
-          if (canEnter044(this)) {
-            if (typeof this.setPrompt === 'function') this.setPrompt('Neon Nights: press A to enter.');
-            this.message = 'Neon Nights nearby. Press A to enter.';
-            this.messageTimer = Math.max(Number(this.messageTimer || 0), 80);
-          } else {
-            this.message = 'Outside Neon Nights.';
-            this.messageTimer = Math.max(Number(this.messageTimer || 0), 40);
-          }
+          this.setPrompt?.('Entering Neon Nights...');
+          if (!isLocked047(this)) enterNeonFromWorld047(this, z);
         }
         return result;
       };
-
-      const oldEnterBuilding044 = GameScene.prototype.enterBuilding;
-      GameScene.prototype.enterBuilding = function(zone) {
-        const s = `${zone?.id || ''} ${zone?.label || ''}`;
-        if (/neon[_\s-]*nights/i.test(s)) return enterNeon044(this);
-        return oldEnterBuilding044 ? oldEnterBuilding044.call(this, zone) : undefined;
-      };
-
-      const oldHandleInteract044 = GameScene.prototype.handleInteract;
+      const oldHandleInteract047 = GameScene.prototype.handleInteract;
       GameScene.prototype.handleInteract = function() {
-        if (activeZone044(this)) return enterNeon044(this);
-        return oldHandleInteract044 ? oldHandleInteract044.call(this) : undefined;
+        const exact = activeNeonWorldZone047(this);
+        if (exact) {
+          this.message = 'Walk through the Neon Nights door circle to enter. A talks to NPCs only.';
+          this.messageTimer = 1100;
+          this.setPrompt?.('Walk-on door trigger.');
+          return true;
+        }
+        if (inLegacyNeonArea047(this)) return worldTalkOnly047(this) || true;
+        return oldHandleInteract047 ? oldHandleInteract047.call(this) : undefined;
       };
-
-      const oldHandleCarOrArrest044 = GameScene.prototype.handleCarOrArrest;
+      const oldCarOrArrest047 = GameScene.prototype.handleCarOrArrest;
       GameScene.prototype.handleCarOrArrest = function() {
-        if (activeZone044(this)) return enterNeon044(this);
-        return oldHandleCarOrArrest044 ? oldHandleCarOrArrest044.call(this) : undefined;
+        if (activeNeonWorldZone047(this) || inLegacyNeonArea047(this)) return safeCarOrArrest047(this);
+        return oldCarOrArrest047 ? oldCarOrArrest047.call(this) : undefined;
+      };
+    }
+
+    if (typeof KimsCornerMarketScene !== 'undefined') {
+      const oldCreateKims047 = KimsCornerMarketScene.prototype.create;
+      KimsCornerMarketScene.prototype.create = function() {
+        const result = oldCreateKims047 ? oldCreateKims047.apply(this, arguments) : undefined;
+        this._ignoreWalkTransitionsUntil047 = now047() + 650;
+        addRing047(this, KIMS_FRONT_EXIT_047, 0x45e6ff);
+        return result;
+      };
+      const oldUpdateKims047 = KimsCornerMarketScene.prototype.update;
+      KimsCornerMarketScene.prototype.update = function(time, delta) {
+        const result = oldUpdateKims047 ? oldUpdateKims047.call(this, time, delta) : undefined;
+        if (actorPointInRect047(this, KIMS_FRONT_EXIT_047)) {
+          this.setPrompt?.('Walk through the front door to exit.');
+          if (!isLocked047(this)) exitKimsToStreet047(this);
+        }
+        return result;
+      };
+      const oldInteractKims047 = KimsCornerMarketScene.prototype.handleInteract;
+      KimsCornerMarketScene.prototype.handleInteract = function() {
+        if (actorPointInRect047(this, KIMS_FRONT_EXIT_047)) {
+          this.setPrompt?.('Walk through the front door to exit. A is not used for doors.');
+          return true;
+        }
+        return oldInteractKims047 ? oldInteractKims047.call(this) : undefined;
+      };
+    }
+
+    if (typeof NeonNightsInteriorScene !== 'undefined') {
+      const oldInitNeon047 = NeonNightsInteriorScene.prototype.init;
+      NeonNightsInteriorScene.prototype.init = function(data) {
+        const result = oldInitNeon047 ? oldInitNeon047.call(this, data) : undefined;
+        this.dataIn = data || this.dataIn || {};
+        this.returnSpawn = this.dataIn.returnSpawn || this.returnSpawn || { x:2860, y:1990 };
+        if (this.dataIn.fromWorld || !this.dataIn.spawn) this.dataIn.spawn = { ...NEON_INTERIOR_SPAWN_047 };
+        return result;
+      };
+      const oldCreateNeon047 = NeonNightsInteriorScene.prototype.create;
+      NeonNightsInteriorScene.prototype.create = function() {
+        const result = oldCreateNeon047 ? oldCreateNeon047.apply(this, arguments) : undefined;
+        this._ignoreWalkTransitionsUntil047 = now047() + 850;
+        if (this.playerBody && this.dataIn?.spawn) {
+          const s = this.dataIn.spawn;
+          this.playerBody.setPosition?.(s.x ?? NEON_INTERIOR_SPAWN_047.x, s.y ?? NEON_INTERIOR_SPAWN_047.y);
+          this.playerSprite?.setPosition?.(this.playerBody.x, this.playerBody.y);
+          this.playerFacing = s.facing || this.playerFacing || 'S';
+        }
+        addRing047(this, NEON_INTERIOR_EXIT_047, 0xff4fb8);
+        setupNeonNpcChatter047(this);
+        return result;
+      };
+      const oldUpdateNeon047 = NeonNightsInteriorScene.prototype.update;
+      NeonNightsInteriorScene.prototype.update = function(time, delta) {
+        const result = oldUpdateNeon047 ? oldUpdateNeon047.call(this, time, delta) : undefined;
+        if (actorPointInRect047(this, NEON_INTERIOR_EXIT_047)) {
+          this.setPrompt?.('Walk through front door to Red Gull Strip. A talks to NPCs only.');
+          if (!isLocked047(this)) exitNeonToStreet047(this);
+        }
+        return result;
+      };
+      const oldInteractNeon047 = NeonNightsInteriorScene.prototype.handleInteract;
+      NeonNightsInteriorScene.prototype.handleInteract = function() {
+        if (this.pauseMenuOpen) return;
+        if (actorPointInRect047(this, NEON_INTERIOR_EXIT_047)) {
+          this.setPrompt?.('Walk through the front door to exit. A is reserved for talking.');
+          return true;
+        }
+        return talkToNearestNeonNpc047(this) || (oldInteractNeon047 ? oldInteractNeon047.call(this) : undefined);
       };
     }
 
     if (typeof MobileControlsScene !== 'undefined') {
-      const oldFire044 = MobileControlsScene.prototype.fireAction;
+      const oldGetTarget047 = MobileControlsScene.prototype.getTargetScene;
+      MobileControlsScene.prototype.getTargetScene = function() {
+        for (const key of ['NeonNightsInteriorScene', 'KimsCornerMarketScene', 'MalcolmApartmentScene', 'NeonNightsBackRoomScene', 'PoliceStationScene', 'GameScene', 'InteriorScene', 'ReportScene']) {
+          const s = this.scene.get(key);
+          if (s?.scene?.isActive()) return s;
+        }
+        return oldGetTarget047 ? oldGetTarget047.call(this) : null;
+      };
+      const oldFire047 = MobileControlsScene.prototype.fireAction;
       MobileControlsScene.prototype.fireAction = function(key) {
         const target = this.getTargetScene?.();
-        if (target?.scene?.key === 'GameScene' && key === 'a') {
-          if (activeZone044(target)) {
-            enterNeon044(target);
-            return;
-          }
+        const sk = target?.scene?.key;
+        if (sk === 'GameScene' && (activeNeonWorldZone047(target) || inLegacyNeonArea047(target))) {
+          if (key === 'a') { worldTalkOnly047(target); return; }
+          if (key === 'b') { safeCarOrArrest047(target); return; }
         }
-        return oldFire044 ? oldFire044.call(this, key) : undefined;
+        if (sk === 'KimsCornerMarketScene' && key === 'a' && actorPointInRect047(target, KIMS_FRONT_EXIT_047)) {
+          target.setPrompt?.('Walk through the front door to exit.');
+          return;
+        }
+        if (sk === 'NeonNightsInteriorScene') {
+          if (key === 'a') { target.talkToNearestNeonNpc047?.(); return; }
+          if (key === 'b' && actorPointInRect047(target, NEON_INTERIOR_EXIT_047)) { target.setPrompt?.('Walk through the front door to exit.'); return; }
+        }
+        return oldFire047 ? oldFire047.call(this, key) : undefined;
       };
     }
   })();
 
-
+  new Phaser.Game({ type: Phaser.AUTO, parent: 'game', width: VIEW_W, height: VIEW_H, backgroundColor: '#05070b', pixelArt: true, roundPixels: true, scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }, physics: { default: 'arcade', arcade: { debug: false } }, scene: [TitleScene, MalcolmApartmentScene, KimsCornerMarketScene, NeonNightsInteriorScene, NeonNightsBackRoomScene, PoliceStationScene, ElevatorRoomScene, GameScene, InteriorScene, ReportScene, MobileControlsScene] });
+})();
 </script>
 </body>
 </html>
