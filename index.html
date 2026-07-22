@@ -68,7 +68,12 @@
   // SINGLE_WORLD_NO_OVERLAP_PATCH_018: single full-world ground, no overlapping chunk layers.
   // INTERSECTION_CAR_ASSIST_PATCH_021: smaller car body, open intersections, gas latch, low-speed turning assist.
   const VIEW_W = 960, VIEW_H = 540, WORLD_W = 4096, WORLD_H = 4096;
-  const ASSET_BASE = window.location.hostname.endsWith('github.io') ? '/The-Report/' : './';
+  // ASSET_BASE_SELF_LOCATING_051: resolve assets relative to wherever index.html actually lives,
+  // so the same file works at the root site, at /The-Report/, or locally.
+  const ASSET_BASE = (() => {
+    const p = window.location.pathname;
+    return p.slice(0, p.lastIndexOf('/') + 1) || './';
+  })();
   const ASSET_REV = 'blue-lantern-merge-051';
   const A = (p) => {
     const clean = String(p).replace(/^\/?/, '');
